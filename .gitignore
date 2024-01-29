@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Cmake and lsp
+.cache/
+build/
+.gdbinit
+.gdb_history
