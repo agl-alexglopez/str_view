@@ -1,10 +1,8 @@
 #include "string_view.h"
 
-#include <stdio.h>
-
 int
 main()
 {
-    printf("Hello from the sandbox!\n");
-    print();
+    sv_print(sv_from_null("Hello from the sandbox!\n"));
+    return 0;
 }
