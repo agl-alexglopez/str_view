@@ -207,7 +207,11 @@ sv_next(const char *c)
 string_view
 sv_begin_tok(string_view sv, const char *const delim)
 {
-    return sv_copy(sv.s, sv_find_first_of(sv, delim));
+    const size_t start_not = sv_find_first_not_of(sv, delim);
+    sv.s += start_not;
+    sv.sz -= start_not;
+    sv = sv_substr(sv, 0, sv_find_first_of(sv, delim));
+    return sv;
 }
 
 bool
