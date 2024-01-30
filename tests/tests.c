@@ -456,5 +456,20 @@ test_substr(void)
     {
         return false;
     }
+    /* Make sure the fill function adds null terminator */
+    char dump_substr1[27] = {[12] = '!'};
+    sv_fill(dump_substr1, 27, sv_substr(sv_from_str(ref), 0, strlen(substr1)));
+    if (strcmp(substr1, dump_substr1) != 0)
+    {
+        return false;
+    }
+    /* Make sure the fill function adds null terminator */
+    char dump_substr2[27] = {[13] = '!'};
+    sv_fill(dump_substr2, 27,
+            sv_substr(sv_from_str(ref), strlen(substr1) + 1, strlen(substr2)));
+    if (strcmp(substr2, dump_substr2) != 0)
+    {
+        return false;
+    }
     return true;
 }
