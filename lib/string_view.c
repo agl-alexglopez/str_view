@@ -7,7 +7,6 @@
 
 static const char *const nil = "";
 
-static size_t max(size_t, size_t);
 static size_t min(size_t, size_t);
 
 string_view
@@ -315,12 +314,6 @@ size_t
 sv_npos(string_view sv)
 {
     return sv.sz;
-}
-
-static inline size_t
-max(size_t a, size_t b)
-{
-    return a > b ? a : b;
 }
 
 static inline size_t
