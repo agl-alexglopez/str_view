@@ -33,19 +33,19 @@ const char *sv_begin(const string_view *);
 const char *sv_end(const string_view *);
 const char *sv_next(const char *);
 
-string_view sv_begin_tok(string_view, char delim);
+string_view sv_begin_tok(string_view, const char *delim);
 bool sv_end_tok(const string_view *);
-string_view sv_next_tok(string_view);
+string_view sv_next_tok(string_view, const char *delim);
 
 string_view sv_remove_prefix(string_view, size_t n);
 string_view sv_remove_suffix(string_view, size_t n);
 
 string_view sv_substr(string_view, size_t pos, size_t count);
 
-size_t sv_find_first_of(string_view, char delim);
-size_t sv_find_last_of(string_view, char delim);
-size_t sv_find_first_not_of(string_view, char delim);
-size_t sv_find_last_not_of(string_view, char delim);
+size_t sv_find_first_of(string_view, const char *delim);
+size_t sv_find_last_of(string_view, const char *delim);
+size_t sv_find_first_not_of(string_view, const char *delim);
+size_t sv_find_last_not_of(string_view, const char *delim);
 
 void sv_print(string_view);
 

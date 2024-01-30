@@ -256,8 +256,8 @@ test_iter(void)
     }
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(chars, ' ');
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur))
+    string_view cur = sv_begin_tok(chars, " ");
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, " "))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -270,8 +270,8 @@ test_iter(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(chars, ',');
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2))
+    string_view cur2 = sv_begin_tok(chars, ",");
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, ","))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -296,23 +296,23 @@ test_find_blank_of(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     string_view str = sv_from_str(ref);
-    if (sv_find_first_of(str, 'C') != 2)
+    if (sv_find_first_of(str, "C") != 2)
     {
         return false;
     }
-    if (sv_find_first_of(str, '\0') != 19)
+    if (sv_find_first_of(str, "") != 0)
     {
         return false;
     }
-    if (sv_find_last_of(str, '!') != 16)
+    if (sv_find_last_of(str, "!") != 16)
     {
         return false;
     }
-    if (sv_find_first_not_of(str, 'A') != 2)
+    if (sv_find_first_not_of(str, "A") != 2)
     {
         return false;
     }
-    if (sv_find_last_not_of(str, ' ') != 18)
+    if (sv_find_last_not_of(str, " ") != 18)
     {
         return false;
     }
