@@ -291,17 +291,16 @@ static bool
 test_iter_repeating_delim(void)
 {
     printf("test_iter_multi_tok");
-    const char toks[16] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                           'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'};
-    const char *const reference
-        = " A   B  C     D  E F G H I J   K L M N O   P  ";
+    const char *toks[13]
+        = {"A", "B", "C", "D", "E", "F", "G", "HI", "J", "K", "LMN", "O", "P"};
+    const char *const reference = " A   B  C     D  E F G HI J   K LMN O   P  ";
     string_view chars = sv_from_str(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(chars, " ");
     for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, " "))
     {
-        if (sv_front(cur) != toks[i])
+        if (sv_strcmp(cur, toks[i]) != 0)
         {
             return false;
         }
