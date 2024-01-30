@@ -32,6 +32,11 @@ sv_n(const char *const str, size_t n)
     {
         return (string_view){.s = nil, .sz = 0};
     }
+    size_t sz = 0;
+    while (str[sz] != '\0' && sz < n)
+    {
+        ++sz;
+    }
     return (string_view){.s = str, .sz = n};
 }
 
