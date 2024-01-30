@@ -1,5 +1,6 @@
 #include "string_view.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@ static size_t max(size_t, size_t);
 static size_t min(size_t, size_t);
 
 string_view
-sv_from_null(const char *const str)
+sv_from_str(const char *const str)
 {
     if (!str)
     {
@@ -99,9 +100,50 @@ sv_null(void)
 }
 
 const char *
-sv_data(struct string_view sv)
+sv_str(struct string_view sv)
 {
     return sv.s;
+}
+
+int
+sv_svcmp(string_view sv1, string_view sv2)
+{
+    size_t i = 0;
+    const size_t sz = min(sv1.sz, sv2.sz);
+    while (sv1.s[i] == sv2.s[i] && i < sz)
+    {
+        ++i;
+    }
+    if (i == sv1.sz && i == sv2.sz)
+    {
+        return 0;
+    }
+    if (i < sv1.sz && i < sv2.sz)
+    {
+        return ((uint8_t)sv1.s[i] < (uint8_t)sv2.s[i] ? -1 : +1);
+    }
+    return (i < sv1.sz) ? +1 : -1;
+}
+
+int
+sv_strcmp(string_view sv, const char *str, size_t str_sz)
+{
+    return 0;
+    size_t i = 0;
+    const size_t sz = min(sv.sz, str_sz);
+    while (sv.s[i] == str[i] && i < sz)
+    {
+        ++i;
+    }
+    if (i == sv.sz && i == str_sz)
+    {
+        return 0;
+    }
+    if (i < sv.sz && i < str_sz)
+    {
+        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? -1 : +1);
+    }
+    return (i < sv.sz) ? +1 : -1;
 }
 
 char
@@ -157,28 +199,96 @@ sv_end_tok(const string_view *sv, char delim)
 string_view
 sv_next_tok(string_view sv, char delim)
 {
-    if (sv.s[sv.sz - 1] == '\0')
+    if (sv.s[sv.sz] == '\0')
     {
         return (string_view){.s = sv.s + sv.sz, .sz = 0};
     }
     const char *next_search = sv.s + sv.sz + 1;
     size_t next_size = 0;
-    while (next_search[next_size] != delim && next_search[next_size] != '\0')
+    while (next_search[next_size] != '\0' && next_search[next_size] != delim)
     {
         ++next_size;
     }
     return (string_view){.s = next_search, .sz = next_size};
 }
 
+string_view
+sv_remove_prefix(const string_view sv, const size_t n)
+{
+    const size_t remove = min(sv.sz, n);
+    return (string_view){.s = sv.s + remove, .sz = sv.sz - remove};
+}
+
+string_view
+sv_remove_suffix(const string_view sv, const size_t n)
+{
+    return (string_view){.s = sv.s, .sz = sv.sz - min(sv.sz, n)};
+}
+
+string_view
+sv_substr(string_view sv, size_t pos, size_t count)
+{
+    if (pos > sv.sz)
+    {
+        printf("string_view index out of range. pos = %zu size = %zu", pos,
+               sv.sz);
+        exit(1);
+    }
+    return (string_view){.s = sv.s + pos, .sz = min(count, sv.sz - pos)};
+}
+
 size_t
 sv_find_first_of(string_view sv, char delim)
 {
     size_t i = 0;
-    while (sv.s[i] != delim && sv.s[i] != '\0')
+    while (sv.s[i] != '\0' && sv.s[i] != delim)
     {
         ++i;
     }
     return i;
+}
+
+size_t
+sv_find_last_of(string_view sv, char delim)
+{
+    size_t last = sv.sz;
+    size_t i = 0;
+    while (sv.s[i] != '\0')
+    {
+        if (sv.s[i] == delim)
+        {
+            last = i;
+        }
+        ++i;
+    }
+    return last;
+}
+
+size_t
+sv_find_first_not_of(string_view sv, char delim)
+{
+    size_t i = 0;
+    while (sv.s[i] != '\0' && sv.s[i] == delim)
+    {
+        ++i;
+    }
+    return i;
+}
+
+size_t
+sv_find_last_not_of(string_view sv, char delim)
+{
+    size_t last = sv.sz;
+    size_t i = 0;
+    while (sv.s[i] != '\0')
+    {
+        if (sv.s[i] != delim)
+        {
+            last = i;
+        }
+        ++i;
+    }
+    return last;
 }
 
 size_t

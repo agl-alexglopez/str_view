@@ -1,5 +1,6 @@
 #include "string_view.h"
 
+#include <limits.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -44,8 +45,12 @@ static bool test_from_delim_no_delim(void);
 static bool test_front_back(void);
 static bool test_copy_fill(void);
 static bool test_iter(void);
+static bool test_find_blank_of(void);
+static bool test_prefix_suffix(void);
+static bool test_substr(void);
+static bool test_svcmp(void);
 
-#define NUM_TESTS (size_t)8
+#define NUM_TESTS (size_t)12
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -55,6 +60,10 @@ const test_fn all_tests[NUM_TESTS] = {
     test_front_back,
     test_copy_fill,
     test_iter,
+    test_find_blank_of,
+    test_prefix_suffix,
+    test_svcmp,
+    test_substr,
 };
 
 static int
@@ -77,7 +86,7 @@ static bool
 test_empty(void)
 {
     printf("test_empty");
-    if (!sv_empty(sv_from_null("")))
+    if (!sv_empty(sv_from_str("")))
     {
         return false;
     }
@@ -92,7 +101,7 @@ static bool
 test_out_of_bounds(void)
 {
     printf("test_out_of_bounds\n");
-    const string_view sv = sv_from_null("");
+    const string_view sv = sv_from_str("");
     const pid_t exiting_child = fork();
     if (exiting_child == 0)
     {
@@ -119,7 +128,7 @@ test_from_null(void)
 {
     printf("test_from_null\n");
     const char *const reference = "Don't miss the terminator!\n";
-    const string_view sv = sv_from_null(reference);
+    const string_view sv = sv_from_str(reference);
     const size_t reference_len = strlen(reference);
     if (reference_len != sv_len(sv))
     {
@@ -196,12 +205,12 @@ static bool
 test_front_back(void)
 {
     printf("test_front_back");
-    if (sv_back(sv_from_null("")) != '\0' || sv_front(sv_from_null("")) != '\0')
+    if (sv_back(sv_from_str("")) != '\0' || sv_front(sv_from_str("")) != '\0')
     {
         return false;
     }
     const char *const reference = "*The front was * the back is!";
-    const string_view sv = sv_from_null(reference);
+    const string_view sv = sv_from_str(reference);
     const size_t ref_len = strlen(reference);
     if (ref_len != sv_len(sv))
     {
@@ -222,7 +231,7 @@ test_copy_fill(void)
     string_view this = sv_copy(reference, strlen(reference));
     char there[strlen(reference) + 1];
     sv_fill(there, strlen(reference), this);
-    if (strcmp(sv_data(this), there) != 0)
+    if (strcmp(sv_str(this), there) != 0)
     {
         return false;
     }
@@ -234,7 +243,7 @@ test_iter(void)
 {
     printf("test_iter");
     const char *const reference = "A B C D E G H I J K L M N O P";
-    string_view chars = sv_from_null(reference);
+    string_view chars = sv_from_str(reference);
     size_t i = 0;
     for (const char *cur = sv_begin(&chars); cur != sv_end(&chars);
          cur = sv_next(cur))
@@ -247,8 +256,8 @@ test_iter(void)
     }
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    for (string_view cur = sv_begin_tok(chars, ' '); !sv_end_tok(&cur, ' ');
-         cur = sv_next_tok(cur, ' '))
+    string_view cur = sv_begin_tok(chars, ' ');
+    for (; !sv_end_tok(&cur, ' '); cur = sv_next_tok(cur, ' '))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -256,5 +265,147 @@ test_iter(void)
         }
         i += 2;
     }
+    if (*cur.s != '\0')
+    {
+        return false;
+    }
+    /* Do at least one token iteration if we can't find any delims */
+    string_view cur2 = sv_begin_tok(chars, ',');
+    for (; !sv_end_tok(&cur2, ','); cur2 = sv_next_tok(cur2, ','))
+    {
+        if (strcmp(cur2.s, reference) != 0)
+        {
+            return false;
+        }
+    }
+    if (*cur2.s != '\0')
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_find_blank_of(void)
+{
+    printf("test_find_blank_of");
+    const char ref[20] = {
+        [0] = 'A',  [1] = 'A',  [2] = 'C',  [3] = ' ',  [4] = '!',
+        [5] = '!',  [6] = '!',  [7] = ' ',  [8] = '*',  [9] = '*',
+        [10] = ' ', [11] = '_', [12] = '_', [13] = ' ', [14] = '!',
+        [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
+    };
+    string_view str = sv_from_str(ref);
+    if (sv_find_first_of(str, 'C') != 2)
+    {
+        return false;
+    }
+    if (sv_find_first_of(str, '\0') != 19)
+    {
+        return false;
+    }
+    if (sv_find_last_of(str, '!') != 16)
+    {
+        return false;
+    }
+    if (sv_find_first_not_of(str, 'A') != 2)
+    {
+        return false;
+    }
+    if (sv_find_last_not_of(str, ' ') != 18)
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_prefix_suffix(void)
+{
+    printf("test_prefix_suffix");
+    const char *const reference = "Remove the suffix! No, remove the prefix!";
+    const char *const ref_prefix = "Remove the suffix!";
+    const char *const ref_suffix = "No, remove the prefix!";
+    string_view entire_string = sv_from_str(reference);
+    string_view prefix = sv_remove_suffix(entire_string, 23);
+    size_t i = 0;
+    for (const char *c = sv_begin(&prefix); c != sv_end(&prefix);
+         c = sv_next(c))
+    {
+        if (*c != ref_prefix[i])
+        {
+            return false;
+        }
+        ++i;
+    }
+    i = 0;
+    const string_view suffix = sv_remove_prefix(entire_string, 19);
+    for (const char *c = sv_begin(&suffix); c != sv_end(&suffix);
+         c = sv_next(c))
+    {
+        if (*c != ref_suffix[i])
+        {
+            return false;
+        }
+        ++i;
+    }
+    if (!sv_empty(sv_remove_prefix(entire_string, ULLONG_MAX)))
+    {
+        return false;
+    }
+    if (!sv_empty(sv_remove_suffix(entire_string, ULLONG_MAX)))
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_svcmp(void)
+{
+    printf("test_svcmp");
+    if (sv_svcmp(sv_from_str("same"), sv_from_str("same")) != 0)
+    {
+        return false;
+    }
+    /* The comparison function should treat the end of a string view as
+       null terminating character even if it points to a delimeter */
+    if (sv_svcmp(sv_from_str("same"), sv_from_delim("same same", ' ')) != 0)
+    {
+        return false;
+    }
+    if (sv_svcmp(sv_from_str("same"), sv_from_delim("samz same", ' ')) >= 0)
+    {
+        return false;
+    }
+    if (sv_svcmp(sv_from_str("same"), sv_from_delim("sameez same", ' ')) >= 0)
+    {
+        return false;
+    }
+    const char *const str = "same";
+    if (sv_strcmp(sv_from_str(str), str, strlen(str)) != 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(sv_from_delim("same same", ' '), str, strlen(str)) != 0)
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_substr(void)
+{
+    printf("test_substr");
+    const char ref[27] = {
+        [0] = 'A',  [1] = ' ',  [2] = 's',   [3] = 'u',  [4] = 'b',  [5] = 's',
+        [6] = 't',  [7] = 'r',  [8] = 'i',   [9] = 'n',  [10] = 'g', [11] = '!',
+        [12] = ' ', [13] = 'H', [14] = 'a',  [15] = 'v', [16] = 'e', [17] = ' ',
+        [18] = 'a', [19] = 'n', [20] = 'o',  [21] = 't', [22] = 'h', [23] = 'e',
+        [24] = 'r', [25] = '!', [26] = '\0',
+    };
+    const char *const substr1 = "A substring!";
+    const char *const substr2 = "Have another!";
     return true;
 }
