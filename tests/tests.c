@@ -47,12 +47,13 @@ static bool test_copy_fill(void);
 static bool test_iter(void);
 static bool test_iter_repeating_delim(void);
 static bool test_iter_multichar_delim(void);
+static bool test_iter_multichar_delim_short(void);
 static bool test_find_blank_of(void);
 static bool test_prefix_suffix(void);
 static bool test_substr(void);
 static bool test_svcmp(void);
 
-#define NUM_TESTS (size_t)14
+#define NUM_TESTS (size_t)15
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -64,6 +65,7 @@ const test_fn all_tests[NUM_TESTS] = {
     test_iter,
     test_iter_repeating_delim,
     test_iter_multichar_delim,
+    test_iter_multichar_delim_short,
     test_find_blank_of,
     test_prefix_suffix,
     test_svcmp,
@@ -292,7 +294,7 @@ test_iter(void)
 static bool
 test_iter_repeating_delim(void)
 {
-    printf("test_iter_multi_tok");
+    printf("test_iter_repeating_delim");
     const char *toks[14] = {
         "A",  "B", "C", "D",   "E", "F",  "G",
         "HI", "J", "K", "LMN", "O", "Pi", "\\(*.*)/",
@@ -334,7 +336,7 @@ test_iter_repeating_delim(void)
 static bool
 test_iter_multichar_delim(void)
 {
-    printf("test_iter_multi_tok");
+    printf("test_iter_multichar_delim");
     const char *toks[14] = {
         "A",     "B", "C", "D",      "E", "F",  "G",
         "HacbI", "J", "K", "LcbaMN", "O", "Pi", "\\(*.*)/",
@@ -346,6 +348,51 @@ test_iter_multichar_delim(void)
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "abc";
+    const size_t delim_len = strlen(delim);
+    string_view cur = sv_begin_tok(chars, delim, delim_len);
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
+    {
+        if (sv_strcmp(cur, toks[i]) != 0)
+        {
+            return false;
+        }
+        ++i;
+    }
+    if (*cur.s != '\0')
+    {
+        return false;
+    }
+    /* Do at least one token iteration if we can't find any delims */
+    string_view cur2 = sv_begin_tok(chars, " ", 1);
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, " ", 1))
+    {
+        if (strcmp(cur2.s, reference) != 0)
+        {
+            return false;
+        }
+    }
+    if (*cur2.s != '\0')
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_iter_multichar_delim_short(void)
+{
+    printf("test_iter_multichar_delim_close");
+    const char *toks[14] = {
+        "A",     "B", "C", "D",      "E",   "F",  "G",
+        "H---I", "J", "K", "L-M--N", "--O", "Pi", "\\(*.*)/",
+    };
+    const char *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
+                                  "---H---I-----J-----K-----L-M--N"
+                                  "-------O-----Pi-----\\(*.*)/-----";
+    string_view chars = sv_from_str(reference);
+    size_t i = 0;
+    /* This version should only give us the letters because delim is ' ' */
+    const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
     string_view cur = sv_begin_tok(chars, delim, delim_len);
     for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))

@@ -306,7 +306,11 @@ sv_find_first_not_of(string_view sv, const char *const delim,
         ++i;
         delim_i = (delim_i + 1) % delim_sz;
     }
-    return i;
+    /* We need to also reset to the last mismatch we found. Imagine
+       we started to find the delimeter but then the string changed
+       into a mismatch. We go back to get characters that are partially
+       in the delimeter. */
+    return i - delim_i;
 }
 
 size_t
