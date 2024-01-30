@@ -257,7 +257,7 @@ test_iter(void)
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(chars, ' ');
-    for (; !sv_end_tok(&cur, ' '); cur = sv_next_tok(cur, ' '))
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -271,7 +271,7 @@ test_iter(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(chars, ',');
-    for (; !sv_end_tok(&cur2, ','); cur2 = sv_next_tok(cur2, ','))
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -364,7 +364,23 @@ static bool
 test_svcmp(void)
 {
     printf("test_svcmp");
+    if (sv_svcmp(sv_from_str(""), sv_from_str("")) != 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(sv_from_str(""), "") != 0)
+    {
+        return false;
+    }
     if (sv_svcmp(sv_from_str("same"), sv_from_str("same")) != 0)
+    {
+        return false;
+    }
+    if (sv_svcmp(sv_from_str("samz"), sv_from_str("same")) <= 0)
+    {
+        return false;
+    }
+    if (sv_svcmp(sv_from_str("same"), sv_from_str("samz")) >= 0)
     {
         return false;
     }
@@ -378,16 +394,33 @@ test_svcmp(void)
     {
         return false;
     }
-    if (sv_svcmp(sv_from_str("same"), sv_from_delim("sameez same", ' ')) >= 0)
+    if (sv_svcmp(sv_from_delim("sameez same", ' '), sv_from_str("same")) <= 0)
     {
         return false;
     }
     const char *const str = "same";
-    if (sv_strcmp(sv_from_str(str), str, strlen(str)) != 0)
+    if (sv_strcmp(sv_from_str(str), str) != 0)
     {
         return false;
     }
-    if (sv_strcmp(sv_from_delim("same same", ' '), str, strlen(str)) != 0)
+    if (sv_strcmp(sv_from_delim("same same", ' '), str) != 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(sv_from_delim("samez same", ' '), str) <= 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(sv_from_delim("sameez same", ' '), str) <= 0)
+    {
+        return false;
+    }
+    /* strncmp compares at most n bytes inclusize or stops at null term */
+    if (sv_strncmp(sv_from_delim("sameez same", ' '), str, 10) <= 0)
+    {
+        return false;
+    }
+    if (sv_strncmp(sv_from_delim("saaeez same", ' '), str, 3) >= 0)
     {
         return false;
     }
@@ -407,5 +440,21 @@ test_substr(void)
     };
     const char *const substr1 = "A substring!";
     const char *const substr2 = "Have another!";
+    if (sv_strcmp(sv_substr(sv_from_str(ref), 0, strlen(substr1)), substr1)
+        != 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(
+            sv_substr(sv_from_str(ref), strlen(substr1) + 1, strlen(substr2)),
+            substr2)
+        != 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(sv_substr(sv_from_str(ref), 0, ULLONG_MAX), ref) != 0)
+    {
+        return false;
+    }
     return true;
 }

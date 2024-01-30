@@ -86,7 +86,7 @@ sv_at(string_view sv, size_t i)
     if (i >= sv.sz)
     {
         (void)fprintf(stderr,
-                      "string_view index out of range. Size=%zu, i=%zu\n",
+                      "string_view index out of range. size=%zu, index=%zu\n",
                       sv.sz, i);
         exit(1);
     }
@@ -126,20 +126,40 @@ sv_svcmp(string_view sv1, string_view sv2)
 }
 
 int
-sv_strcmp(string_view sv, const char *str, size_t str_sz)
+sv_strcmp(string_view sv, const char *str)
 {
-    return 0;
     size_t i = 0;
-    const size_t sz = min(sv.sz, str_sz);
-    while (sv.s[i] == str[i] && i < sz)
+    const size_t sz = sv.sz;
+    while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
     {
         ++i;
     }
-    if (i == sv.sz && i == str_sz)
+    if (i == sv.sz && str[i] == '\0')
     {
         return 0;
     }
-    if (i < sv.sz && i < str_sz)
+    if (i < sv.sz && str[i] != '\0')
+    {
+        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? -1 : +1);
+    }
+    return (i < sv.sz) ? +1 : -1;
+}
+
+int
+sv_strncmp(string_view sv, const char *str, const size_t n)
+{
+    size_t i = 0;
+    const size_t sz = min(sv.sz, n);
+    while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
+    {
+        ++i;
+    }
+    if (i == sv.sz && sz == n)
+    {
+        return 0;
+    }
+    /* strncmp compares the first at most n bytes inclusive */
+    if (i < sv.sz && sz <= n)
     {
         return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? -1 : +1);
     }
@@ -191,18 +211,19 @@ sv_begin_tok(string_view sv, char delim)
 }
 
 bool
-sv_end_tok(const string_view *sv, char delim)
+sv_end_tok(const string_view *sv)
 {
-    return sv_find_first_of(*sv, delim) == 0;
+    return 0 == sv->sz;
 }
 
 string_view
-sv_next_tok(string_view sv, char delim)
+sv_next_tok(string_view sv)
 {
     if (sv.s[sv.sz] == '\0')
     {
         return (string_view){.s = sv.s + sv.sz, .sz = 0};
     }
+    const char delim = sv.s[sv.sz];
     const char *next_search = sv.s + sv.sz + 1;
     size_t next_size = 0;
     while (next_search[next_size] != '\0' && next_search[next_size] != delim)
@@ -230,8 +251,7 @@ sv_substr(string_view sv, size_t pos, size_t count)
 {
     if (pos > sv.sz)
     {
-        printf("string_view index out of range. pos = %zu size = %zu", pos,
-               sv.sz);
+        printf("string_view index out of range. pos=%zu size=%zu", pos, sv.sz);
         exit(1);
     }
     return (string_view){.s = sv.s + pos, .sz = min(count, sv.sz - pos)};
