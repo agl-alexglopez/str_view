@@ -45,13 +45,14 @@ static bool test_from_delim_no_delim(void);
 static bool test_front_back(void);
 static bool test_copy_fill(void);
 static bool test_iter(void);
+static bool test_iter_repeating_delim(void);
+static bool test_iter_multichar_delim(void);
 static bool test_find_blank_of(void);
 static bool test_prefix_suffix(void);
 static bool test_substr(void);
 static bool test_svcmp(void);
-static bool test_iter_repeating_delim(void);
 
-#define NUM_TESTS (size_t)13
+#define NUM_TESTS (size_t)14
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -61,11 +62,12 @@ const test_fn all_tests[NUM_TESTS] = {
     test_front_back,
     test_copy_fill,
     test_iter,
+    test_iter_repeating_delim,
+    test_iter_multichar_delim,
     test_find_blank_of,
     test_prefix_suffix,
     test_svcmp,
     test_substr,
-    test_iter_repeating_delim,
 };
 
 static int
@@ -316,6 +318,49 @@ test_iter_repeating_delim(void)
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(chars, ",");
     for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, ","))
+    {
+        if (strcmp(cur2.s, reference) != 0)
+        {
+            return false;
+        }
+    }
+    if (*cur2.s != '\0')
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_iter_multichar_delim(void)
+{
+    printf("test_iter_multi_tok");
+    const char *toks[14] = {
+        "A",     "B", "C", "D",      "E", "F",  "G",
+        "HacbI", "J", "K", "LcbaMN", "O", "Pi", "\\(*.*)/",
+    };
+    const char *const reference
+        = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
+          "abcOabcabcPiabcabc\\(*.*)/abc";
+    string_view chars = sv_from_str(reference);
+    size_t i = 0;
+    /* This version should only give us the letters because delim is ' ' */
+    string_view cur = sv_begin_tok(chars, "abc");
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, "abc"))
+    {
+        if (sv_strcmp(cur, toks[i]) != 0)
+        {
+            return false;
+        }
+        ++i;
+    }
+    if (*cur.s != '\0')
+    {
+        return false;
+    }
+    /* Do at least one token iteration if we can't find any delims */
+    string_view cur2 = sv_begin_tok(chars, " ");
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, " "))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
