@@ -3,6 +3,6 @@
 int
 main()
 {
-    sv_print(sv_from_str("Hello from the sandbox!\n"));
+    sv_print(sv("Hello from the sandbox!\n"));
     return 0;
 }

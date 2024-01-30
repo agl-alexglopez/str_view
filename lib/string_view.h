@@ -10,8 +10,18 @@ typedef struct string_view
     size_t sz;
 } string_view;
 
-string_view sv_from_str(const char *);
-string_view sv_from_delim(const char *, char delim);
+/* Constructs and returns a string view from a NULL TERMINATED string. */
+string_view sv(const char *);
+
+/* Constructs and returns a string view from a NULL TERMINATED string
+   broken on the first ocurrence of delimeter if found or null
+   terminator if delim cannot be found. This constructor will also
+   skip the delimeter if that delimeter starts the string. For example:
+   const char *const str = "  Hello world!";
+   sv_print(sv_delim(str, " "));
+   <<< "Hello" */
+string_view sv_delim(const char *, const char *delim);
+
 const char *sv_null(void);
 size_t sv_npos(string_view);
 

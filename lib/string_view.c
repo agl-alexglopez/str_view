@@ -11,7 +11,7 @@ static const char *const nil = "";
 static size_t min(size_t, size_t);
 
 string_view
-sv_from_str(const char *const str)
+sv(const char *const str)
 {
     if (!str)
     {
@@ -26,18 +26,18 @@ sv_from_str(const char *const str)
 }
 
 string_view
-sv_from_delim(const char *const str, char delim)
+sv_delim(const char *const str, const char *const delim)
 {
     if (!str)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    size_t sz = 0;
-    while (str[sz] != delim && str[sz] != '\0')
-    {
-        ++sz;
-    }
-    return (string_view){.s = str, .sz = sz};
+    return sv_begin_tok(
+        (string_view){
+            .s = str,
+            .sz = strlen(str),
+        },
+        delim, strlen(delim));
 }
 
 void
@@ -270,6 +270,10 @@ sv_substr(string_view sv, size_t pos, size_t count)
 size_t
 sv_find_first_of(string_view sv, const char *const delim)
 {
+    if (strlen(delim) >= sv.sz)
+    {
+        return sv.sz;
+    }
     const char *const found = strstr(sv.s, delim);
     if (NULL == found)
     {
@@ -281,6 +285,10 @@ sv_find_first_of(string_view sv, const char *const delim)
 size_t
 sv_find_last_of(string_view sv, const char *const delim)
 {
+    if (strlen(delim) >= sv.sz)
+    {
+        return sv.sz;
+    }
     const char *last_found = NULL;
     const char *found = sv.s;
     while ((found = strstr(found, delim)) != NULL)
@@ -299,6 +307,10 @@ size_t
 sv_find_first_not_of(string_view sv, const char *const delim,
                      const size_t delim_sz)
 {
+    if (delim_sz >= sv.sz)
+    {
+        return 0;
+    }
     size_t i = 0;
     size_t delim_i = 0;
     while (sv.s[i] != '\0' && delim[delim_i] == sv.s[i])
@@ -316,6 +328,11 @@ sv_find_first_not_of(string_view sv, const char *const delim,
 size_t
 sv_find_last_not_of(string_view sv, const char *const delim)
 {
+    const size_t delim_sz = strlen(delim);
+    if (delim_sz >= sv.sz)
+    {
+        return sv.sz;
+    }
     const char *last_found = NULL;
     const char *found = sv.s;
     while ((found = strstr(found, delim)) != NULL)
@@ -327,7 +344,7 @@ sv_find_last_not_of(string_view sv, const char *const delim)
     {
         return sv.sz;
     }
-    return (last_found + strlen(delim)) - sv.s;
+    return (last_found + delim_sz) - sv.s;
 }
 
 size_t

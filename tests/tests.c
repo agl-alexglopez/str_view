@@ -48,12 +48,13 @@ static bool test_iter(void);
 static bool test_iter_repeating_delim(void);
 static bool test_iter_multichar_delim(void);
 static bool test_iter_multichar_delim_short(void);
+static bool test_iter_delim_larger_than_str(void);
 static bool test_find_blank_of(void);
 static bool test_prefix_suffix(void);
 static bool test_substr(void);
 static bool test_svcmp(void);
 
-#define NUM_TESTS (size_t)15
+#define NUM_TESTS (size_t)16
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -66,6 +67,7 @@ const test_fn all_tests[NUM_TESTS] = {
     test_iter_repeating_delim,
     test_iter_multichar_delim,
     test_iter_multichar_delim_short,
+    test_iter_delim_larger_than_str,
     test_find_blank_of,
     test_prefix_suffix,
     test_svcmp,
@@ -92,7 +94,7 @@ static bool
 test_empty(void)
 {
     printf("test_empty");
-    if (!sv_empty(sv_from_str("")))
+    if (!sv_empty(sv("")))
     {
         return false;
     }
@@ -107,11 +109,11 @@ static bool
 test_out_of_bounds(void)
 {
     printf("test_out_of_bounds\n");
-    const string_view sv = sv_from_str("");
+    const string_view s = sv("");
     const pid_t exiting_child = fork();
     if (exiting_child == 0)
     {
-        (void)sv_at(sv, 1);
+        (void)sv_at(s, 1);
         /* We should not make it here */
         exit(0);
     }
@@ -134,18 +136,18 @@ test_from_null(void)
 {
     printf("test_from_null\n");
     const char *const reference = "Don't miss the terminator!\n";
-    const string_view sv = sv_from_str(reference);
+    const string_view s = sv(reference);
     const size_t reference_len = strlen(reference);
-    if (reference_len != sv_len(sv))
+    if (reference_len != sv_len(s))
     {
         return false;
     }
-    if (reference[reference_len - 1] != sv_at(sv, sv_len(sv) - 1))
+    if (reference[reference_len - 1] != sv_at(s, sv_len(s) - 1))
     {
         return false;
     }
     printf("%s", reference);
-    sv_print(sv);
+    sv_print(s);
     return true;
 }
 
@@ -155,7 +157,7 @@ test_from_delim(void)
     printf("test_from_delim\n");
     const char *const reference = "Don'tmissthedelim That was it!";
     const char *const reference_delim = "Don'tmissthedelim";
-    const string_view sv = sv_from_delim(reference, ' ');
+    const string_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference_delim);
     printf("%s\n", reference_delim);
     sv_print(sv);
@@ -168,9 +170,10 @@ test_from_delim(void)
     {
         return false;
     }
-    const char *const ref2 = "Don't miss the delim, that was it!";
+    /* If the string starts with delim we must skip it. */
+    const char *const ref2 = ",Don't miss the delim, that was it!";
     const char *const ref2_delim = "Don't miss the delim";
-    const string_view sv2 = sv_from_delim(ref2, ',');
+    const string_view sv2 = sv_delim(ref2, ",");
     const size_t ref2_len = strlen(ref2_delim);
     printf("%s\n", ref2_delim);
     sv_print(sv2);
@@ -191,7 +194,7 @@ test_from_delim_no_delim(void)
 {
     printf("test_from_delim_no_delim\n");
     const char *const reference = "Don'tmissthedelimbutnodelim!";
-    const string_view sv = sv_from_delim(reference, ' ');
+    const string_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference);
     printf("%s\n", reference);
     sv_print(sv);
@@ -211,18 +214,18 @@ static bool
 test_front_back(void)
 {
     printf("test_front_back");
-    if (sv_back(sv_from_str("")) != '\0' || sv_front(sv_from_str("")) != '\0')
+    if (sv_back(sv("")) != '\0' || sv_front(sv("")) != '\0')
     {
         return false;
     }
     const char *const reference = "*The front was * the back is!";
-    const string_view sv = sv_from_str(reference);
+    const string_view s = sv(reference);
     const size_t ref_len = strlen(reference);
-    if (ref_len != sv_len(sv))
+    if (ref_len != sv_len(s))
     {
         return false;
     }
-    if (sv_front(sv) != '*' || sv_back(sv) != '!')
+    if (sv_front(s) != '*' || sv_back(s) != '!')
     {
         return false;
     }
@@ -249,7 +252,7 @@ test_iter(void)
 {
     printf("test_iter");
     const char *const reference = "A B C D E G H I J K L M N O P";
-    string_view chars = sv_from_str(reference);
+    string_view chars = sv(reference);
     size_t i = 0;
     for (const char *cur = sv_begin(&chars); cur != sv_end(&chars);
          cur = sv_next(cur))
@@ -301,7 +304,7 @@ test_iter_repeating_delim(void)
     };
     const char *const reference
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
-    string_view chars = sv_from_str(reference);
+    string_view chars = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(chars, " ", 1);
@@ -344,7 +347,7 @@ test_iter_multichar_delim(void)
     const char *const reference
         = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
           "abcOabcabcPiabcabc\\(*.*)/abc";
-    string_view chars = sv_from_str(reference);
+    string_view chars = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "abc";
@@ -389,7 +392,7 @@ test_iter_multichar_delim_short(void)
     const char *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
                                   "---H---I-----J-----K-----L-M--N"
                                   "-------O-----Pi-----\\(*.*)/-----";
-    string_view chars = sv_from_str(reference);
+    string_view chars = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "-----";
@@ -424,6 +427,37 @@ test_iter_multichar_delim_short(void)
 }
 
 static bool
+test_iter_delim_larger_than_str(void)
+{
+    printf("test_iter_delim_larger_than_str");
+    const char *const reference = "A-B";
+    string_view chars = sv(reference);
+    /* This delimeter is too large so we should just take the whole string */
+    const char *const delim = "-----";
+    const size_t delim_len = strlen(delim);
+    string_view constructed = sv_delim(reference, delim);
+    string_view cur = sv_begin_tok(chars, delim, delim_len);
+    if (sv_svcmp(constructed, cur) != 0
+        || sv_strcmp(constructed, reference) != 0
+        || sv_strcmp(cur, reference) != 0)
+    {
+        return false;
+    }
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
+    {
+        if (sv_strcmp(cur, reference) != 0)
+        {
+            return false;
+        }
+    }
+    if (*cur.s != '\0')
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
 test_find_blank_of(void)
 {
     printf("test_find_blank_of");
@@ -433,7 +467,7 @@ test_find_blank_of(void)
         [10] = ' ', [11] = '_', [12] = '_', [13] = ' ', [14] = '!',
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
-    string_view str = sv_from_str(ref);
+    string_view str = sv(ref);
     if (sv_find_first_of(str, "C") != 2)
     {
         return false;
@@ -464,7 +498,7 @@ test_prefix_suffix(void)
     const char *const reference = "Remove the suffix! No, remove the prefix!";
     const char *const ref_prefix = "Remove the suffix!";
     const char *const ref_suffix = "No, remove the prefix!";
-    string_view entire_string = sv_from_str(reference);
+    string_view entire_string = sv(reference);
     string_view prefix = sv_remove_suffix(entire_string, 23);
     size_t i = 0;
     for (const char *c = sv_begin(&prefix); c != sv_end(&prefix);
@@ -502,63 +536,63 @@ static bool
 test_svcmp(void)
 {
     printf("test_svcmp");
-    if (sv_svcmp(sv_from_str(""), sv_from_str("")) != 0)
+    if (sv_svcmp(sv(""), sv("")) != 0)
     {
         return false;
     }
-    if (sv_strcmp(sv_from_str(""), "") != 0)
+    if (sv_strcmp(sv(""), "") != 0)
     {
         return false;
     }
-    if (sv_svcmp(sv_from_str("same"), sv_from_str("same")) != 0)
+    if (sv_svcmp(sv("same"), sv("same")) != 0)
     {
         return false;
     }
-    if (sv_svcmp(sv_from_str("samz"), sv_from_str("same")) <= 0)
+    if (sv_svcmp(sv("samz"), sv("same")) <= 0)
     {
         return false;
     }
-    if (sv_svcmp(sv_from_str("same"), sv_from_str("samz")) >= 0)
+    if (sv_svcmp(sv("same"), sv("samz")) >= 0)
     {
         return false;
     }
     /* The comparison function should treat the end of a string view as
        null terminating character even if it points to a delimeter */
-    if (sv_svcmp(sv_from_str("same"), sv_from_delim("same same", ' ')) != 0)
+    if (sv_svcmp(sv("same"), sv_delim("same same", " ")) != 0)
     {
         return false;
     }
-    if (sv_svcmp(sv_from_str("same"), sv_from_delim("samz same", ' ')) >= 0)
+    if (sv_svcmp(sv("same"), sv_delim("samz same", " ")) >= 0)
     {
         return false;
     }
-    if (sv_svcmp(sv_from_delim("sameez same", ' '), sv_from_str("same")) <= 0)
+    if (sv_svcmp(sv_delim("sameez same", " "), sv("same")) <= 0)
     {
         return false;
     }
     const char *const str = "same";
-    if (sv_strcmp(sv_from_str(str), str) != 0)
+    if (sv_strcmp(sv(str), str) != 0)
     {
         return false;
     }
-    if (sv_strcmp(sv_from_delim("same same", ' '), str) != 0)
+    if (sv_strcmp(sv_delim("same same", " "), str) != 0)
     {
         return false;
     }
-    if (sv_strcmp(sv_from_delim("samez same", ' '), str) <= 0)
+    if (sv_strcmp(sv_delim("samez same", " "), str) <= 0)
     {
         return false;
     }
-    if (sv_strcmp(sv_from_delim("sameez same", ' '), str) <= 0)
+    if (sv_strcmp(sv_delim("sameez same", " "), str) <= 0)
     {
         return false;
     }
     /* strncmp compares at most n bytes inclusize or stops at null term */
-    if (sv_strncmp(sv_from_delim("sameez same", ' '), str, 10) <= 0)
+    if (sv_strncmp(sv_delim("sameez same", " "), str, 10) <= 0)
     {
         return false;
     }
-    if (sv_strncmp(sv_from_delim("saaeez same", ' '), str, 3) >= 0)
+    if (sv_strncmp(sv_delim("saaeez same", " "), str, 3) >= 0)
     {
         return false;
     }
@@ -578,25 +612,23 @@ test_substr(void)
     };
     const char *const substr1 = "A substring!";
     const char *const substr2 = "Have another!";
-    if (sv_strcmp(sv_substr(sv_from_str(ref), 0, strlen(substr1)), substr1)
+    if (sv_strcmp(sv_substr(sv(ref), 0, strlen(substr1)), substr1) != 0)
+    {
+        return false;
+    }
+    if (sv_strcmp(sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)),
+                  substr2)
         != 0)
     {
         return false;
     }
-    if (sv_strcmp(
-            sv_substr(sv_from_str(ref), strlen(substr1) + 1, strlen(substr2)),
-            substr2)
-        != 0)
-    {
-        return false;
-    }
-    if (sv_strcmp(sv_substr(sv_from_str(ref), 0, ULLONG_MAX), ref) != 0)
+    if (sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref) != 0)
     {
         return false;
     }
     /* Make sure the fill function adds null terminator */
     char dump_substr1[27] = {[12] = '!'};
-    sv_fill(dump_substr1, 27, sv_substr(sv_from_str(ref), 0, strlen(substr1)));
+    sv_fill(dump_substr1, 27, sv_substr(sv(ref), 0, strlen(substr1)));
     if (strcmp(substr1, dump_substr1) != 0)
     {
         return false;
@@ -604,7 +636,7 @@ test_substr(void)
     /* Make sure the fill function adds null terminator */
     char dump_substr2[27] = {[13] = '!'};
     sv_fill(dump_substr2, 27,
-            sv_substr(sv_from_str(ref), strlen(substr1) + 1, strlen(substr2)));
+            sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)));
     if (strcmp(substr2, dump_substr2) != 0)
     {
         return false;
