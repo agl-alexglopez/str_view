@@ -9,6 +9,8 @@
 static const char *const nil = "";
 
 static size_t min(size_t, size_t);
+static const char *sv_brute_strstr(const char *str, size_t delim_sz,
+                                   const char *delim);
 
 string_view
 sv(const char *const str)
@@ -230,16 +232,7 @@ sv_next_tok(string_view sv, const char *const delim, const size_t delim_sz)
     const char *next = sv.s + sv.sz + delim_sz;
     next += sv_find_first_not_of((string_view){.s = next, .sz = ULLONG_MAX},
                                  delim, delim_sz);
-    const char *found = strstr(next, delim);
-    if (NULL == found)
-    {
-        size_t i = 0;
-        while (next[i] != '\0')
-        {
-            ++i;
-        }
-        return (string_view){.s = next, .sz = i};
-    }
+    const char *found = sv_brute_strstr(next, delim_sz, delim);
     return (string_view){.s = next, .sz = found - next};
 }
 
@@ -345,6 +338,21 @@ sv_find_last_not_of(string_view sv, const char *const delim)
         return sv.sz;
     }
     return (last_found + delim_sz) - sv.s;
+}
+
+static const char *
+sv_brute_strstr(const char *str, size_t delim_sz, const char *delim)
+{
+    const char *cur = str;
+    while (*cur != '\0')
+    {
+        if (strncmp(cur, delim, delim_sz) == 0)
+        {
+            break;
+        }
+        ++cur;
+    }
+    return cur;
 }
 
 size_t
