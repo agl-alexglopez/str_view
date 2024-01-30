@@ -13,13 +13,25 @@ typedef struct string_view
 /* Constructs and returns a string view from a NULL TERMINATED string. */
 string_view sv(const char *);
 
+/* Constructs and returns a string view from a sequence of valid n bytes. */
+string_view sv_n(const char *, size_t n);
+
 /* Constructs and returns a string view from a NULL TERMINATED string
    broken on the first ocurrence of delimeter if found or null
    terminator if delim cannot be found. This constructor will also
    skip the delimeter if that delimeter starts the string. For example:
-   const char *const str = "  Hello world!";
-   sv_print(sv_delim(str, " "));
-   <<< "Hello" */
+
+     const char *const str = "  Hello world!";
+     sv_print(sv_delim(str, " "));
+     <<< "Hello"
+
+   Or the string may be empty if it is made of delims.
+
+     const char *const str = "------";
+     sv_print(sv_delim(str, "-"));
+     <<< ""
+
+   This is similar to the tokenizing function in the iterator section. */
 string_view sv_delim(const char *, const char *delim);
 
 const char *sv_null(void);

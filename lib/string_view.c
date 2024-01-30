@@ -26,6 +26,16 @@ sv(const char *const str)
 }
 
 string_view
+sv_n(const char *const str, size_t n)
+{
+    if (!str || n == 0)
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    return (string_view){.s = str, .sz = n};
+}
+
+string_view
 sv_delim(const char *const str, const char *const delim)
 {
     if (!str)

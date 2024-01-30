@@ -42,6 +42,7 @@ static bool test_out_of_bounds(void);
 static bool test_from_null(void);
 static bool test_from_delim(void);
 static bool test_from_delim_no_delim(void);
+static bool test_empty_constructor(void);
 static bool test_front_back(void);
 static bool test_copy_fill(void);
 static bool test_iter(void);
@@ -53,14 +54,16 @@ static bool test_find_blank_of(void);
 static bool test_prefix_suffix(void);
 static bool test_substr(void);
 static bool test_svcmp(void);
+static bool test_argv_argc(void);
 
-#define NUM_TESTS (size_t)16
+#define NUM_TESTS (size_t)18
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
     test_from_null,
     test_from_delim,
     test_from_delim_no_delim,
+    test_empty_constructor,
     test_front_back,
     test_copy_fill,
     test_iter,
@@ -72,6 +75,7 @@ const test_fn all_tests[NUM_TESTS] = {
     test_prefix_suffix,
     test_svcmp,
     test_substr,
+    test_argv_argc,
 };
 
 static int
@@ -135,8 +139,12 @@ static bool
 test_from_null(void)
 {
     printf("test_from_null\n");
-    const char *const reference = "Don't miss the terminator!\n";
+    const char *const reference = "Don't miss the terminator!";
     const string_view s = sv(reference);
+    printf("reference=[%s]\n", reference);
+    printf("string vw=[");
+    sv_print(s);
+    printf("]\n");
     const size_t reference_len = strlen(reference);
     if (reference_len != sv_len(s))
     {
@@ -146,8 +154,21 @@ test_from_null(void)
     {
         return false;
     }
-    printf("%s", reference);
-    sv_print(s);
+    const char *const chunk = "Don't";
+    const size_t chunk_len = strlen(chunk);
+    const string_view n_bytes = sv_n(reference, chunk_len);
+    printf("5 bytes=[%s]\n", chunk);
+    printf("5 byte view=[");
+    sv_print(n_bytes);
+    printf("]\n");
+    if (sv_len(n_bytes) != chunk_len)
+    {
+        return false;
+    }
+    if (chunk[chunk_len - 1] != sv_at(n_bytes, sv_len(n_bytes) - 1))
+    {
+        return false;
+    }
     return true;
 }
 
@@ -159,9 +180,12 @@ test_from_delim(void)
     const char *const reference_delim = "Don'tmissthedelim";
     const string_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference_delim);
-    printf("%s\n", reference_delim);
+    printf("delimiter=[,]\n");
+    printf("reference=[%s]\n", reference);
+    printf("first tok=[%s]\n", reference_delim);
+    printf("this should be first tok=[");
     sv_print(sv);
-    printf("\n");
+    printf("]\n");
     if (reference_len != sv_len(sv))
     {
         return false;
@@ -175,9 +199,12 @@ test_from_delim(void)
     const char *const ref2_delim = "Don't miss the delim";
     const string_view sv2 = sv_delim(ref2, ",");
     const size_t ref2_len = strlen(ref2_delim);
-    printf("%s\n", ref2_delim);
+    printf("delimiter=[,]\n");
+    printf("reference=[%s]\n", ref2);
+    printf("first tok=[%s]\n", ref2_delim);
+    printf("this should be first tok=[");
     sv_print(sv2);
-    printf("\n");
+    printf("]\n");
     if (ref2_len != sv_len(sv2))
     {
         return false;
@@ -196,14 +223,35 @@ test_from_delim_no_delim(void)
     const char *const reference = "Don'tmissthedelimbutnodelim!";
     const string_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference);
-    printf("%s\n", reference);
+    printf("delimiter=[ ]\n");
+    printf("reference=[%s]\n", reference);
+    printf("this should be reference=[");
     sv_print(sv);
-    printf("\n");
+    printf("]\n");
     if (reference_len != sv_len(sv))
     {
         return false;
     }
     if (reference[reference_len - 1] != sv_at(sv, sv_len(sv) - 1))
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_empty_constructor(void)
+{
+    printf("test_empty_constructor\n");
+    const char *const reference = "------------";
+    const string_view sv = sv_delim(reference, "-");
+    const size_t reference_len = strlen(reference);
+    printf("delimiter=[-]\n");
+    printf("reference=[%s]\n", reference);
+    printf("this should be empty=[");
+    sv_print(sv);
+    printf("]\n");
+    if (reference_len == sv_len(sv) || !sv_empty(sv))
     {
         return false;
     }
@@ -640,6 +688,35 @@ test_substr(void)
     if (strcmp(substr2, dump_substr2) != 0)
     {
         return false;
+    }
+    return true;
+}
+
+static bool
+test_argv_argc(void)
+{
+    printf("test_argv_argc");
+    const char *const expected[4]
+        = {"./build/targets/tidy", "--source=file", "-i", "lib/string_view.c"};
+    const void *const buf_data
+        = "./build/targets/tidy  --source=file   -i   lib/string_view.c\0";
+    /* This could be heap or stack allocated. Here we do stack space for
+     * convenience testing */
+    char argv[10][128];
+    string_view view = sv(buf_data);
+    size_t i = 0;
+    for (string_view v = sv_begin_tok(view, " ", 1); !sv_end_tok(&v);
+         v = sv_next_tok(v, " ", 1))
+    {
+        sv_fill(argv[i], sv_len(v), v);
+        ++i;
+    }
+    for (size_t arg = 0; arg < 4; ++arg)
+    {
+        if (strcmp(argv[arg], expected[arg]) != 0)
+        {
+            return false;
+        }
     }
     return true;
 }
