@@ -47,12 +47,25 @@ sv_delim(const char *const str, const char *const delim)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    return sv_begin_tok(
-        (string_view){
-            .s = str,
-            .sz = strlen(str),
-        },
-        delim, strlen(delim));
+    return sv_begin_tok(str, strlen(delim), delim);
+}
+
+char *
+sv_alloc(string_view sv)
+{
+    char *const ret = malloc(sv.sz + 1);
+    sv_fill(ret, sv.sz, sv);
+    return ret;
+}
+
+void
+sv_free(char *const s)
+{
+    if (!s)
+    {
+        return;
+    }
+    free(s);
 }
 
 void
@@ -72,13 +85,18 @@ sv_copy(const char *const src_str, const size_t str_sz)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    return (string_view){.s = src_str, .sz = str_sz};
+    size_t i = 0;
+    while (src_str[i] != '\0' && i < str_sz)
+    {
+        ++i;
+    }
+    return (string_view){.s = src_str, .sz = i};
 }
 
 void
-sv_fill(char *dest_buf, size_t str_sz, const string_view src)
+sv_fill(char *dest_buf, size_t dest_sz, const string_view src)
 {
-    const size_t paste = min(str_sz, src.sz);
+    const size_t paste = min(dest_sz, src.sz);
     memmove(dest_buf, src.s, paste);
     dest_buf[paste] = '\0';
 }
@@ -220,13 +238,22 @@ sv_next(const char *c)
 }
 
 string_view
-sv_begin_tok(string_view sv, const char *const delim, const size_t delim_sz)
+sv_begin_tok(const char *const data, const size_t delim_sz,
+             const char *const delim)
 {
-    const size_t start_not = sv_find_first_not_of(sv, delim, delim_sz);
-    sv.s += start_not;
-    sv.sz -= start_not;
-    sv = sv_substr(sv, 0, sv_find_first_of(sv, delim));
-    return sv;
+    string_view start = {.s = data, .sz = ULLONG_MAX};
+    const size_t start_not = sv_find_first_not_of(start, delim, delim_sz);
+    start.s += start_not;
+    if (*start.s == '\0')
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    size_t found_pos = sv_find_first_of(start, delim);
+    if (found_pos == ULLONG_MAX)
+    {
+        return (string_view){.s = data, .sz = strlen(data)};
+    }
+    return sv_substr(start, 0, found_pos);
 }
 
 bool

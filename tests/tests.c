@@ -55,8 +55,9 @@ static bool test_prefix_suffix(void);
 static bool test_substr(void);
 static bool test_svcmp(void);
 static bool test_argv_argc(void);
+static bool test_mini_alloc_free(void);
 
-#define NUM_TESTS (size_t)18
+#define NUM_TESTS (size_t)19
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -76,6 +77,7 @@ const test_fn all_tests[NUM_TESTS] = {
     test_svcmp,
     test_substr,
     test_argv_argc,
+    test_mini_alloc_free,
 };
 
 static int
@@ -313,7 +315,7 @@ test_iter(void)
     }
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(chars, " ", 1);
+    string_view cur = sv_begin_tok(reference, 1, " ");
     for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, " ", 1))
     {
         if (sv_front(cur) != reference[i])
@@ -327,7 +329,7 @@ test_iter(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(chars, ",", 1);
+    string_view cur2 = sv_begin_tok(reference, 1, ",");
     for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, ",", 1))
     {
         if (strcmp(cur2.s, reference) != 0)
@@ -352,10 +354,9 @@ test_iter_repeating_delim(void)
     };
     const char *const reference
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
-    string_view chars = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(chars, " ", 1);
+    string_view cur = sv_begin_tok(reference, 1, " ");
     for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, " ", 1))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
@@ -369,7 +370,7 @@ test_iter_repeating_delim(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(chars, ",", 1);
+    string_view cur2 = sv_begin_tok(reference, 1, ",");
     for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, ",", 1))
     {
         if (strcmp(cur2.s, reference) != 0)
@@ -395,12 +396,11 @@ test_iter_multichar_delim(void)
     const char *const reference
         = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
           "abcOabcabcPiabcabc\\(*.*)/abc";
-    string_view chars = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "abc";
     const size_t delim_len = strlen(delim);
-    string_view cur = sv_begin_tok(chars, delim, delim_len);
+    string_view cur = sv_begin_tok(reference, delim_len, delim);
     for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
@@ -414,7 +414,7 @@ test_iter_multichar_delim(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(chars, " ", 1);
+    string_view cur2 = sv_begin_tok(reference, 1, " ");
     for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, " ", 1))
     {
         if (strcmp(cur2.s, reference) != 0)
@@ -440,12 +440,11 @@ test_iter_multichar_delim_short(void)
     const char *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
                                   "---H---I-----J-----K-----L-M--N"
                                   "-------O-----Pi-----\\(*.*)/-----";
-    string_view chars = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
-    string_view cur = sv_begin_tok(chars, delim, delim_len);
+    string_view cur = sv_begin_tok(reference, delim_len, delim);
     for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
@@ -459,7 +458,7 @@ test_iter_multichar_delim_short(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(chars, " ", 1);
+    string_view cur2 = sv_begin_tok(reference, 1, " ");
     for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, " ", 1))
     {
         if (strcmp(cur2.s, reference) != 0)
@@ -479,12 +478,11 @@ test_iter_delim_larger_than_str(void)
 {
     printf("test_iter_delim_larger_than_str");
     const char *const reference = "A-B";
-    string_view chars = sv(reference);
     /* This delimeter is too large so we should just take the whole string */
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
     string_view constructed = sv_delim(reference, delim);
-    string_view cur = sv_begin_tok(chars, delim, delim_len);
+    string_view cur = sv_begin_tok(reference, delim_len, delim);
     if (sv_svcmp(constructed, cur) != 0
         || sv_strcmp(constructed, reference) != 0
         || sv_strcmp(cur, reference) != 0)
@@ -705,7 +703,7 @@ test_argv_argc(void)
     char argv[10][128];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(view, " ", 1); !sv_end_tok(&v);
+    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(&v);
          v = sv_next_tok(v, " ", 1))
     {
         sv_fill(argv[i], sv_len(v), v);
@@ -714,6 +712,41 @@ test_argv_argc(void)
     for (size_t arg = 0; arg < 4; ++arg)
     {
         if (strcmp(argv[arg], expected[arg]) != 0)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool
+test_mini_alloc_free(void)
+{
+    printf("test_mini_alloc_free");
+    const char *const expected[4]
+        = {"./build/targets/tidy", "--source=file", "-i", "lib/string_view.c"};
+    const void *const buf_data
+        = "./build/targets/tidy  --source=file   -i   lib/string_view.c\0";
+    /* This could be heap or stack allocated. Here we do stack space for
+     * convenience testing */
+    string_view argv[10];
+    string_view view = sv(buf_data);
+    size_t i = 0;
+    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(&v);
+         v = sv_next_tok(v, " ", 1))
+    {
+        argv[i++] = v;
+    }
+    for (size_t arg = 0; arg < 4; ++arg)
+    {
+        char *str = sv_alloc(argv[arg]);
+        if (!str)
+        {
+            return false;
+        }
+        const bool passes = strcmp(str, expected[arg]) == 0;
+        sv_free(str);
+        if (!passes)
         {
             return false;
         }

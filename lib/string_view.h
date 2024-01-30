@@ -34,6 +34,15 @@ string_view sv_n(const char *, size_t n);
    This is similar to the tokenizing function in the iterator section. */
 string_view sv_delim(const char *, const char *delim);
 
+/* WARNING This returns a heap allocated string that must be returned to
+   this library for freeing. It is a memory leak to forget to do so. */
+char *sv_alloc(string_view);
+
+/* WARNING This frees the heap allocated string that was previously created
+   by sv_alloc. The user must return the allocated pointer to the char *
+   before program exit or a memory leak has occured. */
+void sv_free(char *);
+
 const char *sv_null(void);
 size_t sv_npos(string_view);
 
@@ -49,13 +58,13 @@ char sv_back(string_view);
 const char *sv_str(string_view);
 
 string_view sv_copy(const char *src_str, size_t str_sz);
-void sv_fill(char *dest_buf, size_t str_sz, string_view src);
+void sv_fill(char *dest_buf, size_t dest_sz, string_view src);
 
 const char *sv_begin(const string_view *);
 const char *sv_end(const string_view *);
 const char *sv_next(const char *);
 
-string_view sv_begin_tok(string_view, const char *delim, size_t delim_sz);
+string_view sv_begin_tok(const char *data, size_t delim_sz, const char *delim);
 bool sv_end_tok(const string_view *);
 string_view sv_next_tok(string_view, const char *delim, size_t delim_sz);
 
