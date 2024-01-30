@@ -205,9 +205,9 @@ sv_next(const char *c)
 }
 
 string_view
-sv_begin_tok(string_view sv, const char *const delim)
+sv_begin_tok(string_view sv, const char *const delim, const size_t delim_sz)
 {
-    const size_t start_not = sv_find_first_not_of(sv, delim);
+    const size_t start_not = sv_find_first_not_of(sv, delim, delim_sz);
     sv.s += start_not;
     sv.sz -= start_not;
     sv = sv_substr(sv, 0, sv_find_first_of(sv, delim));
@@ -221,16 +221,15 @@ sv_end_tok(const string_view *sv)
 }
 
 string_view
-sv_next_tok(string_view sv, const char *const delim)
+sv_next_tok(string_view sv, const char *const delim, const size_t delim_sz)
 {
     if (sv.s[sv.sz] == '\0')
     {
         return (string_view){.s = sv.s + sv.sz, .sz = 0};
     }
-    const size_t delim_len = strlen(delim);
-    const char *next = sv.s + sv.sz + delim_len;
+    const char *next = sv.s + sv.sz + delim_sz;
     next += sv_find_first_not_of((string_view){.s = next, .sz = ULLONG_MAX},
-                                 delim);
+                                 delim, delim_sz);
     const char *found = strstr(next, delim);
     if (NULL == found)
     {
@@ -297,15 +296,15 @@ sv_find_last_of(string_view sv, const char *const delim)
 }
 
 size_t
-sv_find_first_not_of(string_view sv, const char *const delim)
+sv_find_first_not_of(string_view sv, const char *const delim,
+                     const size_t delim_sz)
 {
-    const size_t delim_len = strlen(delim);
     size_t i = 0;
     size_t delim_i = 0;
     while (sv.s[i] != '\0' && delim[delim_i] == sv.s[i])
     {
         ++i;
-        delim_i = (delim_i + 1) % delim_len;
+        delim_i = (delim_i + 1) % delim_sz;
     }
     return i;
 }
