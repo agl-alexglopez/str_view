@@ -307,7 +307,7 @@ size_t
 sv_find_first_not_of(string_view sv, const char *const delim,
                      const size_t delim_sz)
 {
-    if (delim_sz >= sv.sz)
+    if (delim_sz > sv.sz)
     {
         return 0;
     }
