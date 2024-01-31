@@ -75,6 +75,8 @@ sv_print(string_view s)
     {
         return;
     }
+    /* printf does not output the null terminator in normal strings so
+       as long as we output correct number of characters we do the same */
     (void)fwrite(s.s, sizeof(char), s.sz, stdout);
 }
 
