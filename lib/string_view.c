@@ -1,14 +1,23 @@
 #include "string_view.h"
-#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+enum cmp
+{
+    LES = -1,
+    EQL = 0,
+    GRT = 1,
+};
+
 static const char *const nil = "";
 
-static size_t min(size_t, size_t);
+static size_t sv_min(size_t, size_t);
+static int sv_maximal_suffix(const char *, size_t, int *);
+static int sv_maximal_suffix_rev(const char *, size_t, int *);
+static const char *sv_two_way(const char *, size_t, const char *, size_t);
 
 string_view
 sv(const char *const str)
@@ -98,7 +107,7 @@ sv_copy(const char *const src_str, const size_t str_sz)
 void
 sv_fill(char *dest_buf, size_t dest_sz, const string_view src)
 {
-    const size_t paste = min(dest_sz, src.sz);
+    const size_t paste = sv_min(dest_sz, src.sz);
     memmove(dest_buf, src.s, paste);
     dest_buf[paste] = '\0';
 }
@@ -144,7 +153,7 @@ int
 sv_svcmp(string_view sv1, string_view sv2)
 {
     size_t i = 0;
-    const size_t sz = min(sv1.sz, sv2.sz);
+    const size_t sz = sv_min(sv1.sz, sv2.sz);
     while (sv1.s[i] == sv2.s[i] && i < sz)
     {
         ++i;
@@ -184,7 +193,7 @@ int
 sv_strncmp(string_view sv, const char *str, const size_t n)
 {
     size_t i = 0;
-    const size_t sz = min(sv.sz, n);
+    const size_t sz = sv_min(sv.sz, n);
     while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
     {
         ++i;
@@ -243,7 +252,7 @@ string_view
 sv_begin_tok(const char *const data, const size_t delim_sz,
              const char *const delim)
 {
-    string_view start = {.s = data, .sz = ULLONG_MAX};
+    string_view start = {.s = data, .sz = strlen(data)};
     const size_t start_not = sv_find_first_not_of(start, delim, delim_sz);
     start.s += start_not;
     if (*start.s == '\0')
@@ -251,10 +260,6 @@ sv_begin_tok(const char *const data, const size_t delim_sz,
         return (string_view){.s = nil, .sz = 0};
     }
     size_t found_pos = sv_find_first_of(start, delim);
-    if (found_pos == ULLONG_MAX)
-    {
-        return (string_view){.s = data, .sz = strlen(data)};
-    }
     return sv_substr(start, 0, found_pos);
 }
 
@@ -272,32 +277,28 @@ sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
         return (string_view){.s = sv.s + sv.sz, .sz = 0};
     }
     const char *next = sv.s + sv.sz + delim_sz;
-    next += sv_find_first_not_of((string_view){.s = next, .sz = ULLONG_MAX},
-                                 delim, delim_sz);
-    const char *found = strstr(next, delim);
-    if (NULL == found)
+    const size_t next_sz = strlen(next);
+    next += sv_find_first_not_of((string_view){.s = next, .sz = next_sz}, delim,
+                                 delim_sz);
+    if (*next == '\0')
     {
-        size_t i = 0;
-        while (next[i] != '\0')
-        {
-            ++i;
-        }
-        return (string_view){.s = next, .sz = i};
+        return (string_view){.s = next, .sz = 0};
     }
+    const char *const found = sv_two_way(next, next_sz, delim, delim_sz);
     return (string_view){.s = next, .sz = found - next};
 }
 
 string_view
 sv_remove_prefix(const string_view sv, const size_t n)
 {
-    const size_t remove = min(sv.sz, n);
+    const size_t remove = sv_min(sv.sz, n);
     return (string_view){.s = sv.s + remove, .sz = sv.sz - remove};
 }
 
 string_view
 sv_remove_suffix(const string_view sv, const size_t n)
 {
-    return (string_view){.s = sv.s, .sz = sv.sz - min(sv.sz, n)};
+    return (string_view){.s = sv.s, .sz = sv.sz - sv_min(sv.sz, n)};
 }
 
 string_view
@@ -308,7 +309,7 @@ sv_substr(string_view sv, size_t pos, size_t count)
         printf("string_view index out of range. pos=%zu size=%zu", pos, sv.sz);
         exit(1);
     }
-    return (string_view){.s = sv.s + pos, .sz = min(count, sv.sz - pos)};
+    return (string_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
 }
 
 bool
@@ -326,68 +327,111 @@ sv_contains(string_view haystack, string_view needle)
     {
         return true;
     }
-    const char *const found = strstr(haystack.s, needle.s);
-    return found != NULL && (size_t)(found - haystack.s) <= haystack.sz;
+    const char *const found
+        = sv_two_way(haystack.s, haystack.sz, needle.s, needle.sz);
+    return (found == haystack.s + haystack.sz) ? false : true;
+}
+
+string_view
+sv_svsv(string_view haystack, string_view needle)
+{
+    if (needle.sz > haystack.sz)
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    if (sv_empty(haystack))
+    {
+        return haystack;
+    }
+    if (sv_empty(needle))
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    const char *const end = haystack.s + haystack.sz;
+    const char *const found
+        = sv_two_way(haystack.s, haystack.sz, needle.s, needle.sz);
+    if (found == end)
+    {
+        return (string_view){.s = end, .sz = 0};
+    }
+    return (string_view){.s = found, .sz = needle.sz};
+}
+
+string_view
+sv_svstr(string_view haystack, const char *needle, size_t needle_sz)
+{
+    if (needle_sz > haystack.sz)
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    if (sv_empty(haystack))
+    {
+        return haystack;
+    }
+    const char *const end = haystack.s + haystack.sz;
+    if (0 == needle_sz)
+    {
+        return (string_view){.s = end, .sz = 0};
+    }
+    const char *found = sv_two_way(haystack.s, haystack.sz, needle, needle_sz);
+    if (found == end)
+    {
+        return (string_view){.s = end, .sz = 0};
+    }
+    return (string_view){.s = found, .sz = needle_sz};
 }
 
 size_t
-sv_find_first_of(string_view sv, const char *const delim)
+sv_find_first_of(string_view haystack, const char *const needle)
 {
-    if (strlen(delim) >= sv.sz)
+    const size_t delim_sz = strlen(needle);
+    if (delim_sz > haystack.sz)
     {
-        return sv.sz;
+        return haystack.sz;
     }
-    const char *const found = strstr(sv.s, delim);
-    if (NULL == found)
-    {
-        return sv.sz;
-    }
-    if ((size_t)(found - sv.s) > sv.sz)
-    {
-        return sv.sz;
-    }
-    return found - sv.s;
+    const char *const found
+        = sv_two_way(haystack.s, haystack.sz, needle, delim_sz);
+    return found - haystack.s;
 }
 
 size_t
-sv_find_last_of(string_view sv, const char *const delim)
+sv_find_last_of(string_view haystack, const char *const needle)
 {
-    if (strlen(delim) >= sv.sz)
+    if (strlen(needle) >= haystack.sz)
     {
-        return sv.sz;
+        return haystack.sz;
     }
-    const char *last_found = NULL;
-    const char *found = sv.s;
-    while ((found = strstr(found, delim)) != NULL)
+    const char *last_found = haystack.s + haystack.sz;
+    const size_t needle_sz = strlen(needle);
+    const char *found = haystack.s;
+    for (;;)
     {
-        if ((size_t)(found - sv.s) > sv.sz)
+        found = sv_two_way(found, haystack.sz - (found - haystack.s), needle,
+                           needle_sz);
+        if ((size_t)(found - haystack.s) == haystack.sz)
         {
             break;
         }
         last_found = found;
         ++found;
     }
-    if (NULL == last_found)
-    {
-        return sv.sz;
-    }
-    return last_found - sv.s;
+    return last_found - haystack.s;
 }
 
 size_t
-sv_find_first_not_of(string_view sv, const char *const delim,
-                     const size_t delim_sz)
+sv_find_first_not_of(string_view haystack, const char *const needle,
+                     const size_t needle_sz)
 {
-    if (delim_sz > sv.sz)
+    if (needle_sz > haystack.sz)
     {
         return 0;
     }
     size_t i = 0;
     size_t delim_i = 0;
-    while (sv.s[i] != '\0' && delim[delim_i] == sv.s[i])
+    while (i < haystack.sz && needle[delim_i] == haystack.s[i])
     {
         ++i;
-        delim_i = (delim_i + 1) % delim_sz;
+        delim_i = (delim_i + 1) % needle_sz;
     }
     /* We need to also reset to the last mismatch we found. Imagine
        we started to find the delimeter but then the string changed
@@ -397,18 +441,18 @@ sv_find_first_not_of(string_view sv, const char *const delim,
 }
 
 size_t
-sv_find_last_not_of(string_view sv, const char *const delim)
+sv_find_last_not_of(string_view haystack, const char *const needle)
 {
-    const size_t delim_sz = strlen(delim);
-    if (delim_sz >= sv.sz)
+    const size_t delim_sz = strlen(needle);
+    if (delim_sz >= haystack.sz)
     {
-        return sv.sz;
+        return haystack.sz;
     }
     const char *last_found = NULL;
-    const char *found = sv.s;
-    while ((found = strstr(found, delim)) != NULL)
+    const char *found = haystack.s;
+    while ((found = strstr(found, needle)) != NULL)
     {
-        if ((size_t)(found - sv.s) > sv.sz)
+        if ((size_t)(found - haystack.s) > haystack.sz)
         {
             break;
         }
@@ -417,9 +461,9 @@ sv_find_last_not_of(string_view sv, const char *const delim)
     }
     if (NULL == last_found)
     {
-        return sv.sz;
+        return haystack.sz;
     }
-    return (last_found + delim_sz) - sv.s;
+    return (last_found + delim_sz) - haystack.s;
 }
 
 size_t
@@ -429,7 +473,213 @@ sv_npos(string_view sv)
 }
 
 static inline size_t
-min(size_t a, size_t b)
+sv_min(size_t a, size_t b)
 {
     return a < b ? a : b;
 }
+
+static inline int
+sv_int_max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
+static inline enum cmp
+sv_char_cmp(char a, char b)
+{
+    return (a > b) - (a < b);
+}
+
+/* Computing of the maximal suffix. Adapted from ESMAJ.
+   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
+static int
+sv_maximal_suffix(const char *const needle, size_t needle_sz, int *const period)
+{
+    int max_suf = -1;
+    int j = 0;
+    int k = *period = 1;
+    while (j + k < (int)needle_sz)
+    {
+        switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
+        {
+        case LES:
+        {
+            j += k;
+            k = 1;
+            *period = j - max_suf;
+        }
+        break;
+        case EQL:
+        {
+            if (k != *period)
+            {
+
+                ++k;
+            }
+            else
+            {
+                j += *period;
+                k = 1;
+            }
+        }
+        break;
+        case GRT:
+        {
+            max_suf = (int)j;
+            j = max_suf + 1;
+            k = *period = 1;
+        }
+        break;
+        }
+    }
+    return max_suf;
+}
+
+/* Computing of the maximal suffix reverse. Sometimes called tilde.
+   adapted from ESMAJ
+   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
+static int
+sv_maximal_suffix_rev(const char *const needle, size_t needle_sz,
+                      int *const period)
+{
+    int max_suf = -1;
+    int j = 0;
+    int k = *period = 1;
+    while (j + k < (int)needle_sz)
+    {
+        switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
+        {
+        case GRT:
+        {
+            j += k;
+            k = 1;
+            *period = j - max_suf;
+        }
+        break;
+        case EQL:
+        {
+            if (k != *period)
+            {
+                ++k;
+            }
+            else
+            {
+                j += *period;
+                k = 1;
+            }
+        }
+        break;
+        case LES:
+        {
+            max_suf = (int)j;
+            j = max_suf + 1;
+            k = *period = 1;
+        }
+        break;
+        }
+    }
+    return max_suf;
+}
+
+/* Two Way string matching algorithm adapted from ESMAJ
+   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260
+
+   It is helpful to be able to pass in the string and the length
+   as I choose because strstr has no concept of where my string views
+   end and therefore searches the entire remaining string which could
+   be wasteful. Therefore, I needed my own implementation of string
+   searching so I can control the size of the search to be the size
+   of a string view. I also return the pointer even if it is to the
+   the null terminating character so that in many cases I can return
+   the full string when something is not found. This is faster and
+   more convenient than running another search to find the end of
+   the string. The null returned by strstr is often not helpful.
+   NOLINTBEGIN(*-cognitive-complexity) */
+static const char *
+sv_two_way(const char *const haystack, size_t haystack_sz,
+           const char *const needle, size_t needle_sz)
+{
+    int ell;
+    int memory;
+    int period;
+
+    /* Preprocessing */
+    int factorization_p;
+    int factorization_q;
+    int i = sv_maximal_suffix(needle, needle_sz, &factorization_p);
+    int j = sv_maximal_suffix_rev(needle, needle_sz, &factorization_q);
+    if (i > j)
+    {
+        ell = i;
+        period = factorization_p;
+    }
+    else
+    {
+        ell = j;
+        period = factorization_q;
+    }
+    /* Searching */
+    if (memcmp(needle, needle + period, ell + 1) == 0)
+    {
+        j = 0;
+        memory = -1;
+        while (j <= (int)haystack_sz - (int)needle_sz)
+        {
+            i = sv_int_max(ell, memory) + 1;
+            while (i < (int)needle_sz && needle[i] == haystack[i + j])
+            {
+                ++i;
+            }
+            if (i >= (int)needle_sz)
+            {
+                i = ell;
+                while (i > memory && needle[i] == haystack[i + j])
+                {
+                    --i;
+                }
+                if (i <= memory)
+                {
+                    return haystack + j;
+                }
+                j += period;
+                memory = (int)needle_sz - period - 1;
+            }
+            else
+            {
+                j += (i - ell);
+                memory = -1;
+            }
+        }
+        return haystack + haystack_sz;
+    }
+    period = sv_int_max(ell + 1, (int)needle_sz - ell - 1) + 1;
+    j = 0;
+    while (j <= (int)haystack_sz - (int)needle_sz)
+    {
+        i = ell + 1;
+        while (i < (int)needle_sz && needle[i] == haystack[i + j])
+        {
+            ++i;
+        }
+        if (i >= (int)needle_sz)
+        {
+            i = ell;
+            while (i >= 0 && needle[i] == haystack[i + j])
+            {
+                --i;
+            }
+            if (i < 0)
+            {
+                return haystack + j;
+            }
+            j += period;
+        }
+        else
+        {
+            j += (i - ell);
+        }
+    }
+    return haystack + haystack_sz;
+}
+
+/* NOLINTEND(*-cognitive-complexity) */

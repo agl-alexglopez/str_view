@@ -74,10 +74,14 @@ string_view sv_remove_suffix(string_view, size_t n);
 string_view sv_substr(string_view, size_t pos, size_t count);
 
 bool sv_contains(string_view haystack, string_view needle);
-size_t sv_find_first_of(string_view, const char *delim);
-size_t sv_find_last_of(string_view, const char *delim);
-size_t sv_find_first_not_of(string_view, const char *delim, size_t delim_sz);
-size_t sv_find_last_not_of(string_view, const char *delim);
+string_view sv_svsv(string_view haystack, string_view needle);
+string_view sv_svstr(string_view haystack, const char *needle,
+                     size_t needle_sz);
+size_t sv_find_first_of(string_view haystack, const char *needle);
+size_t sv_find_last_of(string_view haystack, const char *needle);
+size_t sv_find_first_not_of(string_view haystack, const char *needle,
+                            size_t needle_sz);
+size_t sv_find_last_not_of(string_view haystack, const char *needle);
 
 void sv_print(string_view);
 
