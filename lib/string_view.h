@@ -13,7 +13,8 @@ typedef struct string_view
 /* Constructs and returns a string view from a NULL TERMINATED string. */
 string_view sv(const char *);
 
-/* Constructs and returns a string view from a sequence of valid n bytes. */
+/* Constructs and returns a string view from a sequence of valid n bytes
+   or string length whichever comes first. */
 string_view sv_n(const char *, size_t n);
 
 /* Constructs and returns a string view from a NULL TERMINATED string
