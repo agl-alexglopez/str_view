@@ -26,12 +26,7 @@ sv(const char *const str)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    size_t sz = 0;
-    while (str[sz] != '\0')
-    {
-        ++sz;
-    }
-    return (string_view){.s = str, .sz = sz};
+    return (string_view){.s = str, .sz = strlen(str)};
 }
 
 string_view
