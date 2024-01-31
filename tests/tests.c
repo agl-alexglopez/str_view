@@ -56,8 +56,9 @@ static bool test_substr(void);
 static bool test_svcmp(void);
 static bool test_argv_argc(void);
 static bool test_mini_alloc_free(void);
+static bool test_get_line(void);
 
-#define NUM_TESTS (size_t)19
+#define NUM_TESTS (size_t)20
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -78,6 +79,7 @@ const test_fn all_tests[NUM_TESTS] = {
     test_substr,
     test_argv_argc,
     test_mini_alloc_free,
+    test_get_line,
 };
 
 static int
@@ -750,6 +752,32 @@ test_mini_alloc_free(void)
         {
             return false;
         }
+    }
+    return true;
+}
+
+static bool
+test_get_line(void)
+{
+    printf("test_get_line");
+    /* We will pretend like we used getline to read this into a heap
+       allocated buffer from a file and now we are reading/parsing
+       minus the correct EOF handling possibly. */
+    const char *lines[5] = {"1", "2", "3", "4", "5"};
+    const char *const file_data = "1\n2\n3\n4\n5";
+    size_t i = 0;
+    for (string_view v = sv_begin_tok(file_data, 1, "\n"); !sv_end_tok(&v);
+         v = sv_next_tok(v, 1, "\n"))
+    {
+        if (sv_strcmp(v, lines[i]) != 0)
+        {
+            return false;
+        }
+        ++i;
+    }
+    if (i != 5)
+    {
+        return false;
     }
     return true;
 }
