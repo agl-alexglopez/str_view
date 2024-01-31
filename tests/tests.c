@@ -316,7 +316,7 @@ test_iter(void)
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, " ", 1))
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, 1, " "))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -330,7 +330,7 @@ test_iter(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, ",");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, ",", 1))
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, ","))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -357,7 +357,7 @@ test_iter_repeating_delim(void)
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, " ", 1))
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, 1, " "))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -371,7 +371,7 @@ test_iter_repeating_delim(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, ",");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, ",", 1))
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, ","))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -401,7 +401,7 @@ test_iter_multichar_delim(void)
     const char *const delim = "abc";
     const size_t delim_len = strlen(delim);
     string_view cur = sv_begin_tok(reference, delim_len, delim);
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim_len, delim))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -415,7 +415,7 @@ test_iter_multichar_delim(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, " ", 1))
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, " "))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -445,7 +445,7 @@ test_iter_multichar_delim_short(void)
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
     string_view cur = sv_begin_tok(reference, delim_len, delim);
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim_len, delim))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -459,7 +459,7 @@ test_iter_multichar_delim_short(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, " ", 1))
+    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, " "))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -489,7 +489,7 @@ test_iter_delim_larger_than_str(void)
     {
         return false;
     }
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim, delim_len))
+    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim_len, delim))
     {
         if (sv_strcmp(cur, reference) != 0)
         {
@@ -704,7 +704,7 @@ test_argv_argc(void)
     string_view view = sv(buf_data);
     size_t i = 0;
     for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(&v);
-         v = sv_next_tok(v, " ", 1))
+         v = sv_next_tok(v, 1, " "))
     {
         sv_fill(argv[i], sv_len(v), v);
         ++i;
@@ -733,7 +733,7 @@ test_mini_alloc_free(void)
     string_view view = sv(buf_data);
     size_t i = 0;
     for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(&v);
-         v = sv_next_tok(v, " ", 1))
+         v = sv_next_tok(v, 1, " "))
     {
         argv[i++] = v;
     }

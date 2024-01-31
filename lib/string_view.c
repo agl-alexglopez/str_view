@@ -263,7 +263,7 @@ sv_end_tok(const string_view *sv)
 }
 
 string_view
-sv_next_tok(string_view sv, const char *const delim, const size_t delim_sz)
+sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
 {
     if (sv.s[sv.sz] == '\0')
     {

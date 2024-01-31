@@ -66,7 +66,7 @@ const char *sv_next(const char *);
 
 string_view sv_begin_tok(const char *data, size_t delim_sz, const char *delim);
 bool sv_end_tok(const string_view *);
-string_view sv_next_tok(string_view, const char *delim, size_t delim_sz);
+string_view sv_next_tok(string_view, size_t delim_sz, const char *delim);
 
 string_view sv_remove_prefix(string_view, size_t n);
 string_view sv_remove_suffix(string_view, size_t n);
