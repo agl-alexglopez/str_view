@@ -36,8 +36,8 @@ static size_t sv_min(size_t, size_t);
 static struct factorization sv_maximal_suffix(const char *, size_t);
 static struct factorization sv_maximal_suffix_rev(const char *, size_t);
 static const char *sv_two_way(const char *, size_t, const char *, size_t);
-static inline const char *sv_way_one(struct two_way_pack p);
-static inline const char *sv_way_two(struct two_way_pack p);
+static inline const char *sv_way_one(struct two_way_pack);
+static inline const char *sv_way_two(struct two_way_pack);
 
 string_view
 sv(const char *const str)
