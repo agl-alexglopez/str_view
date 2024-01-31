@@ -1,4 +1,5 @@
 #include "string_view.h"
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,12 +13,31 @@ enum cmp
     GRT = 1,
 };
 
+struct two_way_pack
+{
+    const char *const haystack;
+    int haystack_sz;
+    const char *const needle;
+    int needle_sz;
+    int suffix;
+    int period;
+    int ell;
+};
+
+struct factorization
+{
+    int suffix;
+    int period;
+};
+
 static const char *const nil = "";
 
 static size_t sv_min(size_t, size_t);
-static int sv_maximal_suffix(const char *, size_t, int *);
-static int sv_maximal_suffix_rev(const char *, size_t, int *);
+static struct factorization sv_maximal_suffix(const char *, size_t);
+static struct factorization sv_maximal_suffix_rev(const char *, size_t);
 static const char *sv_two_way(const char *, size_t, const char *, size_t);
+static inline const char *sv_way_one(struct two_way_pack p);
+static inline const char *sv_way_two(struct two_way_pack p);
 
 string_view
 sv(const char *const str)
@@ -487,12 +507,13 @@ sv_char_cmp(char a, char b)
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static int
-sv_maximal_suffix(const char *const needle, size_t needle_sz, int *const period)
+static struct factorization
+sv_maximal_suffix(const char *const needle, size_t needle_sz)
 {
     int max_suf = -1;
     int j = 0;
-    int k = *period = 1;
+    int period = 1;
+    int k = 1;
     while (j + k < (int)needle_sz)
     {
         switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
@@ -501,19 +522,19 @@ sv_maximal_suffix(const char *const needle, size_t needle_sz, int *const period)
         {
             j += k;
             k = 1;
-            *period = j - max_suf;
+            period = j - max_suf;
         }
         break;
         case EQL:
         {
-            if (k != *period)
+            if (k != period)
             {
 
                 ++k;
             }
             else
             {
-                j += *period;
+                j += period;
                 k = 1;
             }
         }
@@ -522,24 +543,24 @@ sv_maximal_suffix(const char *const needle, size_t needle_sz, int *const period)
         {
             max_suf = (int)j;
             j = max_suf + 1;
-            k = *period = 1;
+            k = period = 1;
         }
         break;
         }
     }
-    return max_suf;
+    return (struct factorization){.suffix = max_suf, .period = period};
 }
 
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static int
-sv_maximal_suffix_rev(const char *const needle, size_t needle_sz,
-                      int *const period)
+static struct factorization
+sv_maximal_suffix_rev(const char *const needle, size_t needle_sz)
 {
     int max_suf = -1;
     int j = 0;
-    int k = *period = 1;
+    int period = 1;
+    int k = 1;
     while (j + k < (int)needle_sz)
     {
         switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
@@ -548,18 +569,18 @@ sv_maximal_suffix_rev(const char *const needle, size_t needle_sz,
         {
             j += k;
             k = 1;
-            *period = j - max_suf;
+            period = j - max_suf;
         }
         break;
         case EQL:
         {
-            if (k != *period)
+            if (k != period)
             {
                 ++k;
             }
             else
             {
-                j += *period;
+                j += period;
                 k = 1;
             }
         }
@@ -568,12 +589,12 @@ sv_maximal_suffix_rev(const char *const needle, size_t needle_sz,
         {
             max_suf = (int)j;
             j = max_suf + 1;
-            k = *period = 1;
+            k = period = 1;
         }
         break;
         }
     }
-    return max_suf;
+    return (struct factorization){.suffix = max_suf, .period = period};
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
@@ -588,93 +609,124 @@ sv_maximal_suffix_rev(const char *const needle, size_t needle_sz,
    the null terminating character so that in many cases I can return
    the full string when something is not found. This is faster and
    more convenient than running another search to find the end of
-   the string. The null returned by strstr is often not helpful.
-   NOLINTBEGIN(*-cognitive-complexity) */
+   the string. The null returned by strstr is often not helpful. */
 static const char *
 sv_two_way(const char *const haystack, size_t haystack_sz,
            const char *const needle, size_t needle_sz)
 {
-    int ell;
-    int memory;
-    int period;
-
-    /* Preprocessing */
-    int factorization_p;
-    int factorization_q;
-    int i = sv_maximal_suffix(needle, needle_sz, &factorization_p);
-    int j = sv_maximal_suffix_rev(needle, needle_sz, &factorization_q);
-    if (i > j)
+    /* This is fine for now until I figure out the use of -1 in this algo */
+    if (haystack_sz > (size_t)INT_MAX)
     {
-        ell = i;
-        period = factorization_p;
+        printf("Provided string is too large, exiting.");
+        exit(1);
+    }
+    int ell;
+    int global_period;
+    /* Preprocessing */
+    struct factorization i = sv_maximal_suffix(needle, needle_sz);
+    struct factorization j = sv_maximal_suffix_rev(needle, needle_sz);
+    if (i.suffix > j.suffix)
+    {
+        ell = i.suffix;
+        global_period = i.period;
     }
     else
     {
-        ell = j;
-        period = factorization_q;
+        ell = j.suffix;
+        global_period = j.period;
     }
     /* Searching */
-    if (memcmp(needle, needle + period, ell + 1) == 0)
+    if (memcmp(needle, needle + global_period, ell + 1) == 0)
     {
-        j = 0;
-        memory = -1;
-        while (j <= (int)haystack_sz - (int)needle_sz)
-        {
-            i = sv_int_max(ell, memory) + 1;
-            while (i < (int)needle_sz && needle[i] == haystack[i + j])
-            {
-                ++i;
-            }
-            if (i >= (int)needle_sz)
-            {
-                i = ell;
-                while (i > memory && needle[i] == haystack[i + j])
-                {
-                    --i;
-                }
-                if (i <= memory)
-                {
-                    return haystack + j;
-                }
-                j += period;
-                memory = (int)needle_sz - period - 1;
-            }
-            else
-            {
-                j += (i - ell);
-                memory = -1;
-            }
-        }
-        return haystack + haystack_sz;
+        return sv_way_one((struct two_way_pack){
+            .haystack = haystack,
+            .haystack_sz = (int)haystack_sz,
+            .needle = needle,
+            .needle_sz = (int)needle_sz,
+            .suffix = i.suffix,
+            .period = global_period,
+            .ell = ell,
+        });
     }
-    period = sv_int_max(ell + 1, (int)needle_sz - ell - 1) + 1;
-    j = 0;
-    while (j <= (int)haystack_sz - (int)needle_sz)
+    return sv_way_two((struct two_way_pack){
+        .haystack = haystack,
+        .haystack_sz = (int)haystack_sz,
+        .needle = needle,
+        .needle_sz = (int)needle_sz,
+        .suffix = i.suffix,
+        .period = global_period,
+        .ell = ell,
+    });
+}
+
+static inline const char *
+sv_way_one(struct two_way_pack p)
+{
+    int j = 0;
+    int memory = -1;
+    while (j <= p.haystack_sz - p.needle_sz)
     {
-        i = ell + 1;
-        while (i < (int)needle_sz && needle[i] == haystack[i + j])
+        p.suffix = sv_int_max(p.ell, memory) + 1;
+        while (p.suffix < p.needle_sz
+               && p.needle[p.suffix] == p.haystack[p.suffix + j])
         {
-            ++i;
+            ++p.suffix;
         }
-        if (i >= (int)needle_sz)
+        if (p.suffix >= p.needle_sz)
         {
-            i = ell;
-            while (i >= 0 && needle[i] == haystack[i + j])
+            p.suffix = p.ell;
+            while (p.suffix > memory
+                   && p.needle[p.suffix] == p.haystack[p.suffix + j])
             {
-                --i;
+                --p.suffix;
             }
-            if (i < 0)
+            if (p.suffix <= memory)
             {
-                return haystack + j;
+                return p.haystack + j;
             }
-            j += period;
+            j += p.period;
+            memory = p.needle_sz - p.period - 1;
         }
         else
         {
-            j += (i - ell);
+            j += (p.suffix - p.ell);
+            memory = -1;
         }
     }
-    return haystack + haystack_sz;
+    return p.haystack + p.haystack_sz;
 }
 
-/* NOLINTEND(*-cognitive-complexity) */
+static inline const char *
+sv_way_two(struct two_way_pack p)
+{
+    p.period = sv_int_max(p.ell + 1, p.needle_sz - p.ell - 1) + 1;
+    int j = 0;
+    while (j <= p.haystack_sz - p.needle_sz)
+    {
+        p.suffix = p.ell + 1;
+        while (p.suffix < p.needle_sz
+               && p.needle[p.suffix] == p.haystack[p.suffix + j])
+        {
+            ++p.suffix;
+        }
+        if (p.suffix >= p.needle_sz)
+        {
+            p.suffix = p.ell;
+            while (p.suffix >= 0
+                   && p.needle[p.suffix] == p.haystack[p.suffix + j])
+            {
+                --p.suffix;
+            }
+            if (p.suffix < 0)
+            {
+                return p.haystack + j;
+            }
+            j += p.period;
+        }
+        else
+        {
+            j += (p.suffix - p.ell);
+        }
+    }
+    return p.haystack + p.haystack_sz;
+}
