@@ -311,6 +311,25 @@ sv_substr(string_view sv, size_t pos, size_t count)
     return (string_view){.s = sv.s + pos, .sz = min(count, sv.sz - pos)};
 }
 
+bool
+sv_contains(string_view haystack, string_view needle)
+{
+    if (needle.sz > haystack.sz)
+    {
+        return false;
+    }
+    if (sv_empty(haystack))
+    {
+        return false;
+    }
+    if (sv_empty(needle))
+    {
+        return true;
+    }
+    const char *const found = strstr(haystack.s, needle.s);
+    return found != NULL && (size_t)(found - haystack.s) <= haystack.sz;
+}
+
 size_t
 sv_find_first_of(string_view sv, const char *const delim)
 {
@@ -320,6 +339,10 @@ sv_find_first_of(string_view sv, const char *const delim)
     }
     const char *const found = strstr(sv.s, delim);
     if (NULL == found)
+    {
+        return sv.sz;
+    }
+    if ((size_t)(found - sv.s) > sv.sz)
     {
         return sv.sz;
     }
@@ -337,6 +360,10 @@ sv_find_last_of(string_view sv, const char *const delim)
     const char *found = sv.s;
     while ((found = strstr(found, delim)) != NULL)
     {
+        if ((size_t)(found - sv.s) > sv.sz)
+        {
+            break;
+        }
         last_found = found;
         ++found;
     }
@@ -381,8 +408,12 @@ sv_find_last_not_of(string_view sv, const char *const delim)
     const char *found = sv.s;
     while ((found = strstr(found, delim)) != NULL)
     {
+        if ((size_t)(found - sv.s) > sv.sz)
+        {
+            break;
+        }
         last_found = found;
-        ++found;
+        found += delim_sz;
     }
     if (NULL == last_found)
     {
