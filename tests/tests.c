@@ -96,7 +96,7 @@ run(void)
         passed ? printf("...%s\n", pass_msg) : printf("...%s\n", fail_msg);
     }
     printf("PASSED %zu/%zu %s\n\n", pass_count, NUM_TESTS,
-           (pass_count == NUM_TESTS) ? "\\(*.*)/\n" : ">.<\n");
+           (pass_count == NUM_TESTS) ? "\\(*.*)/\n" : "T_T\n");
     return 0;
 }
 
@@ -836,8 +836,7 @@ test_substring_search(void)
     {
         return false;
     }
-    /* There are two needles in the haystack so we should have two string
-     * chunks. */
+    /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
     for (string_view v = sv_begin_tok(haystack, needle_len, "needle");
          !sv_end_tok(&v); v = sv_next_tok(v, needle_len, "needle"))

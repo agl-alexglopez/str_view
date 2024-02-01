@@ -18,15 +18,15 @@ struct two_way_pack
     ssize_t haystack_sz;
     const char *const needle;
     ssize_t needle_sz;
-    ssize_t suffix_i;
-    ssize_t global_period;
-    ssize_t longest_prefix_suffix;
+    ssize_t suffix_pos;
+    ssize_t period_pos;
+    ssize_t repetition_pos;
 };
 
 struct factorization
 {
-    ssize_t suffix;
-    ssize_t period;
+    ssize_t suffix_pos;
+    ssize_t period_pos;
 };
 
 static const char *const nil = "";
@@ -575,7 +575,7 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
         break;
         }
     }
-    return (struct factorization){.suffix = max_suf, .period = period};
+    return (struct factorization){.suffix_pos = max_suf, .period_pos = period};
 }
 
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
@@ -621,7 +621,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
         break;
         }
     }
-    return (struct factorization){.suffix = max_suf, .period = period};
+    return (struct factorization){.suffix_pos = max_suf, .period_pos = period};
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
@@ -641,32 +641,32 @@ static const char *
 sv_two_way(const char *const haystack, ssize_t haystack_sz,
            const char *const needle, ssize_t needle_sz)
 {
-    ssize_t ell;
+    ssize_t repetition_pos;
     ssize_t global_period;
     /* Preprocessing */
     struct factorization i = sv_maximal_suffix(needle, needle_sz);
     struct factorization j = sv_maximal_suffix_rev(needle, needle_sz);
-    if (i.suffix > j.suffix)
+    if (i.suffix_pos > j.suffix_pos)
     {
-        ell = i.suffix;
-        global_period = i.period;
+        repetition_pos = i.suffix_pos;
+        global_period = i.period_pos;
     }
     else
     {
-        ell = j.suffix;
-        global_period = j.period;
+        repetition_pos = j.suffix_pos;
+        global_period = j.period_pos;
     }
     /* Searching */
-    if (memcmp(needle, needle + global_period, ell + 1) == 0)
+    if (memcmp(needle, needle + global_period, repetition_pos + 1) == 0)
     {
         return sv_way_one((struct two_way_pack){
             .haystack = haystack,
             .haystack_sz = haystack_sz,
             .needle = needle,
             .needle_sz = needle_sz,
-            .suffix_i = i.suffix,
-            .global_period = global_period,
-            .longest_prefix_suffix = ell,
+            .suffix_pos = i.suffix_pos,
+            .period_pos = global_period,
+            .repetition_pos = repetition_pos,
         });
     }
     return sv_way_two((struct two_way_pack){
@@ -674,44 +674,44 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
         .haystack_sz = haystack_sz,
         .needle = needle,
         .needle_sz = needle_sz,
-        .suffix_i = i.suffix,
-        .global_period = global_period,
-        .longest_prefix_suffix = ell,
+        .suffix_pos = i.suffix_pos,
+        .period_pos = global_period,
+        .repetition_pos = repetition_pos,
     });
 }
 
 static inline const char *
 sv_way_one(struct two_way_pack p)
 {
-    ssize_t j = 0;
+    ssize_t pos = 0;
     ssize_t memorize_shift = -1;
-    while (j <= p.haystack_sz - p.needle_sz)
+    while (pos <= p.haystack_sz - p.needle_sz)
     {
-        p.suffix_i
-            = sv_ssize_t_max(p.longest_prefix_suffix, memorize_shift) + 1;
-        while (p.suffix_i < p.needle_sz
-               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
+        p.suffix_pos = sv_ssize_t_max(p.repetition_pos, memorize_shift) + 1;
+        while (p.suffix_pos < p.needle_sz
+               && p.needle[p.suffix_pos] == p.haystack[p.suffix_pos + pos])
         {
-            ++p.suffix_i;
+            ++p.suffix_pos;
         }
-        if (p.suffix_i < p.needle_sz)
+        if (p.suffix_pos < p.needle_sz)
         {
-            j += (p.suffix_i - p.longest_prefix_suffix);
+            pos += (p.suffix_pos - p.repetition_pos);
             memorize_shift = -1;
             continue;
         }
-        p.suffix_i = p.longest_prefix_suffix;
-        while (p.suffix_i > memorize_shift
-               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
+        /* p.suffix_i >= p.needle_sz */
+        p.suffix_pos = p.repetition_pos;
+        while (p.suffix_pos > memorize_shift
+               && p.needle[p.suffix_pos] == p.haystack[p.suffix_pos + pos])
         {
-            --p.suffix_i;
+            --p.suffix_pos;
         }
-        if (p.suffix_i <= memorize_shift)
+        if (p.suffix_pos <= memorize_shift)
         {
-            return p.haystack + j;
+            return p.haystack + pos;
         }
-        j += p.global_period;
-        memorize_shift = p.needle_sz - p.global_period - 1;
+        pos += p.period_pos;
+        memorize_shift = p.needle_sz - p.period_pos - 1;
     }
     return p.haystack + p.haystack_sz;
 }
@@ -719,34 +719,34 @@ sv_way_one(struct two_way_pack p)
 static inline const char *
 sv_way_two(struct two_way_pack p)
 {
-    p.global_period = sv_ssize_t_max(p.longest_prefix_suffix + 1,
-                                     p.needle_sz - p.longest_prefix_suffix - 1)
-                      + 1;
-    ssize_t j = 0;
-    while (j <= p.haystack_sz - p.needle_sz)
+    p.period_pos = sv_ssize_t_max(p.repetition_pos + 1,
+                                  p.needle_sz - p.repetition_pos - 1)
+                   + 1;
+    ssize_t pos = 0;
+    while (pos <= p.haystack_sz - p.needle_sz)
     {
-        p.suffix_i = p.longest_prefix_suffix + 1;
-        while (p.suffix_i < p.needle_sz
-               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
+        p.suffix_pos = p.repetition_pos + 1;
+        while (p.suffix_pos < p.needle_sz
+               && p.needle[p.suffix_pos] == p.haystack[p.suffix_pos + pos])
         {
-            ++p.suffix_i;
+            ++p.suffix_pos;
         }
-        if (p.suffix_i < p.needle_sz)
+        if (p.suffix_pos < p.needle_sz)
         {
-            j += (p.suffix_i - p.longest_prefix_suffix);
+            pos += (p.suffix_pos - p.repetition_pos);
             continue;
         }
-        p.suffix_i = p.longest_prefix_suffix;
-        while (p.suffix_i >= 0
-               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
+        p.suffix_pos = p.repetition_pos;
+        while (p.suffix_pos >= 0
+               && p.needle[p.suffix_pos] == p.haystack[p.suffix_pos + pos])
         {
-            --p.suffix_i;
+            --p.suffix_pos;
         }
-        if (p.suffix_i < 0)
+        if (p.suffix_pos < 0)
         {
-            return p.haystack + j;
+            return p.haystack + pos;
         }
-        j += p.global_period;
+        pos += p.period_pos;
     }
     return p.haystack + p.haystack_sz;
 }
