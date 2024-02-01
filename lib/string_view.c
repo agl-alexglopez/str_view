@@ -5,53 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum cmp
-{
-    LES = -1,
-    EQL = 0,
-    GRT = 1,
-};
-
-/* Definitions for Two-Way String-Matching taken from original authors:
-
-   CROCHEMORE M., PERRIN D., 1991, Two-way string-matching,
-   Journal of the ACM 38(3):651-675.
-
-   This algorithm is used for its simplicity and low space requirement.
-   What follows is a massively simplified approximation (due to my own
-   lack of knowledge) of glibc's approach with the help of the ESMAJ
-   website on string matching:
-
-   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260
-
-   Variable names and descriptions attempt to communicate authors' meaning. */
-struct critical_factorization
-{
-    /* Position in the needle at which (local period = period). */
-    ssize_t start_critical_pos;
-    /* A distance in the needle such that two letters always coincide. */
-    ssize_t period_dist;
-};
-
-struct two_way_pack
-{
-    const char *const haystack;
-    ssize_t haystack_sz;
-    const char *const needle;
-    ssize_t needle_sz;
-    ssize_t period_dist;
-    ssize_t critical_pos;
-};
-
 static const char *const nil = "";
 
 static size_t sv_min(size_t, size_t);
-static struct critical_factorization sv_maximal_suffix(const char *, ssize_t);
-static struct critical_factorization sv_maximal_suffix_rev(const char *,
-                                                           ssize_t);
 static const char *sv_two_way(const char *, ssize_t, const char *, ssize_t);
-static inline const char *sv_two_way_period_memoization(struct two_way_pack);
-static inline const char *sv_two_way_normal(struct two_way_pack);
 
 string_view
 sv(const char *const str)
@@ -536,12 +493,60 @@ sv_min(size_t a, size_t b)
 }
 
 static inline ssize_t
-sv_ssize_t_max(ssize_t a, ssize_t b)
+sv_ssizet_max(ssize_t a, ssize_t b)
 {
     return a > b ? a : b;
 }
 
-static inline enum cmp
+/* =======================   String Searching   ========================== */
+
+/* Definitions for Two-Way String-Matching taken from original authors:
+
+   CROCHEMORE M., PERRIN D., 1991, Two-way string-matching,
+   Journal of the ACM 38(3):651-675.
+
+   This algorithm is used for its simplicity and low space requirement.
+   What follows is a massively simplified approximation (due to my own
+   lack of knowledge) of glibc's approach with the help of the ESMAJ
+   website on string matching:
+
+   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260
+
+   Variable names and descriptions attempt to communicate authors' meaning. */
+struct sv_factorization
+{
+    /* Position in the needle at which (local period = period). */
+    ssize_t start_critical_pos;
+    /* A distance in the needle such that two letters always coincide. */
+    ssize_t period_dist;
+};
+
+struct sv_two_way_pack
+{
+    const char *const haystack;
+    ssize_t haystack_sz;
+    const char *const needle;
+    ssize_t needle_sz;
+    /* Taken from the factorization of needle for two-way searching */
+    ssize_t period_dist;
+    /* The critical position taken from our factorization. */
+    ssize_t critical_pos;
+};
+
+enum sv_cmp
+{
+    SV_LES = -1,
+    SV_EQL = 0,
+    SV_GRT = 1,
+};
+
+static struct sv_factorization sv_maximal_suffix(const char *, ssize_t);
+static struct sv_factorization sv_maximal_suffix_rev(const char *, ssize_t);
+static inline const char *sv_two_way_period_memoization(struct sv_two_way_pack);
+static inline const char *sv_two_way_normal(struct sv_two_way_pack);
+static inline enum sv_cmp sv_char_cmp(char, char);
+
+static inline enum sv_cmp
 sv_char_cmp(char a, char b)
 {
     return (a > b) - (a < b);
@@ -549,7 +554,7 @@ sv_char_cmp(char a, char b)
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static struct critical_factorization
+static struct sv_factorization
 sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
 {
     ssize_t max_suf = -1;
@@ -560,18 +565,17 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
     {
         switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
         {
-        case LES:
+        case SV_LES:
         {
             j += k;
             k = 1;
             period = j - max_suf;
         }
         break;
-        case EQL:
+        case SV_EQL:
         {
             if (k != period)
             {
-
                 ++k;
             }
             else
@@ -581,7 +585,7 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
             }
         }
         break;
-        case GRT:
+        case SV_GRT:
         {
             max_suf = j;
             j = max_suf + 1;
@@ -590,32 +594,32 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
         break;
         }
     }
-    return (struct critical_factorization){.start_critical_pos = max_suf,
-                                           .period_dist = period};
+    return (struct sv_factorization){.start_critical_pos = max_suf,
+                                     .period_dist = period};
 }
 
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static struct critical_factorization
+static struct sv_factorization
 sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 {
     ssize_t max_suf = -1;
     ssize_t j = 0;
-    ssize_t period = 1;
     ssize_t k = 1;
+    ssize_t period = 1;
     while (j + k < (int)needle_sz)
     {
         switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
         {
-        case GRT:
+        case SV_GRT:
         {
             j += k;
             k = 1;
             period = j - max_suf;
         }
         break;
-        case EQL:
+        case SV_EQL:
         {
             if (k != period)
             {
@@ -628,7 +632,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
             }
         }
         break;
-        case LES:
+        case SV_LES:
         {
             max_suf = (int)j;
             j = max_suf + 1;
@@ -637,8 +641,8 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
         break;
         }
     }
-    return (struct critical_factorization){.start_critical_pos = max_suf,
-                                           .period_dist = period};
+    return (struct sv_factorization){.start_critical_pos = max_suf,
+                                     .period_dist = period};
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
@@ -661,8 +665,8 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
     ssize_t critical_pos;
     ssize_t period_dist;
     /* Preprocessing to get critical position and period distance. */
-    struct critical_factorization s = sv_maximal_suffix(needle, needle_sz);
-    struct critical_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
+    struct sv_factorization s = sv_maximal_suffix(needle, needle_sz);
+    struct sv_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
     if (s.start_critical_pos > r.start_critical_pos)
     {
         critical_pos = s.start_critical_pos;
@@ -676,7 +680,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
     /* Searching */
     if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
-        return sv_two_way_period_memoization((struct two_way_pack){
+        return sv_two_way_period_memoization((struct sv_two_way_pack){
             .haystack = haystack,
             .haystack_sz = haystack_sz,
             .needle = needle,
@@ -685,7 +689,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
             .critical_pos = critical_pos,
         });
     }
-    return sv_two_way_normal((struct two_way_pack){
+    return sv_two_way_normal((struct sv_two_way_pack){
         .haystack = haystack,
         .haystack_sz = haystack_sz,
         .needle = needle,
@@ -696,14 +700,14 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
 }
 
 static inline const char *
-sv_two_way_period_memoization(struct two_way_pack p)
+sv_two_way_period_memoization(struct sv_two_way_pack p)
 {
     ssize_t l_pos = 0;
     ssize_t r_pos = 0;
     ssize_t memorize_shift = -1;
     while (l_pos <= p.haystack_sz - p.needle_sz)
     {
-        r_pos = sv_ssize_t_max(p.critical_pos, memorize_shift) + 1;
+        r_pos = sv_ssizet_max(p.critical_pos, memorize_shift) + 1;
         while (r_pos < p.needle_sz
                && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
@@ -735,10 +739,10 @@ sv_two_way_period_memoization(struct two_way_pack p)
 }
 
 static inline const char *
-sv_two_way_normal(struct two_way_pack p)
+sv_two_way_normal(struct sv_two_way_pack p)
 {
     p.period_dist
-        = sv_ssize_t_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
+        = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
           + 1;
     ssize_t l_pos = 0;
     ssize_t r_pos = 0;
@@ -750,6 +754,7 @@ sv_two_way_normal(struct two_way_pack p)
         {
             ++r_pos;
         }
+
         if (r_pos < p.needle_sz)
         {
             l_pos += (r_pos - p.critical_pos);
