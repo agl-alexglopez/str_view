@@ -308,7 +308,7 @@ test_iter(void)
     const char *const reference = "A B C D E G H I J K L M N O P";
     string_view chars = sv(reference);
     size_t i = 0;
-    for (const char *cur = sv_begin(&chars); cur != sv_end(&chars);
+    for (const char *cur = sv_begin(chars); cur != sv_end(chars);
          cur = sv_next(cur))
     {
         if (*cur != reference[i])
@@ -320,7 +320,7 @@ test_iter(void)
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, 1, " "))
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, 1, " "))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -334,7 +334,7 @@ test_iter(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, ",");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, ","))
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, ","))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -361,7 +361,7 @@ test_iter_repeating_delim(void)
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
     string_view cur = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, 1, " "))
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, 1, " "))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -375,7 +375,7 @@ test_iter_repeating_delim(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, ",");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, ","))
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, ","))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -405,7 +405,7 @@ test_iter_multichar_delim(void)
     const char *const delim = "abc";
     const size_t delim_len = strlen(delim);
     string_view cur = sv_begin_tok(reference, delim_len, delim);
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim_len, delim))
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, delim_len, delim))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -419,7 +419,7 @@ test_iter_multichar_delim(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, " "))
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, " "))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -449,7 +449,7 @@ test_iter_multichar_delim_short(void)
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
     string_view cur = sv_begin_tok(reference, delim_len, delim);
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim_len, delim))
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, delim_len, delim))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -463,7 +463,7 @@ test_iter_multichar_delim_short(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     string_view cur2 = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(&cur2); cur2 = sv_next_tok(cur2, 1, " "))
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, " "))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -493,7 +493,7 @@ test_iter_delim_larger_than_str(void)
     {
         return false;
     }
-    for (; !sv_end_tok(&cur); cur = sv_next_tok(cur, delim_len, delim))
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, delim_len, delim))
     {
         if (sv_strcmp(cur, reference) != 0)
         {
@@ -551,8 +551,7 @@ test_prefix_suffix(void)
     string_view entire_string = sv(reference);
     string_view prefix = sv_remove_suffix(entire_string, 23);
     size_t i = 0;
-    for (const char *c = sv_begin(&prefix); c != sv_end(&prefix);
-         c = sv_next(c))
+    for (const char *c = sv_begin(prefix); c != sv_end(prefix); c = sv_next(c))
     {
         if (*c != ref_prefix[i])
         {
@@ -562,8 +561,7 @@ test_prefix_suffix(void)
     }
     i = 0;
     const string_view suffix = sv_remove_prefix(entire_string, 19);
-    for (const char *c = sv_begin(&suffix); c != sv_end(&suffix);
-         c = sv_next(c))
+    for (const char *c = sv_begin(suffix); c != sv_end(suffix); c = sv_next(c))
     {
         if (*c != ref_suffix[i])
         {
@@ -707,7 +705,7 @@ test_argv_argc(void)
     char argv[10][128];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(&v);
+    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(v);
          v = sv_next_tok(v, 1, " "))
     {
         sv_fill(argv[i], sv_len(v), v);
@@ -736,7 +734,7 @@ test_mini_alloc_free(void)
     string_view argv[10];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(&v);
+    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(v);
          v = sv_next_tok(v, 1, " "))
     {
         argv[i++] = v;
@@ -768,7 +766,7 @@ test_get_line(void)
     const char *lines[5] = {"1", "2", "3", "4", "5"};
     const char *const file_data = "1\n2\n3\n4\n5";
     size_t i = 0;
-    for (string_view v = sv_begin_tok(file_data, 1, "\n"); !sv_end_tok(&v);
+    for (string_view v = sv_begin_tok(file_data, 1, "\n"); !sv_end_tok(v);
          v = sv_next_tok(v, 1, "\n"))
     {
         if (sv_strcmp(v, lines[i]) != 0)
@@ -839,7 +837,7 @@ test_substring_search(void)
     /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
     for (string_view v = sv_begin_tok(haystack, needle_len, "needle");
-         !sv_end_tok(&v); v = sv_next_tok(v, needle_len, "needle"))
+         !sv_end_tok(v); v = sv_next_tok(v, needle_len, "needle"))
     {
         ++i;
     }

@@ -61,12 +61,12 @@ const char *sv_str(string_view);
 string_view sv_copy(const char *src_str, size_t str_sz);
 void sv_fill(char *dest_buf, size_t dest_sz, string_view src);
 
-const char *sv_begin(const string_view *);
-const char *sv_end(const string_view *);
+const char *sv_begin(string_view);
+const char *sv_end(string_view);
 const char *sv_next(const char *);
 
 string_view sv_begin_tok(const char *data, size_t delim_sz, const char *delim);
-bool sv_end_tok(const string_view *);
+bool sv_end_tok(string_view);
 string_view sv_next_tok(string_view, size_t delim_sz, const char *delim);
 
 string_view sv_remove_prefix(string_view, size_t n);

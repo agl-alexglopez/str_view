@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Avoid giving the user a chance to dereference null as much as posssible
+   by returning this for various edgecases when it makes sense to communicate
+   empty, null, invalid, not found etc. Used on cases by case basis. */
 static const char *const nil = "";
 
 static size_t sv_min(size_t, size_t);
@@ -27,12 +30,7 @@ sv_n(const char *const str, size_t n)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    size_t sz = 0;
-    while (str[sz] != '\0' && sz < n)
-    {
-        ++sz;
-    }
-    return (string_view){.s = str, .sz = n};
+    return (string_view){.s = str, .sz = strnlen(str, n)};
 }
 
 string_view
@@ -42,12 +40,21 @@ sv_delim(const char *const str, const char *const delim)
     {
         return (string_view){.s = nil, .sz = 0};
     }
+    if (!delim)
+    {
+        return (string_view){.s = str, .sz = strlen(str)};
+    }
     return sv_begin_tok(str, strlen(delim), delim);
 }
 
 char *
 sv_alloc(string_view sv)
 {
+    if (!sv.s || sv.sz == 0)
+    {
+        (void)fprintf(stderr, "sv_alloc accepted invalid string_view.\n");
+        exit(1);
+    }
     char *const ret = malloc(sv.sz + 1);
     sv_fill(ret, sv.sz, sv);
     return ret;
@@ -78,21 +85,16 @@ sv_print(string_view s)
 string_view
 sv_copy(const char *const src_str, const size_t str_sz)
 {
-    if (!src_str || str_sz == 0)
-    {
-        return (string_view){.s = nil, .sz = 0};
-    }
-    size_t i = 0;
-    while (src_str[i] != '\0' && i < str_sz)
-    {
-        ++i;
-    }
-    return (string_view){.s = src_str, .sz = i};
+    return sv_n(src_str, str_sz);
 }
 
 void
 sv_fill(char *dest_buf, size_t dest_sz, const string_view src)
 {
+    if (!dest_buf || 0 == dest_sz || !src.s || 0 == src.sz)
+    {
+        return;
+    }
     const size_t paste = sv_min(dest_sz, src.sz);
     memmove(dest_buf, src.s, paste);
     dest_buf[paste] = '\0';
@@ -138,6 +140,11 @@ sv_str(struct string_view sv)
 int
 sv_svcmp(string_view sv1, string_view sv2)
 {
+    if (!sv1.s || !sv2.s)
+    {
+        (void)fprintf(stderr, "sv_svcmp cannot compare NULL.\n");
+        exit(1);
+    }
     size_t i = 0;
     const size_t sz = sv_min(sv1.sz, sv2.sz);
     while (sv1.s[i] == sv2.s[i] && i < sz)
@@ -158,6 +165,11 @@ sv_svcmp(string_view sv1, string_view sv2)
 int
 sv_strcmp(string_view sv, const char *str)
 {
+    if (!sv.s || !str)
+    {
+        (void)fprintf(stderr, "sv_strcmp cannot compare NULL.\n");
+        exit(1);
+    }
     size_t i = 0;
     const size_t sz = sv.sz;
     while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
@@ -178,6 +190,11 @@ sv_strcmp(string_view sv, const char *str)
 int
 sv_strncmp(string_view sv, const char *str, const size_t n)
 {
+    if (!sv.s || !str)
+    {
+        (void)fprintf(stderr, "sv_strcmp cannot compare NULL.\n");
+        exit(1);
+    }
     size_t i = 0;
     const size_t sz = sv_min(sv.sz, n);
     while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
@@ -217,20 +234,32 @@ sv_back(struct string_view sv)
 }
 
 const char *
-sv_begin(const string_view *const sv)
+sv_begin(const string_view sv)
 {
-    return sv->s;
+    if (!sv.s)
+    {
+        return nil;
+    }
+    return sv.s;
 }
 
 const char *
-sv_end(const string_view *const sv)
+sv_end(const string_view sv)
 {
-    return sv->s + sv->sz;
+    if (!sv.s)
+    {
+        return nil;
+    }
+    return sv.s + sv.sz;
 }
 
 const char *
 sv_next(const char *c)
 {
+    if (!c)
+    {
+        return nil;
+    }
     return ++c;
 }
 
@@ -238,21 +267,29 @@ string_view
 sv_begin_tok(const char *const data, const size_t delim_sz,
              const char *const delim)
 {
+    if (!data)
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    if (!delim)
+    {
+        return (string_view){.s = data + strlen(data), 0};
+    }
     string_view start = {.s = data, .sz = strlen(data)};
     const size_t start_not = sv_find_first_not_of(start, delim, delim_sz);
     start.s += start_not;
     if (*start.s == '\0')
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (string_view){.s = start.s, .sz = 0};
     }
     size_t found_pos = sv_find_first_of(start, delim);
     return sv_substr(start, 0, found_pos);
 }
 
 bool
-sv_end_tok(const string_view *sv)
+sv_end_tok(const string_view sv)
 {
-    return 0 == sv->sz;
+    return 0 == sv.sz;
 }
 
 string_view
@@ -665,8 +702,8 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
     ssize_t critical_pos;
     ssize_t period_dist;
     /* Preprocessing to get critical position and period distance. */
-    struct sv_factorization s = sv_maximal_suffix(needle, needle_sz);
-    struct sv_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
+    const struct sv_factorization s = sv_maximal_suffix(needle, needle_sz);
+    const struct sv_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
     if (s.start_critical_pos > r.start_critical_pos)
     {
         critical_pos = s.start_critical_pos;
@@ -677,7 +714,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    /* Searching */
+    /* Determine if memoization is be available due to repeating pattern. */
     if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_period_memoization((struct sv_two_way_pack){
@@ -704,10 +741,11 @@ sv_two_way_period_memoization(struct sv_two_way_pack p)
 {
     ssize_t l_pos = 0;
     ssize_t r_pos = 0;
-    ssize_t memorize_shift = -1;
+    /* Eliminate worst case quadratic time complexity with memoization. */
+    ssize_t memoize_shift = -1;
     while (l_pos <= p.haystack_sz - p.needle_sz)
     {
-        r_pos = sv_ssizet_max(p.critical_pos, memorize_shift) + 1;
+        r_pos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
         while (r_pos < p.needle_sz
                && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
@@ -716,24 +754,24 @@ sv_two_way_period_memoization(struct sv_two_way_pack p)
         if (r_pos < p.needle_sz)
         {
             l_pos += (r_pos - p.critical_pos);
-            memorize_shift = -1;
+            memoize_shift = -1;
             continue;
         }
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
-        while (r_pos > memorize_shift
+        while (r_pos > memoize_shift
                && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
             --r_pos;
         }
-        if (r_pos <= memorize_shift)
+        if (r_pos <= memoize_shift)
         {
             return p.haystack + l_pos;
         }
         l_pos += p.period_dist;
-        /* Some prefix of needle coincides with the text. Memorize the length
-           of this prefix to increase length of next shift if possible */
-        memorize_shift = p.needle_sz - p.period_dist - 1;
+        /* Some prefix of needle coincides with the text. Memoize the length
+           of this prefix to increase length of next shift, if possible. */
+        memoize_shift = p.needle_sz - p.period_dist - 1;
     }
     return p.haystack + p.haystack_sz;
 }
