@@ -28,7 +28,7 @@ enum cmp
 struct critical_factorization
 {
     /* Position in the needle at which (local period = period). */
-    ssize_t critical_pos;
+    ssize_t start_critical_pos;
     /* A distance in the needle such that two letters always coincide. */
     ssize_t period_dist;
 };
@@ -39,9 +39,8 @@ struct two_way_pack
     ssize_t haystack_sz;
     const char *const needle;
     ssize_t needle_sz;
-    ssize_t critical_pos;
     ssize_t period_dist;
-    ssize_t repetition_pos;
+    ssize_t critical_pos;
 };
 
 static const char *const nil = "";
@@ -591,7 +590,7 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
         break;
         }
     }
-    return (struct critical_factorization){.critical_pos = max_suf,
+    return (struct critical_factorization){.start_critical_pos = max_suf,
                                            .period_dist = period};
 }
 
@@ -638,7 +637,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
         break;
         }
     }
-    return (struct critical_factorization){.critical_pos = max_suf,
+    return (struct critical_factorization){.start_critical_pos = max_suf,
                                            .period_dist = period};
 }
 
@@ -659,32 +658,31 @@ static const char *
 sv_two_way(const char *const haystack, ssize_t haystack_sz,
            const char *const needle, ssize_t needle_sz)
 {
-    ssize_t repetition_pos;
-    ssize_t global_period;
+    ssize_t critical_pos;
+    ssize_t period_dist;
     /* Preprocessing */
     struct critical_factorization i = sv_maximal_suffix(needle, needle_sz);
     struct critical_factorization j = sv_maximal_suffix_rev(needle, needle_sz);
-    if (i.critical_pos > j.critical_pos)
+    if (i.start_critical_pos > j.start_critical_pos)
     {
-        repetition_pos = i.critical_pos;
-        global_period = i.period_dist;
+        critical_pos = i.start_critical_pos;
+        period_dist = i.period_dist;
     }
     else
     {
-        repetition_pos = j.critical_pos;
-        global_period = j.period_dist;
+        critical_pos = j.start_critical_pos;
+        period_dist = j.period_dist;
     }
     /* Searching */
-    if (memcmp(needle, needle + global_period, repetition_pos + 1) == 0)
+    if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_way_one((struct two_way_pack){
             .haystack = haystack,
             .haystack_sz = haystack_sz,
             .needle = needle,
             .needle_sz = needle_sz,
-            .critical_pos = i.critical_pos,
-            .period_dist = global_period,
-            .repetition_pos = repetition_pos,
+            .period_dist = period_dist,
+            .critical_pos = critical_pos,
         });
     }
     return sv_way_two((struct two_way_pack){
@@ -692,43 +690,45 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
         .haystack_sz = haystack_sz,
         .needle = needle,
         .needle_sz = needle_sz,
-        .critical_pos = i.critical_pos,
-        .period_dist = global_period,
-        .repetition_pos = repetition_pos,
+        .period_dist = period_dist,
+        .critical_pos = critical_pos,
     });
 }
 
 static inline const char *
 sv_way_one(struct two_way_pack p)
 {
-    ssize_t pos = 0;
+    ssize_t l_pos = 0;
+    ssize_t r_pos = 0;
     ssize_t memorize_shift = -1;
-    while (pos <= p.haystack_sz - p.needle_sz)
+    while (l_pos <= p.haystack_sz - p.needle_sz)
     {
-        p.critical_pos = sv_ssize_t_max(p.repetition_pos, memorize_shift) + 1;
-        while (p.critical_pos < p.needle_sz
-               && p.needle[p.critical_pos] == p.haystack[p.critical_pos + pos])
+        r_pos = sv_ssize_t_max(p.critical_pos, memorize_shift) + 1;
+        while (r_pos < p.needle_sz
+               && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
-            ++p.critical_pos;
+            ++r_pos;
         }
-        if (p.critical_pos < p.needle_sz)
+        if (r_pos < p.needle_sz)
         {
-            pos += (p.critical_pos - p.repetition_pos);
+            l_pos += (r_pos - p.critical_pos);
             memorize_shift = -1;
             continue;
         }
         /* p.critical_pos >= p.needle_sz */
-        p.critical_pos = p.repetition_pos;
-        while (p.critical_pos > memorize_shift
-               && p.needle[p.critical_pos] == p.haystack[p.critical_pos + pos])
+        r_pos = p.critical_pos;
+        while (r_pos > memorize_shift
+               && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
-            --p.critical_pos;
+            --r_pos;
         }
-        if (p.critical_pos <= memorize_shift)
+        if (r_pos <= memorize_shift)
         {
-            return p.haystack + pos;
+            return p.haystack + l_pos;
         }
-        pos += p.period_dist;
+        l_pos += p.period_dist;
+        /* Some prefix of needle coincides with the text. Memorize the length
+           of this prefix to increase length of next shift if possible */
         memorize_shift = p.needle_sz - p.period_dist - 1;
     }
     return p.haystack + p.haystack_sz;
@@ -737,35 +737,35 @@ sv_way_one(struct two_way_pack p)
 static inline const char *
 sv_way_two(struct two_way_pack p)
 {
-    p.period_dist = sv_ssize_t_max(p.repetition_pos + 1,
-                                   p.needle_sz - p.repetition_pos - 1)
-                    + 1;
-    ssize_t pos = 0;
-    while (pos <= p.haystack_sz - p.needle_sz)
+    p.period_dist
+        = sv_ssize_t_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
+          + 1;
+    ssize_t l_pos = 0;
+    ssize_t r_pos = 0;
+    while (l_pos <= p.haystack_sz - p.needle_sz)
     {
-        p.critical_pos = p.repetition_pos + 1;
-        while (p.critical_pos < p.needle_sz
-               && p.needle[p.critical_pos] == p.haystack[p.critical_pos + pos])
+        r_pos = p.critical_pos + 1;
+        while (r_pos < p.needle_sz
+               && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
-            ++p.critical_pos;
+            ++r_pos;
         }
-        if (p.critical_pos < p.needle_sz)
+        if (r_pos < p.needle_sz)
         {
-            pos += (p.critical_pos - p.repetition_pos);
+            l_pos += (r_pos - p.critical_pos);
             continue;
         }
         /* p.critical_pos >= p.needle_sz */
-        p.critical_pos = p.repetition_pos;
-        while (p.critical_pos >= 0
-               && p.needle[p.critical_pos] == p.haystack[p.critical_pos + pos])
+        r_pos = p.critical_pos;
+        while (r_pos >= 0 && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
-            --p.critical_pos;
+            --r_pos;
         }
-        if (p.critical_pos < 0)
+        if (r_pos < 0)
         {
-            return p.haystack + pos;
+            return p.haystack + l_pos;
         }
-        pos += p.period_dist;
+        l_pos += p.period_dist;
     }
     return p.haystack + p.haystack_sz;
 }
