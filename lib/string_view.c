@@ -50,8 +50,8 @@ static struct critical_factorization sv_maximal_suffix(const char *, ssize_t);
 static struct critical_factorization sv_maximal_suffix_rev(const char *,
                                                            ssize_t);
 static const char *sv_two_way(const char *, ssize_t, const char *, ssize_t);
-static inline const char *sv_way_one(struct two_way_pack);
-static inline const char *sv_way_two(struct two_way_pack);
+static inline const char *sv_two_way_period_memoization(struct two_way_pack);
+static inline const char *sv_two_way_normal(struct two_way_pack);
 
 string_view
 sv(const char *const str)
@@ -660,23 +660,23 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
 {
     ssize_t critical_pos;
     ssize_t period_dist;
-    /* Preprocessing */
-    struct critical_factorization i = sv_maximal_suffix(needle, needle_sz);
-    struct critical_factorization j = sv_maximal_suffix_rev(needle, needle_sz);
-    if (i.start_critical_pos > j.start_critical_pos)
+    /* Preprocessing to get critical position and period distance. */
+    struct critical_factorization s = sv_maximal_suffix(needle, needle_sz);
+    struct critical_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
+    if (s.start_critical_pos > r.start_critical_pos)
     {
-        critical_pos = i.start_critical_pos;
-        period_dist = i.period_dist;
+        critical_pos = s.start_critical_pos;
+        period_dist = s.period_dist;
     }
     else
     {
-        critical_pos = j.start_critical_pos;
-        period_dist = j.period_dist;
+        critical_pos = r.start_critical_pos;
+        period_dist = r.period_dist;
     }
     /* Searching */
     if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
-        return sv_way_one((struct two_way_pack){
+        return sv_two_way_period_memoization((struct two_way_pack){
             .haystack = haystack,
             .haystack_sz = haystack_sz,
             .needle = needle,
@@ -685,7 +685,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
             .critical_pos = critical_pos,
         });
     }
-    return sv_way_two((struct two_way_pack){
+    return sv_two_way_normal((struct two_way_pack){
         .haystack = haystack,
         .haystack_sz = haystack_sz,
         .needle = needle,
@@ -696,7 +696,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
 }
 
 static inline const char *
-sv_way_one(struct two_way_pack p)
+sv_two_way_period_memoization(struct two_way_pack p)
 {
     ssize_t l_pos = 0;
     ssize_t r_pos = 0;
@@ -715,7 +715,7 @@ sv_way_one(struct two_way_pack p)
             memorize_shift = -1;
             continue;
         }
-        /* p.critical_pos >= p.needle_sz */
+        /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
         while (r_pos > memorize_shift
                && p.needle[r_pos] == p.haystack[r_pos + l_pos])
@@ -735,7 +735,7 @@ sv_way_one(struct two_way_pack p)
 }
 
 static inline const char *
-sv_way_two(struct two_way_pack p)
+sv_two_way_normal(struct two_way_pack p)
 {
     p.period_dist
         = sv_ssize_t_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
@@ -755,7 +755,7 @@ sv_way_two(struct two_way_pack p)
             l_pos += (r_pos - p.critical_pos);
             continue;
         }
-        /* p.critical_pos >= p.needle_sz */
+        /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
         while (r_pos >= 0 && p.needle[r_pos] == p.haystack[r_pos + l_pos])
         {
