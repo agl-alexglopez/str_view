@@ -57,8 +57,9 @@ static bool test_svcmp(void);
 static bool test_argv_argc(void);
 static bool test_mini_alloc_free(void);
 static bool test_get_line(void);
+static bool test_substring_search(void);
 
-#define NUM_TESTS (size_t)20
+#define NUM_TESTS (size_t)21
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -80,6 +81,7 @@ const test_fn all_tests[NUM_TESTS] = {
     test_argv_argc,
     test_mini_alloc_free,
     test_get_line,
+    test_substring_search,
 };
 
 static int
@@ -776,6 +778,73 @@ test_get_line(void)
         ++i;
     }
     if (i != 5)
+    {
+        return false;
+    }
+    return true;
+}
+
+static bool
+test_substring_search(void)
+{
+    printf("test_substring_search");
+    const char *needle = "needle";
+    const size_t needle_len = strlen(needle);
+    const char *const haystack
+        = "haystackhaystackhaystackhaystackhaystackhaystackhaystackhaystack"
+          "haystackhaystackhaystackhaystackhaystackhaystack--------___---**"
+          "haystackhaystackhaystackhaystackhaystackhaystack\n\n\n\n\n\n\n\n"
+          "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennnnnnnnnneeeedneeddl"
+          "_______________________needle___________________________________"
+          "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennneeeeeeeeeeedneeddl"
+          "haystackhaystackhaystackhaystackhaystackhaystackhaystack__needle";
+    const size_t haystack_len = strlen(haystack);
+
+    string_view haystack_view = sv(haystack);
+    const string_view needle_view = sv(needle);
+    const char *a = strstr(haystack, needle);
+    if (!a)
+    {
+        printf("clibrary strstr failed?\n");
+        return false;
+    }
+
+    string_view b = sv_n(a, needle_len);
+    string_view c = sv_svstr(haystack_view, needle, needle_len);
+    string_view d = sv_svsv(haystack_view, needle_view);
+    string_view e = sv_strstr(haystack, haystack_len, needle, needle_len);
+
+    if (sv_svcmp(b, c) != 0 || sv_svcmp(b, d) != 0 || sv_svcmp(b, e) != 0
+        || c.s != a || d.s != a || e.s != a)
+    {
+        return false;
+    }
+    a += needle_len;
+    a = strstr(a, needle);
+    if (!a)
+    {
+        printf("clibrary strstr failed?\n");
+        return false;
+    }
+    haystack_view = sv(a);
+    b = sv_n(a, needle_len);
+    c = sv_svstr(haystack_view, needle, needle_len);
+    d = sv_svsv(haystack_view, needle_view);
+    e = sv_strstr(a, haystack_view.sz, needle, needle_len);
+    if (sv_svcmp(b, c) != 0 || sv_svcmp(b, d) != 0 || sv_svcmp(b, e) != 0
+        || c.s != a || d.s != a || e.s != a)
+    {
+        return false;
+    }
+    /* There are two needles in the haystack so we should have two string
+     * chunks. */
+    size_t i = 0;
+    for (string_view v = sv_begin_tok(haystack, needle_len, "needle");
+         !sv_end_tok(&v); v = sv_next_tok(v, needle_len, "needle"))
+    {
+        ++i;
+    }
+    if (i != 2)
     {
         return false;
     }

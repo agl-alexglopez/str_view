@@ -78,6 +78,9 @@ bool sv_contains(string_view haystack, string_view needle);
 string_view sv_svsv(string_view haystack, string_view needle);
 string_view sv_svstr(string_view haystack, const char *needle,
                      size_t needle_sz);
+string_view sv_strstr(const char *haystack, size_t haystack_sz,
+                      const char *needle, size_t needle_sz);
+
 size_t sv_find_first_of(string_view haystack, const char *needle);
 size_t sv_find_last_of(string_view haystack, const char *needle);
 size_t sv_find_first_not_of(string_view haystack, const char *needle,

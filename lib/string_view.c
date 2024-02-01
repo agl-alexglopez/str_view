@@ -1,5 +1,4 @@
 #include "string_view.h"
-#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,26 +15,26 @@ enum cmp
 struct two_way_pack
 {
     const char *const haystack;
-    int haystack_sz;
+    ssize_t haystack_sz;
     const char *const needle;
-    int needle_sz;
-    int suffix;
-    int period;
-    int ell;
+    ssize_t needle_sz;
+    ssize_t suffix_i;
+    ssize_t global_period;
+    ssize_t longest_prefix_suffix;
 };
 
 struct factorization
 {
-    int suffix;
-    int period;
+    ssize_t suffix;
+    ssize_t period;
 };
 
 static const char *const nil = "";
 
 static size_t sv_min(size_t, size_t);
-static struct factorization sv_maximal_suffix(const char *, size_t);
-static struct factorization sv_maximal_suffix_rev(const char *, size_t);
-static const char *sv_two_way(const char *, size_t, const char *, size_t);
+static struct factorization sv_maximal_suffix(const char *, ssize_t);
+static struct factorization sv_maximal_suffix_rev(const char *, ssize_t);
+static const char *sv_two_way(const char *, ssize_t, const char *, ssize_t);
 static inline const char *sv_way_one(struct two_way_pack);
 static inline const char *sv_way_two(struct two_way_pack);
 
@@ -299,7 +298,8 @@ sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
     {
         return (string_view){.s = next, .sz = 0};
     }
-    const char *const found = sv_two_way(next, next_sz, delim, delim_sz);
+    const char *const found
+        = sv_two_way(next, (ssize_t)next_sz, delim, (ssize_t)delim_sz);
     return (string_view){.s = next, .sz = found - next};
 }
 
@@ -342,8 +342,8 @@ sv_contains(string_view haystack, string_view needle)
     {
         return true;
     }
-    const char *const found
-        = sv_two_way(haystack.s, haystack.sz, needle.s, needle.sz);
+    const char *const found = sv_two_way(haystack.s, (ssize_t)haystack.sz,
+                                         needle.s, (ssize_t)needle.sz);
     return (found == haystack.s + haystack.sz) ? false : true;
 }
 
@@ -363,8 +363,8 @@ sv_svsv(string_view haystack, string_view needle)
         return (string_view){.s = nil, .sz = 0};
     }
     const char *const end = haystack.s + haystack.sz;
-    const char *const found
-        = sv_two_way(haystack.s, haystack.sz, needle.s, needle.sz);
+    const char *const found = sv_two_way(haystack.s, (ssize_t)haystack.sz,
+                                         needle.s, (ssize_t)needle.sz);
     if (found == end)
     {
         return (string_view){.s = end, .sz = 0};
@@ -388,7 +388,34 @@ sv_svstr(string_view haystack, const char *needle, size_t needle_sz)
     {
         return (string_view){.s = end, .sz = 0};
     }
-    const char *found = sv_two_way(haystack.s, haystack.sz, needle, needle_sz);
+    const char *found = sv_two_way(haystack.s, (ssize_t)haystack.sz, needle,
+                                   (ssize_t)needle_sz);
+    if (found == end)
+    {
+        return (string_view){.s = end, .sz = 0};
+    }
+    return (string_view){.s = found, .sz = needle_sz};
+}
+
+string_view
+sv_strstr(const char *haystack, size_t haystack_sz, const char *needle,
+          size_t needle_sz)
+{
+    if (!needle || !haystack || needle_sz > haystack_sz || 0 == needle_sz)
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    if ('\0' == *haystack)
+    {
+        return (string_view){.s = haystack, .sz = 0};
+    }
+    const char *const end = haystack + haystack_sz;
+    if ('\0' == *needle)
+    {
+        return (string_view){.s = end, .sz = 0};
+    }
+    const char *found = sv_two_way(haystack, (ssize_t)haystack_sz, needle,
+                                   (ssize_t)needle_sz);
     if (found == end)
     {
         return (string_view){.s = end, .sz = 0};
@@ -404,8 +431,8 @@ sv_find_first_of(string_view haystack, const char *const needle)
     {
         return haystack.sz;
     }
-    const char *const found
-        = sv_two_way(haystack.s, haystack.sz, needle, delim_sz);
+    const char *const found = sv_two_way(haystack.s, (ssize_t)haystack.sz,
+                                         needle, (ssize_t)delim_sz);
     return found - haystack.s;
 }
 
@@ -421,8 +448,8 @@ sv_find_last_of(string_view haystack, const char *const needle)
     const char *found = haystack.s;
     for (;;)
     {
-        found = sv_two_way(found, haystack.sz - (found - haystack.s), needle,
-                           needle_sz);
+        found = sv_two_way(found, (ssize_t)haystack.sz - (found - haystack.s),
+                           needle, (ssize_t)needle_sz);
         if ((size_t)(found - haystack.s) == haystack.sz)
         {
             break;
@@ -493,8 +520,8 @@ sv_min(size_t a, size_t b)
     return a < b ? a : b;
 }
 
-static inline int
-sv_int_max(int a, int b)
+static inline ssize_t
+sv_ssize_t_max(ssize_t a, ssize_t b)
 {
     return a > b ? a : b;
 }
@@ -508,13 +535,13 @@ sv_char_cmp(char a, char b)
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static struct factorization
-sv_maximal_suffix(const char *const needle, size_t needle_sz)
+sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
 {
-    int max_suf = -1;
-    int j = 0;
-    int period = 1;
-    int k = 1;
-    while (j + k < (int)needle_sz)
+    ssize_t max_suf = -1;
+    ssize_t j = 0;
+    ssize_t period = 1;
+    ssize_t k = 1;
+    while (j + k < needle_sz)
     {
         switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
         {
@@ -541,7 +568,7 @@ sv_maximal_suffix(const char *const needle, size_t needle_sz)
         break;
         case GRT:
         {
-            max_suf = (int)j;
+            max_suf = j;
             j = max_suf + 1;
             k = period = 1;
         }
@@ -555,12 +582,12 @@ sv_maximal_suffix(const char *const needle, size_t needle_sz)
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static struct factorization
-sv_maximal_suffix_rev(const char *const needle, size_t needle_sz)
+sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 {
-    int max_suf = -1;
-    int j = 0;
-    int period = 1;
-    int k = 1;
+    ssize_t max_suf = -1;
+    ssize_t j = 0;
+    ssize_t period = 1;
+    ssize_t k = 1;
     while (j + k < (int)needle_sz)
     {
         switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
@@ -611,17 +638,11 @@ sv_maximal_suffix_rev(const char *const needle, size_t needle_sz)
    more convenient than running another search to find the end of
    the string. The null returned by strstr is often not helpful. */
 static const char *
-sv_two_way(const char *const haystack, size_t haystack_sz,
-           const char *const needle, size_t needle_sz)
+sv_two_way(const char *const haystack, ssize_t haystack_sz,
+           const char *const needle, ssize_t needle_sz)
 {
-    /* This is fine for now until I figure out the use of -1 in this algo */
-    if (haystack_sz > (size_t)INT_MAX)
-    {
-        printf("Provided string is too large, exiting.");
-        exit(1);
-    }
-    int ell;
-    int global_period;
+    ssize_t ell;
+    ssize_t global_period;
     /* Preprocessing */
     struct factorization i = sv_maximal_suffix(needle, needle_sz);
     struct factorization j = sv_maximal_suffix_rev(needle, needle_sz);
@@ -640,58 +661,57 @@ sv_two_way(const char *const haystack, size_t haystack_sz,
     {
         return sv_way_one((struct two_way_pack){
             .haystack = haystack,
-            .haystack_sz = (int)haystack_sz,
+            .haystack_sz = haystack_sz,
             .needle = needle,
-            .needle_sz = (int)needle_sz,
-            .suffix = i.suffix,
-            .period = global_period,
-            .ell = ell,
+            .needle_sz = needle_sz,
+            .suffix_i = i.suffix,
+            .global_period = global_period,
+            .longest_prefix_suffix = ell,
         });
     }
     return sv_way_two((struct two_way_pack){
         .haystack = haystack,
-        .haystack_sz = (int)haystack_sz,
+        .haystack_sz = haystack_sz,
         .needle = needle,
-        .needle_sz = (int)needle_sz,
-        .suffix = i.suffix,
-        .period = global_period,
-        .ell = ell,
+        .needle_sz = needle_sz,
+        .suffix_i = i.suffix,
+        .global_period = global_period,
+        .longest_prefix_suffix = ell,
     });
 }
 
 static inline const char *
 sv_way_one(struct two_way_pack p)
 {
-    int j = 0;
-    int memory = -1;
+    ssize_t j = 0;
+    ssize_t memorize_shift = -1;
     while (j <= p.haystack_sz - p.needle_sz)
     {
-        p.suffix = sv_int_max(p.ell, memory) + 1;
-        while (p.suffix < p.needle_sz
-               && p.needle[p.suffix] == p.haystack[p.suffix + j])
+        p.suffix_i
+            = sv_ssize_t_max(p.longest_prefix_suffix, memorize_shift) + 1;
+        while (p.suffix_i < p.needle_sz
+               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
         {
-            ++p.suffix;
+            ++p.suffix_i;
         }
-        if (p.suffix >= p.needle_sz)
+        if (p.suffix_i < p.needle_sz)
         {
-            p.suffix = p.ell;
-            while (p.suffix > memory
-                   && p.needle[p.suffix] == p.haystack[p.suffix + j])
-            {
-                --p.suffix;
-            }
-            if (p.suffix <= memory)
-            {
-                return p.haystack + j;
-            }
-            j += p.period;
-            memory = p.needle_sz - p.period - 1;
+            j += (p.suffix_i - p.longest_prefix_suffix);
+            memorize_shift = -1;
+            continue;
         }
-        else
+        p.suffix_i = p.longest_prefix_suffix;
+        while (p.suffix_i > memorize_shift
+               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
         {
-            j += (p.suffix - p.ell);
-            memory = -1;
+            --p.suffix_i;
         }
+        if (p.suffix_i <= memorize_shift)
+        {
+            return p.haystack + j;
+        }
+        j += p.global_period;
+        memorize_shift = p.needle_sz - p.global_period - 1;
     }
     return p.haystack + p.haystack_sz;
 }
@@ -699,34 +719,34 @@ sv_way_one(struct two_way_pack p)
 static inline const char *
 sv_way_two(struct two_way_pack p)
 {
-    p.period = sv_int_max(p.ell + 1, p.needle_sz - p.ell - 1) + 1;
-    int j = 0;
+    p.global_period = sv_ssize_t_max(p.longest_prefix_suffix + 1,
+                                     p.needle_sz - p.longest_prefix_suffix - 1)
+                      + 1;
+    ssize_t j = 0;
     while (j <= p.haystack_sz - p.needle_sz)
     {
-        p.suffix = p.ell + 1;
-        while (p.suffix < p.needle_sz
-               && p.needle[p.suffix] == p.haystack[p.suffix + j])
+        p.suffix_i = p.longest_prefix_suffix + 1;
+        while (p.suffix_i < p.needle_sz
+               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
         {
-            ++p.suffix;
+            ++p.suffix_i;
         }
-        if (p.suffix >= p.needle_sz)
+        if (p.suffix_i < p.needle_sz)
         {
-            p.suffix = p.ell;
-            while (p.suffix >= 0
-                   && p.needle[p.suffix] == p.haystack[p.suffix + j])
-            {
-                --p.suffix;
-            }
-            if (p.suffix < 0)
-            {
-                return p.haystack + j;
-            }
-            j += p.period;
+            j += (p.suffix_i - p.longest_prefix_suffix);
+            continue;
         }
-        else
+        p.suffix_i = p.longest_prefix_suffix;
+        while (p.suffix_i >= 0
+               && p.needle[p.suffix_i] == p.haystack[p.suffix_i + j])
         {
-            j += (p.suffix - p.ell);
+            --p.suffix_i;
         }
+        if (p.suffix_i < 0)
+        {
+            return p.haystack + j;
+        }
+        j += p.global_period;
     }
     return p.haystack + p.haystack_sz;
 }
