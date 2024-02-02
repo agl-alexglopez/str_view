@@ -9,7 +9,7 @@
    interface is modeled after std::string_view in C++ with elements
    of C mixed in. The string_view type is 16 bytes meaning it is cheap
    to copy and flexible to work with in the provided functions. No
-   functions accept string_view by reference except for swap. */
+   functions accept string_view by reference, except for swap. */
 typedef struct string_view
 {
     const char *s;
@@ -85,13 +85,15 @@ bool sv_empty(string_view);
 /* Returns the size of the string view O(1). */
 size_t sv_svlen(string_view);
 
-/* Returns the size of the string view O(1). */
+/* Returns the bytes of string_view including null terminator. Note that
+   string views may not actually be null terminated but the position at
+   string_view[string_view.sz] is interpreted as the null terminator. */
 size_t sv_svbytes(string_view);
 
 /* Returns the size of the null terminated string O(n) */
 size_t sv_strlen(const char *);
 
-/* Returns the size of the null terminated string O(n) */
+/* Returns the bytes of the string pointer to, null terminator included. */
 size_t sv_strbytes(const char *);
 
 /* Returns the maximum between the string size vs n bytes. */
