@@ -333,8 +333,8 @@ test_iter(void)
     }
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, 1, " "))
+    string_view cur = sv_begin_tok(chars, (string_view){" ", 1});
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (string_view){" ", 1}))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -347,8 +347,8 @@ test_iter(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(reference, 1, ",");
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, ","))
+    string_view cur2 = sv_begin_tok(chars, (string_view){",", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){",", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -372,10 +372,11 @@ test_iter_repeating_delim(void)
     };
     const char *const reference
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
+    const string_view ref_view = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, 1, " "))
+    string_view cur = sv_begin_tok(ref_view, (string_view){" ", 1});
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (string_view){" ", 1}))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -388,8 +389,8 @@ test_iter_repeating_delim(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(reference, 1, ",");
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, ","))
+    string_view cur2 = sv_begin_tok(ref_view, (string_view){",", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){",", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -418,8 +419,10 @@ test_iter_multichar_delim(void)
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "abc";
     const size_t delim_len = strlen(delim);
-    string_view cur = sv_begin_tok(reference, delim_len, delim);
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, delim_len, delim))
+    const string_view ref_view = sv(reference);
+    string_view cur = sv_begin_tok(ref_view, (string_view){delim, delim_len});
+    for (; !sv_end_tok(cur);
+         cur = sv_next_tok(cur, (string_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -432,8 +435,8 @@ test_iter_multichar_delim(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, " "))
+    string_view cur2 = sv_begin_tok(ref_view, (string_view){" ", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){" ", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -462,8 +465,10 @@ test_iter_multichar_delim_short(void)
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
-    string_view cur = sv_begin_tok(reference, delim_len, delim);
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, delim_len, delim))
+    const string_view ref_view = sv(reference);
+    string_view cur = sv_begin_tok(ref_view, (string_view){delim, delim_len});
+    for (; !sv_end_tok(cur);
+         cur = sv_next_tok(cur, (string_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -476,8 +481,8 @@ test_iter_multichar_delim_short(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(reference, 1, " ");
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, 1, " "))
+    string_view cur2 = sv_begin_tok(ref_view, (string_view){" ", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){" ", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -500,14 +505,17 @@ test_iter_delim_larger_than_str(void)
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
     string_view constructed = sv_delim(reference, delim);
-    string_view cur = sv_begin_tok(reference, delim_len, delim);
+    string_view cur
+        = sv_begin_tok((string_view){reference, sv_lenstr(reference)},
+                       (string_view){delim, delim_len});
     if (sv_svcmp(constructed, cur) != 0
         || sv_strcmp(constructed, reference) != 0
         || sv_strcmp(cur, reference) != 0)
     {
         return false;
     }
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, delim_len, delim))
+    for (; !sv_end_tok(cur);
+         cur = sv_next_tok(cur, (string_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, reference) != 0)
         {
@@ -786,8 +794,8 @@ test_argv_argc(void)
     char argv[10][128];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(sv_begin(view), 1, " "); !sv_end_tok(v);
-         v = sv_next_tok(v, 1, " "))
+    for (string_view v = sv_begin_tok(view, (string_view){" ", 1});
+         !sv_end_tok(v); v = sv_next_tok(v, (string_view){" ", 1}))
     {
         sv_fill(argv[i], sv_len(v), v);
         ++i;
@@ -815,8 +823,8 @@ test_mini_alloc_free(void)
     string_view argv[10];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(sv_begin(view), 1, " "); !sv_end_tok(v);
-         v = sv_next_tok(v, 1, " "))
+    for (string_view v = sv_begin_tok(view, (string_view){" ", 1});
+         !sv_end_tok(v); v = sv_next_tok(v, (string_view){" ", 1}))
     {
         argv[i++] = v;
     }
@@ -847,8 +855,10 @@ test_get_line(void)
     const char *lines[5] = {"1", "2", "3", "4", "5"};
     const char *const file_data = "1\n2\n3\n4\n5";
     size_t i = 0;
-    for (string_view v = sv_begin_tok(file_data, 1, "\n"); !sv_end_tok(v);
-         v = sv_next_tok(v, 1, "\n"))
+    for (string_view v
+         = sv_begin_tok((string_view){file_data, sv_lenstr(file_data)},
+                        (string_view){"\n", 1});
+         !sv_end_tok(v); v = sv_next_tok(v, (string_view){"\n", 1}))
     {
         if (sv_strcmp(v, lines[i]) != 0)
         {
@@ -878,7 +888,7 @@ test_substring_search(void)
           "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennneeeeeeeeeeedneeddl"
           "haystackhaystackhaystackhaystackhaystackhaystackhaystack__needle";
     const size_t haystack_len = strlen(haystack);
-    string_view haystack_view = sv(haystack);
+    const string_view haystack_view = sv(haystack);
     const string_view needle_view = sv(needle);
     const char *a = strstr(haystack, needle);
     if (!a)
@@ -904,11 +914,11 @@ test_substring_search(void)
         printf("clibrary strstr failed?\n");
         return false;
     }
-    haystack_view = sv(a);
+    const string_view new_haystack_view = sv(a);
     b = sv_n(a, needle_len);
-    c = sv_svstr(haystack_view, needle, needle_len);
-    d = sv_svsv(haystack_view, needle_view);
-    e = sv_strstr(a, haystack_view.sz, needle, needle_len);
+    c = sv_svstr(new_haystack_view, needle, needle_len);
+    d = sv_svsv(new_haystack_view, needle_view);
+    e = sv_strstr(a, new_haystack_view.sz, needle, needle_len);
     if (sv_svcmp(b, c) != 0 || sv_svcmp(b, d) != 0 || sv_svcmp(b, e) != 0
         || c.s != a || d.s != a || e.s != a)
     {
@@ -916,8 +926,10 @@ test_substring_search(void)
     }
     /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
-    for (string_view v = sv_begin_tok(haystack, needle_len, "needle");
-         !sv_end_tok(v); v = sv_next_tok(v, needle_len, "needle"))
+    for (string_view v
+         = sv_begin_tok(haystack_view, (string_view){"needle", needle_len});
+         !sv_end_tok(v);
+         v = sv_next_tok(v, (string_view){"needle", needle_len}))
     {
         ++i;
     }

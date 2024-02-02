@@ -76,9 +76,9 @@ const char *sv_end(string_view);
 const char *sv_next(const char *);
 const char *sv_pos(string_view, size_t i);
 
-string_view sv_begin_tok(const char *data, size_t delim_sz, const char *delim);
+string_view sv_begin_tok(string_view, string_view delim);
 bool sv_end_tok(string_view);
-string_view sv_next_tok(string_view, size_t delim_sz, const char *delim);
+string_view sv_next_tok(string_view, string_view delim);
 
 string_view sv_substr(string_view, size_t pos, size_t count);
 

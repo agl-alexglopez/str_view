@@ -56,7 +56,15 @@ sv_delim(const char *const str, const char *const delim)
     {
         return (string_view){.s = str, .sz = sv_strlen(str)};
     }
-    return sv_begin_tok(str, sv_strlen(delim), delim);
+    return sv_begin_tok(
+        (string_view){
+            .s = str,
+            .sz = sv_strlen(str),
+        },
+        (string_view){
+            .s = delim,
+            .sz = sv_strlen(delim),
+        });
 }
 
 char *
@@ -315,27 +323,24 @@ sv_pos(string_view sv, size_t i)
 }
 
 string_view
-sv_begin_tok(const char *const data, const size_t delim_sz,
-             const char *const delim)
+sv_begin_tok(string_view sv, string_view delim)
 {
-    if (!data)
+    if (!sv.s)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    if (!delim)
+    if (!delim.s)
     {
-        return (string_view){.s = data + sv_strlen(data), 0};
+        return (string_view){.s = sv.s + sv.sz, 0};
     }
-    const string_view delim_view = {.s = delim, .sz = delim_sz};
-    string_view start = {.s = data, .sz = sv_strlen(data)};
-    const size_t start_not = sv_after_find(start, delim_view);
-    start.s += start_not;
-    if (*start.s == '\0')
+    const size_t sv_not = sv_after_find(sv, delim);
+    sv.s += sv_not;
+    if (*sv.s == '\0')
     {
-        return (string_view){.s = start.s, .sz = 0};
+        return (string_view){.s = sv.s, .sz = 0};
     }
-    size_t found_pos = sv_find(start, delim_view);
-    return sv_substr(start, 0, found_pos);
+    size_t found_pos = sv_find(sv, delim);
+    return sv_substr(sv, 0, found_pos);
 }
 
 bool
@@ -345,22 +350,21 @@ sv_end_tok(const string_view sv)
 }
 
 string_view
-sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
+sv_next_tok(string_view sv, string_view delim) /* NOLINT */
 {
     if (sv.s[sv.sz] == '\0')
     {
         return (string_view){.s = sv.s + sv.sz, .sz = 0};
     }
-    const char *next = sv.s + sv.sz + delim_sz;
+    const char *next = sv.s + sv.sz + delim.sz;
     const size_t next_sz = sv_strlen(next);
-    next += sv_after_find((string_view){.s = next, .sz = next_sz},
-                          (string_view){.s = delim, .sz = delim_sz});
+    next += sv_after_find((string_view){.s = next, .sz = next_sz}, delim);
     if (*next == '\0')
     {
         return (string_view){.s = next, .sz = 0};
     }
     const size_t found
-        = sv_strnstrn(next, (ssize_t)next_sz, delim, (ssize_t)delim_sz);
+        = sv_strnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
     return (string_view){.s = next, .sz = found};
 }
 
