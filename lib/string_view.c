@@ -73,6 +73,11 @@ sv_alloc(string_view sv)
         exit(1);
     }
     char *const ret = malloc(sv.sz + 1);
+    if (!ret)
+    {
+        (void)fprintf(stderr, "sv_alloc heap exhausted.\n");
+        exit(1);
+    }
     sv_fill(ret, sv.sz, sv);
     return ret;
 }
