@@ -50,7 +50,8 @@ static bool test_iter_repeating_delim(void);
 static bool test_iter_multichar_delim(void);
 static bool test_iter_multichar_delim_short(void);
 static bool test_iter_delim_larger_than_str(void);
-static bool test_find_blank_of(void);
+static bool test_find_rfind(void);
+static bool test_find_of_sets(void);
 static bool test_prefix_suffix(void);
 static bool test_substr(void);
 static bool test_svcmp(void);
@@ -59,7 +60,7 @@ static bool test_mini_alloc_free(void);
 static bool test_get_line(void);
 static bool test_substring_search(void);
 
-#define NUM_TESTS (size_t)21
+#define NUM_TESTS (size_t)22
 const test_fn all_tests[NUM_TESTS] = {
     test_empty,
     test_out_of_bounds,
@@ -74,7 +75,8 @@ const test_fn all_tests[NUM_TESTS] = {
     test_iter_multichar_delim,
     test_iter_multichar_delim_short,
     test_iter_delim_larger_than_str,
-    test_find_blank_of,
+    test_find_rfind,
+    test_find_of_sets,
     test_prefix_suffix,
     test_svcmp,
     test_substr,
@@ -508,9 +510,9 @@ test_iter_delim_larger_than_str(void)
 }
 
 static bool
-test_find_blank_of(void)
+test_find_rfind(void)
 {
-    printf("test_find_blank_of");
+    printf("test_find_rfind");
     const char ref[20] = {
         [0] = 'A',  [1] = 'A',  [2] = 'C',  [3] = ' ',  [4] = '!',
         [5] = '!',  [6] = '!',  [7] = ' ',  [8] = '*',  [9] = '*',
@@ -518,23 +520,90 @@ test_find_blank_of(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     string_view str = sv(ref);
-    if (sv_first_of(str, "C") != 2)
+    if (sv_find(str,
+                (string_view){
+                    .s = "C",
+                    .sz = 1,
+                })
+        != 2)
     {
         return false;
     }
-    if (sv_first_of(str, "") != 0)
+    if (sv_find(str,
+                (string_view){
+                    .s = "",
+                    .sz = 1,
+                })
+        != 19)
     {
         return false;
     }
-    if (sv_last_of(str, "!") != 16)
+    if (sv_rfind(str,
+                 (string_view){
+                     .s = "!",
+                     .sz = 1,
+                 })
+        != 16)
     {
         return false;
     }
-    if (sv_first_not_of(str, "A", 1) != 2)
+    return true;
+}
+
+static bool
+test_find_of_sets(void)
+{
+    printf("test_find_of_sets");
+    const char ref[25] = {
+        [0] = 'A',  [1] = 'A',  [2] = 'C',  [3] = 'B',  [4] = '!',
+        [5] = '!',  [6] = '!',  [7] = ' ',  [8] = '*',  [9] = '.',
+        [10] = ':', [11] = ';', [12] = ',', [13] = ' ', [14] = '?',
+        [15] = ' ', [16] = '_', [17] = '_', [18] = ' ', [19] = '!',
+        [20] = '!', [21] = '!', [22] = 'Z', [23] = 'z', [24] = '\0',
+    };
+    string_view str = sv(ref);
+    if (sv_find_first_of(str,
+                         (string_view){
+                             .s = "CB!",
+                             .sz = strlen("CB!"),
+                         })
+        != 2)
     {
         return false;
     }
-    if (sv_last_not_of(str, " ") != 18)
+    if (sv_find_first_of(str,
+                         (string_view){
+                             .s = "",
+                             .sz = 0,
+                         })
+        != 24)
+    {
+        return false;
+    }
+    if (sv_find_last_of(str,
+                        (string_view){
+                            .s = "! _",
+                            .sz = strlen("! _"),
+                        })
+        != 21)
+    {
+        return false;
+    }
+    if (sv_find_last_not_of(str,
+                            (string_view){
+                                .s = "CBA!",
+                                .sz = strlen("CBA!"),
+                            })
+        != 22)
+    {
+        return false;
+    }
+    if (sv_find_first_not_of(str,
+                             (string_view){
+                                 .s = "ACB!;:, *.",
+                                 .sz = strlen("ACB!;:, *."),
+                             })
+        != 14)
     {
         return false;
     }

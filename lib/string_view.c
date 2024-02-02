@@ -22,6 +22,10 @@ static const char *const nil = "";
 /* Two-Way String-Searching Algorithm by Crochemore and Perrin. See
    the end of the file for implementation details. */
 static size_t sv_two_way(const char *, ssize_t, const char *, ssize_t);
+/* Strspn and strcspn modified from musl C library. See end of file */
+static size_t sv_strspn(const char *, size_t, const char *, size_t);
+static size_t sv_strcspn(const char *, size_t, const char *, size_t);
+static size_t sv_after_find(string_view, string_view);
 static size_t sv_min(size_t, size_t);
 
 /* ===================   Interface Implementation   ====================== */
@@ -302,14 +306,15 @@ sv_begin_tok(const char *const data, const size_t delim_sz,
     {
         return (string_view){.s = data + strlen(data), 0};
     }
+    const string_view delim_view = {.s = delim, .sz = delim_sz};
     string_view start = {.s = data, .sz = strlen(data)};
-    const size_t start_not = sv_first_not_of(start, delim, delim_sz);
+    const size_t start_not = sv_after_find(start, delim_view);
     start.s += start_not;
     if (*start.s == '\0')
     {
         return (string_view){.s = start.s, .sz = 0};
     }
-    size_t found_pos = sv_first_of(start, delim);
+    size_t found_pos = sv_find(start, delim_view);
     return sv_substr(start, 0, found_pos);
 }
 
@@ -328,8 +333,8 @@ sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
     }
     const char *next = sv.s + sv.sz + delim_sz;
     const size_t next_sz = strlen(next);
-    next += sv_first_not_of((string_view){.s = next, .sz = next_sz}, delim,
-                            delim_sz);
+    next += sv_after_find((string_view){.s = next, .sz = next_sz},
+                          (string_view){.s = delim, .sz = delim_sz});
     if (*next == '\0')
     {
         return (string_view){.s = next, .sz = 0};
@@ -477,31 +482,29 @@ sv_strstr(const char *haystack, size_t haystack_sz, const char *needle,
 }
 
 size_t
-sv_first_of(string_view haystack, const char *const needle)
+sv_find(string_view haystack, string_view needle)
 {
-    const size_t delim_sz = strlen(needle);
-    if (delim_sz > haystack.sz)
+    if (needle.sz > haystack.sz)
     {
         return haystack.sz;
     }
-    return sv_two_way(haystack.s, (ssize_t)haystack.sz, needle,
-                      (ssize_t)delim_sz);
+    return sv_two_way(haystack.s, (ssize_t)haystack.sz, needle.s,
+                      (ssize_t)needle.sz);
 }
 
 size_t
-sv_last_of(string_view haystack, const char *const needle)
+sv_rfind(string_view haystack, string_view needle)
 {
-    if (strlen(needle) >= haystack.sz)
+    if (needle.sz >= haystack.sz)
     {
         return haystack.sz;
     }
-    const size_t needle_sz = strlen(needle);
     size_t last_found = haystack.sz;
     size_t i = 0;
     for (;;)
     {
-        i += sv_two_way(haystack.s + i, (ssize_t)(haystack.sz - i), needle,
-                        (ssize_t)needle_sz);
+        i += sv_two_way(haystack.s + i, (ssize_t)(haystack.sz - i), needle.s,
+                        (ssize_t)needle.sz);
         if (i == haystack.sz)
         {
             break;
@@ -513,51 +516,58 @@ sv_last_of(string_view haystack, const char *const needle)
 }
 
 size_t
-sv_first_not_of(string_view haystack, const char *const needle,
-                const size_t needle_sz)
+sv_find_first_of(string_view haystack, string_view set)
 {
-    if (needle_sz > haystack.sz)
-    {
-        return 0;
-    }
-    size_t i = 0;
-    size_t delim_i = 0;
-    while (i < haystack.sz && needle[delim_i] == haystack.s[i])
-    {
-        ++i;
-        delim_i = (delim_i + 1) % needle_sz;
-    }
-    /* We need to also reset to the last mismatch we found. Imagine
-       we started to find the delimeter but then the string changed
-       into a mismatch. We go back to get characters that are partially
-       in the delimeter. */
-    return i - delim_i;
+    return sv_strcspn(haystack.s, haystack.sz, set.s, set.sz);
 }
 
 size_t
-sv_last_not_of(string_view haystack, const char *const needle)
+sv_find_last_of(string_view haystack, string_view set)
 {
-    const size_t delim_sz = strlen(needle);
-    if (delim_sz >= haystack.sz)
+    size_t last_pos = haystack.sz;
+    size_t prev = 0;
+    size_t in = 0;
+    while ((in += sv_strspn(haystack.s + in, haystack.sz - in, set.s, set.sz))
+           != haystack.sz)
     {
-        return haystack.sz;
-    }
-    const char *last_found = NULL;
-    const char *found = haystack.s;
-    while ((found = strstr(found, needle)) != NULL)
-    {
-        if ((size_t)(found - haystack.s) > haystack.sz)
+        if (in != prev)
         {
-            break;
+            last_pos = in - 1;
         }
-        last_found = found;
-        found += delim_sz;
+        ++in;
+        prev = in;
     }
-    if (NULL == last_found)
+    return last_pos;
+}
+
+size_t
+sv_find_first_not_of(string_view haystack, string_view set)
+{
+    const size_t in = sv_strspn(haystack.s, haystack.sz, set.s, set.sz);
+    if (in == haystack.sz)
     {
-        return haystack.sz;
+        return in;
     }
-    return (last_found + delim_sz) - haystack.s;
+    return in;
+}
+
+size_t
+sv_find_last_not_of(string_view haystack, string_view set)
+{
+    size_t last_pos = haystack.sz;
+    size_t prev = 0;
+    size_t in = 0;
+    while ((in += sv_strspn(haystack.s + in, haystack.sz - in, set.s, set.sz))
+           != haystack.sz)
+    {
+        if (in != prev)
+        {
+            last_pos = in;
+        }
+        ++in;
+        prev = in;
+    }
+    return last_pos;
 }
 
 size_t
@@ -566,16 +576,33 @@ sv_npos(string_view sv)
     return sv.sz;
 }
 
+/* ======================   Static Helpers    ============================= */
+
+static size_t
+sv_after_find(string_view haystack, string_view needle)
+{
+    if (needle.sz > haystack.sz)
+    {
+        return 0;
+    }
+    size_t i = 0;
+    size_t delim_i = 0;
+    while (i < haystack.sz && needle.s[delim_i] == haystack.s[i])
+    {
+        ++i;
+        delim_i = (delim_i + 1) % needle.sz;
+    }
+    /* We need to also reset to the last mismatch we found. Imagine
+       we started to find the delimeter but then the string changed
+       into a mismatch. We go back to get characters that are partially
+       in the delimeter. */
+    return i - delim_i;
+}
+
 static inline size_t
 sv_min(size_t a, size_t b)
 {
     return a < b ? a : b;
-}
-
-static inline ssize_t
-sv_ssizet_max(ssize_t a, ssize_t b)
-{
-    return a > b ? a : b;
 }
 
 /* =======================   String Searching   ========================== */
@@ -623,15 +650,10 @@ enum sv_cmp
 
 static struct sv_factorization sv_maximal_suffix(const char *, ssize_t);
 static struct sv_factorization sv_maximal_suffix_rev(const char *, ssize_t);
-static size_t sv_two_way_period_memoization(struct sv_two_way_pack);
+static size_t sv_two_way_memoization(struct sv_two_way_pack);
 static size_t sv_two_way_normal(struct sv_two_way_pack);
 static enum sv_cmp sv_char_cmp(char, char);
-
-static inline enum sv_cmp
-sv_char_cmp(char a, char b)
-{
-    return (a > b) - (a < b);
-}
+static inline ssize_t sv_ssizet_max(ssize_t a, ssize_t b);
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
@@ -761,7 +783,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
     /* Determine if memoization is be available due to found border/overlap. */
     if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
-        return sv_two_way_period_memoization((struct sv_two_way_pack){
+        return sv_two_way_memoization((struct sv_two_way_pack){
             .haystack = haystack,
             .haystack_sz = haystack_sz,
             .needle = needle,
@@ -783,7 +805,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static inline size_t
-sv_two_way_period_memoization(struct sv_two_way_pack p)
+sv_two_way_memoization(struct sv_two_way_pack p)
 {
     ssize_t l_pos = 0;
     ssize_t r_pos = 0;
@@ -859,4 +881,78 @@ sv_two_way_normal(struct sv_two_way_pack p)
         l_pos += p.period_dist;
     }
     return p.haystack_sz;
+}
+
+/* =====================   String Sets for String View  ===================== */
+
+/* strspn and strcspn are based on musl C-standard library implementation
+   https://git.musl-libc.org/cgit/musl/tree/src/string/strspn.c
+   https://git.musl-libc.org/cgit/musl/tree/src/string/strcspn.c
+   A custom implemenatation is necessary because C standard library impls
+   have no concept of a string view and will continue searching beyond the
+   end of a view until null is found. This way, string searches are efficient
+   and only within the range specified. */
+
+#define BITOP(a, b, op)                                                        \
+    ((a)[(size_t)(b) / (8 * sizeof *(a))] op(size_t) 1                         \
+     << ((size_t)(b) % (8 * sizeof *(a))))
+
+static size_t
+sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
+{
+    const char *a = str;
+    size_t byteset[32 / sizeof(size_t)] = {0};
+    if (!set[0])
+    {
+        return str_sz;
+    }
+    if (!set[1])
+    {
+        for (size_t i = 0; *str == *set && i < str_sz && i < set_sz; str++, ++i)
+            ;
+        return str - a;
+    }
+    for (size_t i = 0;
+         *set && BITOP(byteset, *(unsigned char *)set, |=) && i < set_sz;
+         set++, ++i)
+        ;
+    for (size_t i = 0;
+         *str && BITOP(byteset, *(unsigned char *)str, &) && i < str_sz;
+         str++, ++i)
+        ;
+    return str - a;
+}
+
+size_t
+sv_strcspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
+{
+    const char *a = str;
+    size_t byteset[32 / sizeof(size_t)];
+    if (!set[0] || !set[1])
+    {
+        return str_sz;
+    }
+    memset(byteset, 0, sizeof byteset);
+    for (size_t i = 0;
+         *set && BITOP(byteset, *(unsigned char *)set, |=) && i < set_sz;
+         set++, ++i)
+        ;
+    for (size_t i = 0;
+         *str && !BITOP(byteset, *(unsigned char *)str, &) && i < str_sz; str++)
+        ;
+    return str - a;
+}
+
+/* ======================   Static Helpers    ============================= */
+
+static inline ssize_t
+sv_ssizet_max(ssize_t a, ssize_t b)
+{
+    return a > b ? a : b;
+}
+
+static inline enum sv_cmp
+sv_char_cmp(char a, char b)
+{
+    return (a > b) - (a < b);
 }

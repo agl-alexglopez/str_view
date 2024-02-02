@@ -92,11 +92,14 @@ string_view sv_strstr(const char *haystack, size_t haystack_sz,
                       const char *needle, size_t needle_sz);
 
 bool sv_contains(string_view haystack, string_view needle);
-size_t sv_first_of(string_view haystack, const char *needle);
-size_t sv_last_of(string_view haystack, const char *needle);
-size_t sv_first_not_of(string_view haystack, const char *needle,
-                       size_t needle_sz);
-size_t sv_last_not_of(string_view haystack, const char *needle);
+
+size_t sv_find(string_view haystack, string_view needle);
+size_t sv_rfind(string_view haystack, string_view needle);
+
+size_t sv_find_first_of(string_view haystack, string_view set);
+size_t sv_find_last_of(string_view haystack, string_view set);
+size_t sv_find_last_not_of(string_view haystack, string_view set);
+size_t sv_find_first_not_of(string_view haystack, string_view set);
 
 void sv_print(string_view);
 
