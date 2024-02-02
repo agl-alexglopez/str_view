@@ -72,7 +72,7 @@ sv_alloc(string_view sv)
         (void)fprintf(stderr, "sv_alloc accepted invalid string_view.\n");
         exit(1);
     }
-    char *const ret = malloc(sv.sz + 1);
+    char *const ret = calloc(sv.sz + 1, sizeof(char));
     if (!ret)
     {
         (void)fprintf(stderr, "sv_alloc heap exhausted.\n");
