@@ -60,10 +60,12 @@ int sv_strncmp(string_view, const char *str, size_t n);
 
 bool sv_empty(string_view);
 size_t sv_len(string_view);
+size_t sv_lenstr(const char *);
+size_t sv_lenstrn(const char *, size_t n);
+
 char sv_at(string_view, size_t i);
 char sv_front(string_view);
 char sv_back(string_view);
-const char *sv_data(string_view);
 void sv_swap(string_view *a, string_view *b);
 
 string_view sv_copy(const char *src_str, size_t str_sz);
@@ -72,6 +74,7 @@ void sv_fill(char *dest_buf, size_t dest_sz, string_view src);
 const char *sv_begin(string_view);
 const char *sv_end(string_view);
 const char *sv_next(const char *);
+const char *sv_pos(string_view, size_t i);
 
 string_view sv_begin_tok(const char *data, size_t delim_sz, const char *delim);
 bool sv_end_tok(string_view);
@@ -97,10 +100,11 @@ size_t sv_find(string_view haystack, string_view needle);
 size_t sv_rfind(string_view haystack, string_view needle);
 
 size_t sv_find_first_of(string_view haystack, string_view set);
+size_t sv_find_first_not_of(string_view haystack, string_view set);
+
 size_t sv_find_last_of(string_view haystack, string_view set);
 size_t sv_find_last_not_of(string_view haystack, string_view set);
-size_t sv_find_first_not_of(string_view haystack, string_view set);
 
 void sv_print(string_view);
 
-#endif
+#endif /* STRING_VIEW */

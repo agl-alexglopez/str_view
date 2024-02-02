@@ -1,0 +1,13 @@
+add_library(
+  sv_util 
+  sv_util.h 
+  sv_strlen.c 
+  sv_strnlen.c
+  sv_memset.c
+  sv_memcmp.c
+  sv_memcpy.c
+  sv_memmove.c
+  sv_strspn.c
+  sv_strcspn.c
+  sv_strstr.c
+)
