@@ -294,7 +294,7 @@ test_copy_fill(void)
     string_view this = sv_copy(reference, strlen(reference));
     char there[strlen(reference) + 1];
     sv_fill(there, strlen(reference), this);
-    if (strcmp(sv_str(this), there) != 0)
+    if (strcmp(sv_data(this), there) != 0)
     {
         return false;
     }
@@ -518,23 +518,23 @@ test_find_blank_of(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     string_view str = sv(ref);
-    if (sv_find_first_of(str, "C") != 2)
+    if (sv_first_of(str, "C") != 2)
     {
         return false;
     }
-    if (sv_find_first_of(str, "") != 0)
+    if (sv_first_of(str, "") != 0)
     {
         return false;
     }
-    if (sv_find_last_of(str, "!") != 16)
+    if (sv_last_of(str, "!") != 16)
     {
         return false;
     }
-    if (sv_find_first_not_of(str, "A", 1) != 2)
+    if (sv_first_not_of(str, "A", 1) != 2)
     {
         return false;
     }
-    if (sv_find_last_not_of(str, " ") != 18)
+    if (sv_last_not_of(str, " ") != 18)
     {
         return false;
     }
@@ -705,7 +705,7 @@ test_argv_argc(void)
     char argv[10][128];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(v);
+    for (string_view v = sv_begin_tok(sv_data(view), 1, " "); !sv_end_tok(v);
          v = sv_next_tok(v, 1, " "))
     {
         sv_fill(argv[i], sv_len(v), v);
@@ -734,7 +734,7 @@ test_mini_alloc_free(void)
     string_view argv[10];
     string_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(sv_str(view), 1, " "); !sv_end_tok(v);
+    for (string_view v = sv_begin_tok(sv_data(view), 1, " "); !sv_end_tok(v);
          v = sv_next_tok(v, 1, " "))
     {
         argv[i++] = v;

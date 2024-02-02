@@ -132,9 +132,23 @@ sv_null(void)
 }
 
 const char *
-sv_str(struct string_view sv)
+sv_data(string_view sv)
 {
     return sv.s;
+}
+
+void
+sv_swap(string_view *a, string_view *b)
+{
+    if (a == b || !a || !b)
+    {
+        return;
+    }
+    string_view tmp_b = (string_view){.s = b->s, .sz = b->sz};
+    b->s = a->s;
+    b->sz = a->sz;
+    a->s = tmp_b.s;
+    a->sz = tmp_b.sz;
 }
 
 int
@@ -276,13 +290,13 @@ sv_begin_tok(const char *const data, const size_t delim_sz,
         return (string_view){.s = data + strlen(data), 0};
     }
     string_view start = {.s = data, .sz = strlen(data)};
-    const size_t start_not = sv_find_first_not_of(start, delim, delim_sz);
+    const size_t start_not = sv_first_not_of(start, delim, delim_sz);
     start.s += start_not;
     if (*start.s == '\0')
     {
         return (string_view){.s = start.s, .sz = 0};
     }
-    size_t found_pos = sv_find_first_of(start, delim);
+    size_t found_pos = sv_first_of(start, delim);
     return sv_substr(start, 0, found_pos);
 }
 
@@ -301,8 +315,8 @@ sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
     }
     const char *next = sv.s + sv.sz + delim_sz;
     const size_t next_sz = strlen(next);
-    next += sv_find_first_not_of((string_view){.s = next, .sz = next_sz}, delim,
-                                 delim_sz);
+    next += sv_first_not_of((string_view){.s = next, .sz = next_sz}, delim,
+                            delim_sz);
     if (*next == '\0')
     {
         return (string_view){.s = next, .sz = 0};
@@ -312,11 +326,31 @@ sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
     return (string_view){.s = next, .sz = found - next};
 }
 
+bool
+sv_starts_with(string_view sv, string_view prefix)
+{
+    if (prefix.sz > sv.sz)
+    {
+        return false;
+    }
+    return sv_svcmp(sv_substr(sv, 0, prefix.sz), prefix) == 0;
+}
+
 string_view
 sv_remove_prefix(const string_view sv, const size_t n)
 {
     const size_t remove = sv_min(sv.sz, n);
     return (string_view){.s = sv.s + remove, .sz = sv.sz - remove};
+}
+
+bool
+sv_ends_with(string_view sv, string_view suffix)
+{
+    if (suffix.sz > sv.sz)
+    {
+        return false;
+    }
+    return sv_svcmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == 0;
 }
 
 string_view
@@ -433,7 +467,7 @@ sv_strstr(const char *haystack, size_t haystack_sz, const char *needle,
 }
 
 size_t
-sv_find_first_of(string_view haystack, const char *const needle)
+sv_first_of(string_view haystack, const char *const needle)
 {
     const size_t delim_sz = strlen(needle);
     if (delim_sz > haystack.sz)
@@ -446,7 +480,7 @@ sv_find_first_of(string_view haystack, const char *const needle)
 }
 
 size_t
-sv_find_last_of(string_view haystack, const char *const needle)
+sv_last_of(string_view haystack, const char *const needle)
 {
     if (strlen(needle) >= haystack.sz)
     {
@@ -470,8 +504,8 @@ sv_find_last_of(string_view haystack, const char *const needle)
 }
 
 size_t
-sv_find_first_not_of(string_view haystack, const char *const needle,
-                     const size_t needle_sz)
+sv_first_not_of(string_view haystack, const char *const needle,
+                const size_t needle_sz)
 {
     if (needle_sz > haystack.sz)
     {
@@ -492,7 +526,7 @@ sv_find_first_not_of(string_view haystack, const char *const needle,
 }
 
 size_t
-sv_find_last_not_of(string_view haystack, const char *const needle)
+sv_last_not_of(string_view haystack, const char *const needle)
 {
     const size_t delim_sz = strlen(needle);
     if (delim_sz >= haystack.sz)
