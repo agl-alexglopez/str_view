@@ -878,7 +878,6 @@ test_substring_search(void)
           "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennneeeeeeeeeeedneeddl"
           "haystackhaystackhaystackhaystackhaystackhaystackhaystack__needle";
     const size_t haystack_len = strlen(haystack);
-
     string_view haystack_view = sv(haystack);
     const string_view needle_view = sv(needle);
     const char *a = strstr(haystack, needle);
