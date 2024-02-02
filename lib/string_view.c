@@ -518,12 +518,28 @@ sv_rfind(string_view haystack, string_view needle)
 size_t
 sv_find_first_of(string_view haystack, string_view set)
 {
+    if (!haystack.s)
+    {
+        return 0;
+    }
+    if (!set.s)
+    {
+        return haystack.sz;
+    }
     return sv_strcspn(haystack.s, haystack.sz, set.s, set.sz);
 }
 
 size_t
 sv_find_last_of(string_view haystack, string_view set)
 {
+    if (!haystack.s)
+    {
+        return 0;
+    }
+    if (!set.s)
+    {
+        return haystack.sz;
+    }
     size_t last_pos = haystack.sz;
     size_t prev = 0;
     size_t in = 0;
@@ -543,6 +559,14 @@ sv_find_last_of(string_view haystack, string_view set)
 size_t
 sv_find_first_not_of(string_view haystack, string_view set)
 {
+    if (!haystack.s)
+    {
+        return 0;
+    }
+    if (!set.s)
+    {
+        return 0;
+    }
     const size_t in = sv_strspn(haystack.s, haystack.sz, set.s, set.sz);
     if (in == haystack.sz)
     {
@@ -554,6 +578,14 @@ sv_find_first_not_of(string_view haystack, string_view set)
 size_t
 sv_find_last_not_of(string_view haystack, string_view set)
 {
+    if (!haystack.s || 0 == haystack.sz)
+    {
+        return 0;
+    }
+    if (!set.s)
+    {
+        return haystack.sz - 1;
+    }
     size_t last_pos = haystack.sz;
     size_t prev = 0;
     size_t in = 0;
