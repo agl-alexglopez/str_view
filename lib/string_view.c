@@ -1,3 +1,10 @@
+/* Author: Alexander G. Lopez
+   File: string_view.c
+   ===================
+   This file implements the string_view interface as an approximation of C++
+   string_view type. There are some minor differences and C flavor thrown
+   in with the additional twist of a reimplementation of the Two-Way
+   String-Searching algorithm, similar to glibc. */
 #include "string_view.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -7,11 +14,17 @@
 
 /* Avoid giving the user a chance to dereference null as much as posssible
    by returning this for various edgecases when it makes sense to communicate
-   empty, null, invalid, not found etc. Used on cases by case basis. */
+   empty, null, invalid, not found etc. Used on cases by case basis.
+   It is usually better to justify giving back the user pointer in a
+   string_view even if it sized 0 and pointing to null terminator. */
 static const char *const nil = "";
 
+/* Two-Way String-Searching Algorithm by Crochemore and Perrin. See
+   the end of the file for implementation details. */
+static size_t sv_two_way(const char *, ssize_t, const char *, ssize_t);
 static size_t sv_min(size_t, size_t);
-static const char *sv_two_way(const char *, ssize_t, const char *, ssize_t);
+
+/* ===================   Interface Implementation   ====================== */
 
 string_view
 sv(const char *const str)
@@ -144,7 +157,7 @@ sv_swap(string_view *a, string_view *b)
     {
         return;
     }
-    string_view tmp_b = (string_view){.s = b->s, .sz = b->sz};
+    const string_view tmp_b = (string_view){.s = b->s, .sz = b->sz};
     b->s = a->s;
     b->sz = a->sz;
     a->s = tmp_b.s;
@@ -321,9 +334,9 @@ sv_next_tok(string_view sv, const size_t delim_sz, const char *const delim)
     {
         return (string_view){.s = next, .sz = 0};
     }
-    const char *const found
+    const size_t found
         = sv_two_way(next, (ssize_t)next_sz, delim, (ssize_t)delim_sz);
-    return (string_view){.s = next, .sz = found - next};
+    return (string_view){.s = next, .sz = found};
 }
 
 bool
@@ -385,9 +398,9 @@ sv_contains(string_view haystack, string_view needle)
     {
         return true;
     }
-    const char *const found = sv_two_way(haystack.s, (ssize_t)haystack.sz,
-                                         needle.s, (ssize_t)needle.sz);
-    return (found == haystack.s + haystack.sz) ? false : true;
+    const size_t found = sv_two_way(haystack.s, (ssize_t)haystack.sz, needle.s,
+                                    (ssize_t)needle.sz);
+    return (found == haystack.sz) ? false : true;
 }
 
 string_view
@@ -405,14 +418,13 @@ sv_svsv(string_view haystack, string_view needle)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    const char *const end = haystack.s + haystack.sz;
-    const char *const found = sv_two_way(haystack.s, (ssize_t)haystack.sz,
-                                         needle.s, (ssize_t)needle.sz);
-    if (found == end)
+    const size_t found = sv_two_way(haystack.s, (ssize_t)haystack.sz, needle.s,
+                                    (ssize_t)needle.sz);
+    if (found == haystack.sz)
     {
-        return (string_view){.s = end, .sz = 0};
+        return (string_view){.s = haystack.s + haystack.sz, .sz = 0};
     }
-    return (string_view){.s = found, .sz = needle.sz};
+    return (string_view){.s = haystack.s + found, .sz = needle.sz};
 }
 
 string_view
@@ -426,18 +438,17 @@ sv_svstr(string_view haystack, const char *needle, size_t needle_sz)
     {
         return haystack;
     }
-    const char *const end = haystack.s + haystack.sz;
     if (0 == needle_sz)
     {
-        return (string_view){.s = end, .sz = 0};
+        return (string_view){.s = haystack.s + haystack.sz, .sz = 0};
     }
-    const char *found = sv_two_way(haystack.s, (ssize_t)haystack.sz, needle,
-                                   (ssize_t)needle_sz);
-    if (found == end)
+    const size_t found = sv_two_way(haystack.s, (ssize_t)haystack.sz, needle,
+                                    (ssize_t)needle_sz);
+    if (found == haystack.sz)
     {
-        return (string_view){.s = end, .sz = 0};
+        return (string_view){.s = haystack.s + haystack.sz, .sz = 0};
     }
-    return (string_view){.s = found, .sz = needle_sz};
+    return (string_view){.s = haystack.s + found, .sz = needle_sz};
 }
 
 string_view
@@ -452,18 +463,17 @@ sv_strstr(const char *haystack, size_t haystack_sz, const char *needle,
     {
         return (string_view){.s = haystack, .sz = 0};
     }
-    const char *const end = haystack + haystack_sz;
     if ('\0' == *needle)
     {
-        return (string_view){.s = end, .sz = 0};
+        return (string_view){.s = haystack + haystack_sz, .sz = 0};
     }
-    const char *found = sv_two_way(haystack, (ssize_t)haystack_sz, needle,
-                                   (ssize_t)needle_sz);
-    if (found == end)
+    const size_t found = sv_two_way(haystack, (ssize_t)haystack_sz, needle,
+                                    (ssize_t)needle_sz);
+    if (found == haystack_sz)
     {
-        return (string_view){.s = end, .sz = 0};
+        return (string_view){.s = haystack + haystack_sz, .sz = 0};
     }
-    return (string_view){.s = found, .sz = needle_sz};
+    return (string_view){.s = haystack + found, .sz = needle_sz};
 }
 
 size_t
@@ -474,9 +484,8 @@ sv_first_of(string_view haystack, const char *const needle)
     {
         return haystack.sz;
     }
-    const char *const found = sv_two_way(haystack.s, (ssize_t)haystack.sz,
-                                         needle, (ssize_t)delim_sz);
-    return found - haystack.s;
+    return sv_two_way(haystack.s, (ssize_t)haystack.sz, needle,
+                      (ssize_t)delim_sz);
 }
 
 size_t
@@ -486,21 +495,21 @@ sv_last_of(string_view haystack, const char *const needle)
     {
         return haystack.sz;
     }
-    const char *last_found = haystack.s + haystack.sz;
     const size_t needle_sz = strlen(needle);
-    const char *found = haystack.s;
+    size_t last_found = haystack.sz;
+    size_t i = 0;
     for (;;)
     {
-        found = sv_two_way(found, (ssize_t)haystack.sz - (found - haystack.s),
-                           needle, (ssize_t)needle_sz);
-        if ((size_t)(found - haystack.s) == haystack.sz)
+        i += sv_two_way(haystack.s + i, (ssize_t)(haystack.sz - i), needle,
+                        (ssize_t)needle_sz);
+        if (i == haystack.sz)
         {
             break;
         }
-        last_found = found;
-        ++found;
+        last_found = i;
+        ++i;
     }
-    return last_found - haystack.s;
+    return last_found;
 }
 
 size_t
@@ -579,11 +588,12 @@ sv_ssizet_max(ssize_t a, ssize_t b)
    This algorithm is used for its simplicity and low space requirement.
    What follows is a massively simplified approximation (due to my own
    lack of knowledge) of glibc's approach with the help of the ESMAJ
-   website on string matching:
+   website on string matching and the original paper in ACM.
 
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260
 
-   Variable names and descriptions attempt to communicate authors' meaning. */
+   Variable names and descriptions attempt to communicate authors' original
+   meaning from the 1991 paper. */
 struct sv_factorization
 {
     /* Position in the needle at which (local period = period). */
@@ -613,9 +623,9 @@ enum sv_cmp
 
 static struct sv_factorization sv_maximal_suffix(const char *, ssize_t);
 static struct sv_factorization sv_maximal_suffix_rev(const char *, ssize_t);
-static inline const char *sv_two_way_period_memoization(struct sv_two_way_pack);
-static inline const char *sv_two_way_normal(struct sv_two_way_pack);
-static inline enum sv_cmp sv_char_cmp(char, char);
+static size_t sv_two_way_period_memoization(struct sv_two_way_pack);
+static size_t sv_two_way_normal(struct sv_two_way_pack);
+static enum sv_cmp sv_char_cmp(char, char);
 
 static inline enum sv_cmp
 sv_char_cmp(char a, char b)
@@ -625,94 +635,94 @@ sv_char_cmp(char a, char b)
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static struct sv_factorization
+static inline struct sv_factorization
 sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
 {
-    ssize_t max_suf = -1;
-    ssize_t j = 0;
+    ssize_t suff_pos = -1;
     ssize_t period = 1;
-    ssize_t k = 1;
-    while (j + k < needle_sz)
+    ssize_t last_rest = 0;
+    ssize_t rest = 1;
+    while (last_rest + rest < needle_sz)
     {
-        switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
+        switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
         case SV_LES:
         {
-            j += k;
-            k = 1;
-            period = j - max_suf;
+            last_rest += rest;
+            rest = 1;
+            period = last_rest - suff_pos;
         }
         break;
         case SV_EQL:
         {
-            if (k != period)
+            if (rest != period)
             {
-                ++k;
+                ++rest;
             }
             else
             {
-                j += period;
-                k = 1;
+                last_rest += period;
+                rest = 1;
             }
         }
         break;
         case SV_GRT:
         {
-            max_suf = j;
-            j = max_suf + 1;
-            k = period = 1;
+            suff_pos = last_rest;
+            last_rest = suff_pos + 1;
+            rest = period = 1;
         }
         break;
         }
     }
-    return (struct sv_factorization){.start_critical_pos = max_suf,
+    return (struct sv_factorization){.start_critical_pos = suff_pos,
                                      .period_dist = period};
 }
 
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static struct sv_factorization
+static inline struct sv_factorization
 sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 {
-    ssize_t max_suf = -1;
-    ssize_t j = 0;
-    ssize_t k = 1;
+    ssize_t suff_pos = -1;
     ssize_t period = 1;
-    while (j + k < (int)needle_sz)
+    ssize_t last_rest = 0;
+    ssize_t rest = 1;
+    while (last_rest + rest < (int)needle_sz)
     {
-        switch (sv_char_cmp(needle[j + k], needle[max_suf + k]))
+        switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
         case SV_GRT:
         {
-            j += k;
-            k = 1;
-            period = j - max_suf;
+            last_rest += rest;
+            rest = 1;
+            period = last_rest - suff_pos;
         }
         break;
         case SV_EQL:
         {
-            if (k != period)
+            if (rest != period)
             {
-                ++k;
+                ++rest;
             }
             else
             {
-                j += period;
-                k = 1;
+                last_rest += period;
+                rest = 1;
             }
         }
         break;
         case SV_LES:
         {
-            max_suf = (int)j;
-            j = max_suf + 1;
-            k = period = 1;
+            suff_pos = (int)last_rest;
+            last_rest = suff_pos + 1;
+            rest = period = 1;
         }
         break;
         }
     }
-    return (struct sv_factorization){.start_critical_pos = max_suf,
+    return (struct sv_factorization){.start_critical_pos = suff_pos,
                                      .period_dist = period};
 }
 
@@ -724,12 +734,12 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
    end and therefore searches the entire remaining string which could
    be wasteful. Therefore, I needed my own implementation of string
    searching so I can control the size of the search to be the size
-   of a string view. I also return the pointer even if it is to the
-   the null terminating character so that in many cases I can return
+   of a string view. I also return the position even if it is at the
+   null terminating character so that in many cases I can return
    the full string when something is not found. This is faster and
    more convenient than running another search to find the end of
    the string. The null returned by strstr is often not helpful. */
-static const char *
+static inline size_t
 sv_two_way(const char *const haystack, ssize_t haystack_sz,
            const char *const needle, ssize_t needle_sz)
 {
@@ -748,7 +758,7 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    /* Determine if memoization is be available due to repeating pattern. */
+    /* Determine if memoization is be available due to found border/overlap. */
     if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_period_memoization((struct sv_two_way_pack){
@@ -770,7 +780,9 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
     });
 }
 
-static inline const char *
+/* Two Way string matching algorithm adapted from ESMAJ
+   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
+static inline size_t
 sv_two_way_period_memoization(struct sv_two_way_pack p)
 {
     ssize_t l_pos = 0;
@@ -800,17 +812,19 @@ sv_two_way_period_memoization(struct sv_two_way_pack p)
         }
         if (r_pos <= memoize_shift)
         {
-            return p.haystack + l_pos;
+            return l_pos;
         }
         l_pos += p.period_dist;
         /* Some prefix of needle coincides with the text. Memoize the length
            of this prefix to increase length of next shift, if possible. */
         memoize_shift = p.needle_sz - p.period_dist - 1;
     }
-    return p.haystack + p.haystack_sz;
+    return p.haystack_sz;
 }
 
-static inline const char *
+/* Two Way string matching algorithm adapted from ESMAJ
+   http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
+static inline size_t
 sv_two_way_normal(struct sv_two_way_pack p)
 {
     p.period_dist
@@ -840,9 +854,9 @@ sv_two_way_normal(struct sv_two_way_pack p)
         }
         if (r_pos < 0)
         {
-            return p.haystack + l_pos;
+            return l_pos;
         }
         l_pos += p.period_dist;
     }
-    return p.haystack + p.haystack_sz;
+    return p.haystack_sz;
 }
