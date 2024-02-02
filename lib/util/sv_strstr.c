@@ -324,7 +324,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 
 /* ======================   Brute Force Search    ========================== */
 
-static size_t
+static inline size_t
 sv_twobyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
                     const unsigned char *needle)
 {
@@ -337,7 +337,7 @@ sv_twobyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
     return (i < haystack_sz) ? (size_t)((h - 1) - haystack) : haystack_sz;
 }
 
-static size_t
+static inline size_t
 sv_threebyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
                       const unsigned char *needle)
 {
@@ -350,7 +350,7 @@ sv_threebyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
     return (i < haystack_sz) ? (size_t)((h - 2) - haystack) : haystack_sz;
 }
 
-static size_t
+static inline size_t
 sv_fourbyte_strnstrn(const unsigned char *haystack, size_t haystack_sz,
                      const unsigned char *n)
 {
