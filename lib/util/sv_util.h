@@ -19,9 +19,9 @@ size_t sv_strspn(const char *, size_t, const char *, size_t);
 
 size_t sv_strcspn(const char *, size_t, const char *, size_t);
 
-size_t sv_strlen(const char *);
+size_t sv_len(const char *);
 
-size_t sv_strnlen(const char *, size_t);
+size_t sv_nlen(const char *, size_t);
 
 void *sv_memset(void *, int, size_t);
 

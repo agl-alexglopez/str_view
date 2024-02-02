@@ -5,7 +5,7 @@
 /* Taken from musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strnlen.c */
 size_t
-sv_strnlen(const char *const str, size_t n)
+sv_nlen(const char *const str, size_t n)
 {
     if (!str)
     {

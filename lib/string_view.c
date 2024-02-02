@@ -42,7 +42,7 @@ sv_n(const char *const str, size_t n)
     {
         return (string_view){.s = nil, .sz = 0};
     }
-    return (string_view){.s = str, .sz = sv_strnlen(str, n)};
+    return (string_view){.s = str, .sz = sv_nlen(str, n)};
 }
 
 string_view
@@ -75,13 +75,13 @@ sv_alloc(string_view sv)
         (void)fprintf(stderr, "sv_alloc accepted invalid string_view.\n");
         exit(1);
     }
-    char *const ret = calloc(sv.sz + 1, sizeof(char));
+    char *const ret = calloc(sv_svbytes(sv), sizeof(char));
     if (!ret)
     {
         (void)fprintf(stderr, "sv_alloc heap exhausted.\n");
         exit(1);
     }
-    sv_fill(ret, sv.sz, sv);
+    sv_fill(ret, sv_svbytes(sv), sv);
     return ret;
 }
 
@@ -120,9 +120,9 @@ sv_fill(char *dest_buf, size_t dest_sz, const string_view src)
     {
         return;
     }
-    const size_t paste = sv_min(dest_sz, src.sz);
+    const size_t paste = sv_min(dest_sz, sv_svbytes(src));
     sv_memmove(dest_buf, src.s, paste);
-    dest_buf[paste] = '\0';
+    dest_buf[paste - 1] = '\0';
 }
 
 bool
@@ -132,21 +132,37 @@ sv_empty(const string_view s)
 }
 
 size_t
-sv_sz(string_view sv)
+sv_svlen(string_view sv)
 {
     return sv.sz;
 }
 
 size_t
-sv_strsz(const char *const str)
+sv_svbytes(string_view sv)
 {
-    return sv_strlen(str);
+    return sv.sz + 1;
 }
 
 size_t
-sv_strnsz(const char *const str, size_t n)
+sv_strlen(const char *const str)
 {
-    return sv_strnlen(str, n);
+    return sv_len(str);
+}
+
+size_t
+sv_strbytes(const char *const str)
+{
+    if (!str)
+    {
+        return 0;
+    }
+    return sv_len(str) + 1;
+}
+
+size_t
+sv_maxlen(const char *const str, size_t n)
+{
+    return sv_nlen(str, n);
 }
 
 char
@@ -198,13 +214,13 @@ sv_svcmp(string_view sv1, string_view sv2)
     }
     if (i == sv1.sz && i == sv2.sz)
     {
-        return 0;
+        return EQL;
     }
     if (i < sv1.sz && i < sv2.sz)
     {
-        return ((uint8_t)sv1.s[i] < (uint8_t)sv2.s[i] ? -1 : +1);
+        return ((uint8_t)sv1.s[i] < (uint8_t)sv2.s[i] ? LES : GRT);
     }
-    return (i < sv1.sz) ? +1 : -1;
+    return (i < sv1.sz) ? GRT : LES;
 }
 
 int
@@ -223,13 +239,13 @@ sv_strcmp(string_view sv, const char *str)
     }
     if (i == sv.sz && str[i] == '\0')
     {
-        return 0;
+        return EQL;
     }
     if (i < sv.sz && str[i] != '\0')
     {
-        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? -1 : +1);
+        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? LES : GRT);
     }
-    return (i < sv.sz) ? +1 : -1;
+    return (i < sv.sz) ? GRT : LES;
 }
 
 int
@@ -237,7 +253,7 @@ sv_strncmp(string_view sv, const char *str, const size_t n)
 {
     if (!sv.s || !str)
     {
-        (void)fprintf(stderr, "sv_strcmp cannot compare NULL.\n");
+        (void)fprintf(stderr, "sv_strncmp cannot compare NULL.\n");
         exit(1);
     }
     size_t i = 0;
@@ -248,14 +264,14 @@ sv_strncmp(string_view sv, const char *str, const size_t n)
     }
     if (i == sv.sz && sz == n)
     {
-        return 0;
+        return EQL;
     }
     /* strncmp compares the first at most n bytes inclusive */
     if (i < sv.sz && sz <= n)
     {
-        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? -1 : +1);
+        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? LES : GRT);
     }
-    return (i < sv.sz) ? +1 : -1;
+    return (i < sv.sz) ? GRT : LES;
 }
 
 char
@@ -339,8 +355,7 @@ sv_begin_tok(string_view sv, string_view delim)
     {
         return (string_view){.s = sv.s, .sz = 0};
     }
-    size_t found_pos = sv_find(sv, delim);
-    return sv_substr(sv, 0, found_pos);
+    return sv_substr(sv, 0, sv_find(sv, 0, delim));
 }
 
 bool
@@ -350,9 +365,13 @@ sv_end_tok(const string_view sv)
 }
 
 string_view
-sv_next_tok(string_view sv, string_view delim) /* NOLINT */
+sv_next_tok(string_view sv, string_view delim)
 {
-    if (sv.s[sv.sz] == '\0')
+    if (!sv.s)
+    {
+        return (string_view){.s = nil, .sz = 0};
+    }
+    if (!delim.s || sv.s[sv.sz] == '\0')
     {
         return (string_view){.s = sv.s + sv.sz, .sz = 0};
     }
@@ -456,73 +475,29 @@ sv_svsv(string_view haystack, string_view needle)
     return (string_view){.s = haystack.s + found, .sz = needle.sz};
 }
 
-string_view
-sv_svstr(string_view haystack, const char *needle, size_t needle_sz)
-{
-    if (needle_sz > haystack.sz)
-    {
-        return (string_view){.s = nil, .sz = 0};
-    }
-    if (sv_empty(haystack))
-    {
-        return haystack;
-    }
-    if (0 == needle_sz)
-    {
-        return (string_view){.s = haystack.s + haystack.sz, .sz = 0};
-    }
-    const size_t found = sv_strnstrn(haystack.s, (ssize_t)haystack.sz, needle,
-                                     (ssize_t)needle_sz);
-    if (found == haystack.sz)
-    {
-        return (string_view){.s = haystack.s + haystack.sz, .sz = 0};
-    }
-    return (string_view){.s = haystack.s + found, .sz = needle_sz};
-}
-
-string_view
-sv_strstr(const char *haystack, size_t haystack_sz, const char *needle,
-          size_t needle_sz)
-{
-    if (!needle || !haystack || needle_sz > haystack_sz || 0 == needle_sz)
-    {
-        return (string_view){.s = nil, .sz = 0};
-    }
-    if ('\0' == *haystack)
-    {
-        return (string_view){.s = haystack, .sz = 0};
-    }
-    if ('\0' == *needle)
-    {
-        return (string_view){.s = haystack + haystack_sz, .sz = 0};
-    }
-    const size_t found = sv_strnstrn(haystack, (ssize_t)haystack_sz, needle,
-                                     (ssize_t)needle_sz);
-    if (found == haystack_sz)
-    {
-        return (string_view){.s = haystack + haystack_sz, .sz = 0};
-    }
-    return (string_view){.s = haystack + found, .sz = needle_sz};
-}
-
 size_t
-sv_find(string_view haystack, string_view needle)
+sv_find(string_view haystack, size_t pos, string_view needle)
 {
-    if (needle.sz > haystack.sz)
+    if (needle.sz > haystack.sz || pos > haystack.sz)
     {
         return haystack.sz;
     }
-    return sv_strnstrn(haystack.s, (ssize_t)haystack.sz, needle.s,
+    return sv_strnstrn(haystack.s + pos, (ssize_t)(haystack.sz - pos), needle.s,
                        (ssize_t)needle.sz);
 }
 
 size_t
-sv_rfind(string_view haystack, string_view needle)
+sv_rfind(string_view haystack, size_t pos, string_view needle)
 {
     if (needle.sz >= haystack.sz)
     {
         return haystack.sz;
     }
+    if (pos > haystack.sz)
+    {
+        pos = haystack.sz;
+    }
+    haystack.sz -= (haystack.sz - pos);
     size_t last_found = haystack.sz;
     size_t i = 0;
     for (;;)
@@ -591,12 +566,7 @@ sv_find_first_not_of(string_view haystack, string_view set)
     {
         return 0;
     }
-    const size_t in = sv_strspn(haystack.s, haystack.sz, set.s, set.sz);
-    if (in == haystack.sz)
-    {
-        return in;
-    }
-    return in;
+    return sv_strspn(haystack.s, haystack.sz, set.s, set.sz);
 }
 
 size_t

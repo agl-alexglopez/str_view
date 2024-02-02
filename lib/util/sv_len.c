@@ -3,7 +3,7 @@
 /* Taken from musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strlen.c */
 size_t
-sv_strlen(const char *const str)
+sv_len(const char *const str)
 {
     if (!str)
     {

@@ -166,11 +166,11 @@ test_from_null(void)
     sv_print(s);
     printf("]\n");
     const size_t reference_len = strlen(reference);
-    if (reference_len != sv_sz(s))
+    if (reference_len != sv_svlen(s))
     {
         return false;
     }
-    if (reference[reference_len - 1] != sv_at(s, sv_sz(s) - 1))
+    if (reference[reference_len - 1] != sv_at(s, sv_svlen(s) - 1))
     {
         return false;
     }
@@ -181,11 +181,11 @@ test_from_null(void)
     printf("5 byte view=[");
     sv_print(n_bytes);
     printf("]\n");
-    if (sv_sz(n_bytes) != chunk_len)
+    if (sv_svlen(n_bytes) != chunk_len)
     {
         return false;
     }
-    if (chunk[chunk_len - 1] != sv_at(n_bytes, sv_sz(n_bytes) - 1))
+    if (chunk[chunk_len - 1] != sv_at(n_bytes, sv_svlen(n_bytes) - 1))
     {
         return false;
     }
@@ -206,11 +206,11 @@ test_from_delim(void)
     printf("this should be first tok=[");
     sv_print(sv);
     printf("]\n");
-    if (reference_len != sv_sz(sv))
+    if (reference_len != sv_svlen(sv))
     {
         return false;
     }
-    if (reference_delim[reference_len - 1] != sv_at(sv, sv_sz(sv) - 1))
+    if (reference_delim[reference_len - 1] != sv_at(sv, sv_svlen(sv) - 1))
     {
         return false;
     }
@@ -225,11 +225,11 @@ test_from_delim(void)
     printf("this should be first tok=[");
     sv_print(sv2);
     printf("]\n");
-    if (ref2_len != sv_sz(sv2))
+    if (ref2_len != sv_svlen(sv2))
     {
         return false;
     }
-    if (ref2_delim[ref2_len - 1] != sv_at(sv2, sv_sz(sv2) - 1))
+    if (ref2_delim[ref2_len - 1] != sv_at(sv2, sv_svlen(sv2) - 1))
     {
         return false;
     }
@@ -248,11 +248,11 @@ test_from_delim_no_delim(void)
     printf("this should be reference=[");
     sv_print(sv);
     printf("]\n");
-    if (reference_len != sv_sz(sv))
+    if (reference_len != sv_svlen(sv))
     {
         return false;
     }
-    if (reference[reference_len - 1] != sv_at(sv, sv_sz(sv) - 1))
+    if (reference[reference_len - 1] != sv_at(sv, sv_svlen(sv) - 1))
     {
         return false;
     }
@@ -271,7 +271,7 @@ test_empty_constructor(void)
     printf("this should be empty=[");
     sv_print(sv);
     printf("]\n");
-    if (reference_len == sv_sz(sv) || !sv_empty(sv))
+    if (reference_len == sv_svlen(sv) || !sv_empty(sv))
     {
         return false;
     }
@@ -289,7 +289,7 @@ test_front_back(void)
     const char *const reference = "*The front was * the back is!";
     const string_view s = sv(reference);
     const size_t ref_len = strlen(reference);
-    if (ref_len != sv_sz(s))
+    if (ref_len != sv_svlen(s))
     {
         return false;
     }
@@ -306,8 +306,8 @@ test_copy_fill(void)
     printf("%stest_copy_fill%s", cyan, none);
     const char *const reference = "Copy this over there!";
     string_view this = sv_copy(reference, strlen(reference));
-    char there[strlen(reference) + 1];
-    sv_fill(there, strlen(reference), this);
+    char there[sv_strbytes(reference)];
+    sv_fill(there, sv_strbytes(reference), this);
     if (strcmp(sv_begin(this), there) != 0)
     {
         return false;
@@ -506,18 +506,18 @@ test_iter_delim_larger_than_str(void)
     const size_t delim_len = strlen(delim);
     string_view constructed = sv_delim(reference, delim);
     string_view cur
-        = sv_begin_tok((string_view){reference, sv_strsz(reference)},
+        = sv_begin_tok((string_view){reference, sv_strlen(reference)},
                        (string_view){delim, delim_len});
-    if (sv_svcmp(constructed, cur) != 0
-        || sv_strcmp(constructed, reference) != 0
-        || sv_strcmp(cur, reference) != 0)
+    if (sv_svcmp(constructed, cur) != EQL
+        || sv_strcmp(constructed, reference) != EQL
+        || sv_strcmp(cur, reference) != EQL)
     {
         return false;
     }
     for (; !sv_end_tok(cur);
          cur = sv_next_tok(cur, (string_view){delim, delim_len}))
     {
-        if (sv_strcmp(cur, reference) != 0)
+        if (sv_strcmp(cur, reference) != EQL)
         {
             return false;
         }
@@ -540,7 +540,7 @@ test_find_rfind(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     string_view str = sv(ref);
-    if (sv_find(str,
+    if (sv_find(str, 0,
                 (string_view){
                     .s = "C",
                     .sz = 1,
@@ -549,7 +549,7 @@ test_find_rfind(void)
     {
         return false;
     }
-    if (sv_find(str,
+    if (sv_find(str, 0,
                 (string_view){
                     .s = "",
                     .sz = 1,
@@ -558,7 +558,7 @@ test_find_rfind(void)
     {
         return false;
     }
-    if (sv_rfind(str,
+    if (sv_rfind(str, str.sz,
                  (string_view){
                      .s = "!",
                      .sz = 1,
@@ -673,37 +673,37 @@ static bool
 test_svcmp(void)
 {
     printf("%stest_svcmp%s", cyan, none);
-    if (sv_svcmp(sv(""), sv("")) != 0)
+    if (sv_svcmp(sv(""), sv("")) != EQL)
     {
         return false;
     }
-    if (sv_strcmp(sv(""), "") != 0)
+    if (sv_strcmp(sv(""), "") != EQL)
     {
         return false;
     }
-    if (sv_svcmp(sv("same"), sv("same")) != 0)
+    if (sv_svcmp(sv("same"), sv("same")) != EQL)
     {
         return false;
     }
-    if (sv_svcmp(sv("samz"), sv("same")) <= 0)
+    if (sv_svcmp(sv("samz"), sv("same")) <= EQL)
     {
         return false;
     }
-    if (sv_svcmp(sv("same"), sv("samz")) >= 0)
+    if (sv_svcmp(sv("same"), sv("samz")) >= EQL)
     {
         return false;
     }
     /* The comparison function should treat the end of a string view as
        null terminating character even if it points to a delimeter */
-    if (sv_svcmp(sv("same"), sv_delim("same same", " ")) != 0)
+    if (sv_svcmp(sv("same"), sv_delim("same same", " ")) != EQL)
     {
         return false;
     }
-    if (sv_svcmp(sv("same"), sv_delim("samz same", " ")) >= 0)
+    if (sv_svcmp(sv("same"), sv_delim("samz same", " ")) >= EQL)
     {
         return false;
     }
-    if (sv_svcmp(sv_delim("sameez same", " "), sv("same")) <= 0)
+    if (sv_svcmp(sv_delim("sameez same", " "), sv("same")) <= EQL)
     {
         return false;
     }
@@ -712,24 +712,24 @@ test_svcmp(void)
     {
         return false;
     }
-    if (sv_strcmp(sv_delim("same same", " "), str) != 0)
+    if (sv_strcmp(sv_delim("same same", " "), str) != EQL)
     {
         return false;
     }
-    if (sv_strcmp(sv_delim("samez same", " "), str) <= 0)
+    if (sv_strcmp(sv_delim("samez same", " "), str) <= EQL)
     {
         return false;
     }
-    if (sv_strcmp(sv_delim("sameez same", " "), str) <= 0)
+    if (sv_strcmp(sv_delim("sameez same", " "), str) <= EQL)
     {
         return false;
     }
     /* strncmp compares at most n bytes inclusize or stops at null term */
-    if (sv_strncmp(sv_delim("sameez same", " "), str, 10) <= 0)
+    if (sv_strncmp(sv_delim("sameez same", " "), str, 10) <= EQL)
     {
         return false;
     }
-    if (sv_strncmp(sv_delim("saaeez same", " "), str, 3) >= 0)
+    if (sv_strncmp(sv_delim("saaeez same", " "), str, 3) >= EQL)
     {
         return false;
     }
@@ -749,7 +749,7 @@ test_substr(void)
     };
     const char *const substr1 = "A substring!";
     const char *const substr2 = "Have another!";
-    if (sv_strcmp(sv_substr(sv(ref), 0, strlen(substr1)), substr1) != 0)
+    if (sv_strcmp(sv_substr(sv(ref), 0, strlen(substr1)), substr1) != EQL)
     {
         return false;
     }
@@ -759,22 +759,22 @@ test_substr(void)
     {
         return false;
     }
-    if (sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref) != 0)
+    if (sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref) != EQL)
     {
         return false;
     }
     /* Make sure the fill function adds null terminator */
-    char dump_substr1[27] = {[12] = '!'};
+    char dump_substr1[27] = {[13] = '@'};
     sv_fill(dump_substr1, 27, sv_substr(sv(ref), 0, strlen(substr1)));
-    if (strcmp(substr1, dump_substr1) != 0)
+    if (strcmp(substr1, dump_substr1) != EQL)
     {
         return false;
     }
     /* Make sure the fill function adds null terminator */
-    char dump_substr2[27] = {[13] = '!'};
+    char dump_substr2[27] = {[14] = '@'};
     sv_fill(dump_substr2, 27,
             sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)));
-    if (strcmp(substr2, dump_substr2) != 0)
+    if (strcmp(substr2, dump_substr2) != EQL)
     {
         return false;
     }
@@ -797,7 +797,7 @@ test_argv_argc(void)
     for (string_view v = sv_begin_tok(view, (string_view){" ", 1});
          !sv_end_tok(v); v = sv_next_tok(v, (string_view){" ", 1}))
     {
-        sv_fill(argv[i], sv_sz(v), v);
+        sv_fill(argv[i], sv_svbytes(v), v);
         ++i;
     }
     for (size_t arg = 0; arg < 4; ++arg)
@@ -856,11 +856,11 @@ test_get_line(void)
     const char *const file_data = "1\n2\n3\n4\n5";
     size_t i = 0;
     for (string_view v
-         = sv_begin_tok((string_view){file_data, sv_strsz(file_data)},
+         = sv_begin_tok((string_view){file_data, sv_strlen(file_data)},
                         (string_view){"\n", 1});
          !sv_end_tok(v); v = sv_next_tok(v, (string_view){"\n", 1}))
     {
-        if (sv_strcmp(v, lines[i]) != 0)
+        if (sv_strcmp(v, lines[i]) != EQL)
         {
             return false;
         }
@@ -887,7 +887,6 @@ test_substring_search(void)
           "_______________________needle___________________________________"
           "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennneeeeeeeeeeedneeddl"
           "haystackhaystackhaystackhaystackhaystackhaystackhaystack__needle";
-    const size_t haystack_len = strlen(haystack);
     const string_view haystack_view = sv(haystack);
     const string_view needle_view = sv(needle);
     const char *a = strstr(haystack, needle);
@@ -898,12 +897,9 @@ test_substring_search(void)
     }
 
     string_view b = sv_n(a, needle_len);
-    string_view c = sv_svstr(haystack_view, needle, needle_len);
-    string_view d = sv_svsv(haystack_view, needle_view);
-    string_view e = sv_strstr(haystack, haystack_len, needle, needle_len);
+    string_view c = sv_svsv(haystack_view, needle_view);
 
-    if (sv_svcmp(b, c) != 0 || sv_svcmp(b, d) != 0 || sv_svcmp(b, e) != 0
-        || c.s != a || d.s != a || e.s != a)
+    if (sv_svcmp(b, c) != EQL || c.s != a)
     {
         return false;
     }
@@ -916,11 +912,8 @@ test_substring_search(void)
     }
     const string_view new_haystack_view = sv(a);
     b = sv_n(a, needle_len);
-    c = sv_svstr(new_haystack_view, needle, needle_len);
-    d = sv_svsv(new_haystack_view, needle_view);
-    e = sv_strstr(a, new_haystack_view.sz, needle, needle_len);
-    if (sv_svcmp(b, c) != 0 || sv_svcmp(b, d) != 0 || sv_svcmp(b, e) != 0
-        || c.s != a || d.s != a || e.s != a)
+    c = sv_svsv(new_haystack_view, needle_view);
+    if (sv_svcmp(b, c) != 0 || c.s != a)
     {
         return false;
     }
