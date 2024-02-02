@@ -166,11 +166,11 @@ test_from_null(void)
     sv_print(s);
     printf("]\n");
     const size_t reference_len = strlen(reference);
-    if (reference_len != sv_len(s))
+    if (reference_len != sv_sz(s))
     {
         return false;
     }
-    if (reference[reference_len - 1] != sv_at(s, sv_len(s) - 1))
+    if (reference[reference_len - 1] != sv_at(s, sv_sz(s) - 1))
     {
         return false;
     }
@@ -181,11 +181,11 @@ test_from_null(void)
     printf("5 byte view=[");
     sv_print(n_bytes);
     printf("]\n");
-    if (sv_len(n_bytes) != chunk_len)
+    if (sv_sz(n_bytes) != chunk_len)
     {
         return false;
     }
-    if (chunk[chunk_len - 1] != sv_at(n_bytes, sv_len(n_bytes) - 1))
+    if (chunk[chunk_len - 1] != sv_at(n_bytes, sv_sz(n_bytes) - 1))
     {
         return false;
     }
@@ -206,11 +206,11 @@ test_from_delim(void)
     printf("this should be first tok=[");
     sv_print(sv);
     printf("]\n");
-    if (reference_len != sv_len(sv))
+    if (reference_len != sv_sz(sv))
     {
         return false;
     }
-    if (reference_delim[reference_len - 1] != sv_at(sv, sv_len(sv) - 1))
+    if (reference_delim[reference_len - 1] != sv_at(sv, sv_sz(sv) - 1))
     {
         return false;
     }
@@ -225,11 +225,11 @@ test_from_delim(void)
     printf("this should be first tok=[");
     sv_print(sv2);
     printf("]\n");
-    if (ref2_len != sv_len(sv2))
+    if (ref2_len != sv_sz(sv2))
     {
         return false;
     }
-    if (ref2_delim[ref2_len - 1] != sv_at(sv2, sv_len(sv2) - 1))
+    if (ref2_delim[ref2_len - 1] != sv_at(sv2, sv_sz(sv2) - 1))
     {
         return false;
     }
@@ -248,11 +248,11 @@ test_from_delim_no_delim(void)
     printf("this should be reference=[");
     sv_print(sv);
     printf("]\n");
-    if (reference_len != sv_len(sv))
+    if (reference_len != sv_sz(sv))
     {
         return false;
     }
-    if (reference[reference_len - 1] != sv_at(sv, sv_len(sv) - 1))
+    if (reference[reference_len - 1] != sv_at(sv, sv_sz(sv) - 1))
     {
         return false;
     }
@@ -271,7 +271,7 @@ test_empty_constructor(void)
     printf("this should be empty=[");
     sv_print(sv);
     printf("]\n");
-    if (reference_len == sv_len(sv) || !sv_empty(sv))
+    if (reference_len == sv_sz(sv) || !sv_empty(sv))
     {
         return false;
     }
@@ -289,7 +289,7 @@ test_front_back(void)
     const char *const reference = "*The front was * the back is!";
     const string_view s = sv(reference);
     const size_t ref_len = strlen(reference);
-    if (ref_len != sv_len(s))
+    if (ref_len != sv_sz(s))
     {
         return false;
     }
@@ -506,7 +506,7 @@ test_iter_delim_larger_than_str(void)
     const size_t delim_len = strlen(delim);
     string_view constructed = sv_delim(reference, delim);
     string_view cur
-        = sv_begin_tok((string_view){reference, sv_lenstr(reference)},
+        = sv_begin_tok((string_view){reference, sv_strsz(reference)},
                        (string_view){delim, delim_len});
     if (sv_svcmp(constructed, cur) != 0
         || sv_strcmp(constructed, reference) != 0
@@ -797,7 +797,7 @@ test_argv_argc(void)
     for (string_view v = sv_begin_tok(view, (string_view){" ", 1});
          !sv_end_tok(v); v = sv_next_tok(v, (string_view){" ", 1}))
     {
-        sv_fill(argv[i], sv_len(v), v);
+        sv_fill(argv[i], sv_sz(v), v);
         ++i;
     }
     for (size_t arg = 0; arg < 4; ++arg)
@@ -856,7 +856,7 @@ test_get_line(void)
     const char *const file_data = "1\n2\n3\n4\n5";
     size_t i = 0;
     for (string_view v
-         = sv_begin_tok((string_view){file_data, sv_lenstr(file_data)},
+         = sv_begin_tok((string_view){file_data, sv_strsz(file_data)},
                         (string_view){"\n", 1});
          !sv_end_tok(v); v = sv_next_tok(v, (string_view){"\n", 1}))
     {

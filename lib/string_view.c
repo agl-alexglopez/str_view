@@ -132,19 +132,19 @@ sv_empty(const string_view s)
 }
 
 size_t
-sv_len(string_view sv)
+sv_sz(string_view sv)
 {
     return sv.sz;
 }
 
 size_t
-sv_lenstr(const char *const str)
+sv_strsz(const char *const str)
 {
     return sv_strlen(str);
 }
 
 size_t
-sv_lenstrn(const char *const str, size_t n)
+sv_strnsz(const char *const str, size_t n)
 {
     return sv_strnlen(str, n);
 }

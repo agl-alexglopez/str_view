@@ -59,9 +59,9 @@ int sv_strcmp(string_view, const char *str);
 int sv_strncmp(string_view, const char *str, size_t n);
 
 bool sv_empty(string_view);
-size_t sv_len(string_view);
-size_t sv_lenstr(const char *);
-size_t sv_lenstrn(const char *, size_t n);
+size_t sv_sz(string_view);
+size_t sv_strsz(const char *);
+size_t sv_strnsz(const char *, size_t n);
 
 char sv_at(string_view, size_t i);
 char sv_front(string_view);
