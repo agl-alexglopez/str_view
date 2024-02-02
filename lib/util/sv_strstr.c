@@ -324,6 +324,9 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 
 /* ======================   Brute Force Search    ========================== */
 
+/* All brute force searches adapted from musl C library.
+   http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c */
+
 static inline size_t
 sv_twobyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
                     const unsigned char *needle)
