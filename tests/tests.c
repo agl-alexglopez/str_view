@@ -19,8 +19,12 @@ main()
     return run();
 }
 
-const char *const pass_msg = "pass";
-const char *const fail_msg = "fail";
+const char *const pass_msg = "⬤";
+const char *const fail_msg = "X";
+const char *const red = "\033[38;5;9m";
+const char *const green = "\033[38;5;10m";
+const char *const cyan = "\033[38;5;14m";
+const char *const none = "\033[0m";
 
 /* Set this breakpoint on any line where you wish
    execution to stop. Under normal program runs the program
@@ -95,17 +99,25 @@ run(void)
     {
         const bool passed = all_tests[i]();
         pass_count += passed;
-        passed ? printf("...%s\n", pass_msg) : printf("...%s\n", fail_msg);
+        passed ? printf(" %s%s%s\n", green, pass_msg, none)
+               : printf(" %s%s%s\n", red, fail_msg, none);
     }
-    printf("PASSED %zu/%zu %s\n\n", pass_count, NUM_TESTS,
-           (pass_count == NUM_TESTS) ? "\\(*.*)/\n" : "T_T\n");
+    if (pass_count == NUM_TESTS)
+    {
+        printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", green, pass_count, NUM_TESTS,
+               none);
+    }
+    else
+    {
+        printf("%sPASSED %zu/%zu T_T%s\n\n", red, pass_count, NUM_TESTS, none);
+    }
     return 0;
 }
 
 static bool
 test_empty(void)
 {
-    printf("test_empty");
+    printf("%stest_empty%s", cyan, none);
     if (!sv_empty(sv("")))
     {
         return false;
@@ -120,7 +132,7 @@ test_empty(void)
 static bool
 test_out_of_bounds(void)
 {
-    printf("test_out_of_bounds\n");
+    printf("%stest_out_of_bounds\n%s", cyan, none);
     const string_view s = sv("");
     const pid_t exiting_child = fork();
     if (exiting_child == 0)
@@ -146,7 +158,7 @@ test_out_of_bounds(void)
 static bool
 test_from_null(void)
 {
-    printf("test_from_null\n");
+    printf("%stest_from_null\n%s", cyan, none);
     const char *const reference = "Don't miss the terminator!";
     const string_view s = sv(reference);
     printf("reference=[%s]\n", reference);
@@ -183,7 +195,7 @@ test_from_null(void)
 static bool
 test_from_delim(void)
 {
-    printf("test_from_delim\n");
+    printf("%stest_from_delim\n%s", cyan, none);
     const char *const reference = "Don'tmissthedelim That was it!";
     const char *const reference_delim = "Don'tmissthedelim";
     const string_view sv = sv_delim(reference, " ");
@@ -227,7 +239,7 @@ test_from_delim(void)
 static bool
 test_from_delim_no_delim(void)
 {
-    printf("test_from_delim_no_delim\n");
+    printf("%stest_from_delim_no_delim\n%s", cyan, none);
     const char *const reference = "Don'tmissthedelimbutnodelim!";
     const string_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference);
@@ -250,7 +262,7 @@ test_from_delim_no_delim(void)
 static bool
 test_empty_constructor(void)
 {
-    printf("test_empty_constructor\n");
+    printf("%stest_empty_constructor\n%s", cyan, none);
     const char *const reference = "------------";
     const string_view sv = sv_delim(reference, "-");
     const size_t reference_len = strlen(reference);
@@ -269,7 +281,7 @@ test_empty_constructor(void)
 static bool
 test_front_back(void)
 {
-    printf("test_front_back");
+    printf("%stest_front_back%s", cyan, none);
     if (sv_back(sv("")) != '\0' || sv_front(sv("")) != '\0')
     {
         return false;
@@ -291,7 +303,7 @@ test_front_back(void)
 static bool
 test_copy_fill(void)
 {
-    printf("test_copy_fill");
+    printf("%stest_copy_fill%s", cyan, none);
     const char *const reference = "Copy this over there!";
     string_view this = sv_copy(reference, strlen(reference));
     char there[strlen(reference) + 1];
@@ -306,7 +318,7 @@ test_copy_fill(void)
 static bool
 test_iter(void)
 {
-    printf("test_iter");
+    printf("%stest_iter%s", cyan, none);
     const char *const reference = "A B C D E G H I J K L M N O P";
     string_view chars = sv(reference);
     size_t i = 0;
@@ -353,7 +365,7 @@ test_iter(void)
 static bool
 test_iter_repeating_delim(void)
 {
-    printf("test_iter_repeating_delim");
+    printf("%stest_iter_repeating_delim%s", cyan, none);
     const char *toks[14] = {
         "A",  "B", "C", "D",   "E", "F",  "G",
         "HI", "J", "K", "LMN", "O", "Pi", "\\(*.*)/",
@@ -394,7 +406,7 @@ test_iter_repeating_delim(void)
 static bool
 test_iter_multichar_delim(void)
 {
-    printf("test_iter_multichar_delim");
+    printf("%stest_iter_multichar_delim%s", cyan, none);
     const char *toks[14] = {
         "A",     "B", "C", "D",      "E", "F",  "G",
         "HacbI", "J", "K", "LcbaMN", "O", "Pi", "\\(*.*)/",
@@ -438,7 +450,7 @@ test_iter_multichar_delim(void)
 static bool
 test_iter_multichar_delim_short(void)
 {
-    printf("test_iter_multichar_delim_close");
+    printf("%stest_iter_multichar_delim_close%s", cyan, none);
     const char *toks[14] = {
         "A",     "B", "C", "D",      "E",   "F",  "G",
         "H---I", "J", "K", "L-M--N", "--O", "Pi", "\\(*.*)/",
@@ -482,7 +494,7 @@ test_iter_multichar_delim_short(void)
 static bool
 test_iter_delim_larger_than_str(void)
 {
-    printf("test_iter_delim_larger_than_str");
+    printf("%stest_iter_delim_larger_than_str%s", cyan, none);
     const char *const reference = "A-B";
     /* This delimeter is too large so we should just take the whole string */
     const char *const delim = "-----";
@@ -512,7 +524,7 @@ test_iter_delim_larger_than_str(void)
 static bool
 test_find_rfind(void)
 {
-    printf("test_find_rfind");
+    printf("%stest_find_rfind%s", cyan, none);
     const char ref[20] = {
         [0] = 'A',  [1] = 'A',  [2] = 'C',  [3] = ' ',  [4] = '!',
         [5] = '!',  [6] = '!',  [7] = ' ',  [8] = '*',  [9] = '*',
@@ -553,7 +565,7 @@ test_find_rfind(void)
 static bool
 test_find_of_sets(void)
 {
-    printf("test_find_of_sets");
+    printf("%stest_find_of_sets%s", cyan, none);
     const char ref[25] = {
         [0] = 'A',  [1] = 'A',  [2] = 'C',  [3] = 'B',  [4] = '!',
         [5] = '!',  [6] = '!',  [7] = ' ',  [8] = '*',  [9] = '.',
@@ -613,7 +625,7 @@ test_find_of_sets(void)
 static bool
 test_prefix_suffix(void)
 {
-    printf("test_prefix_suffix");
+    printf("%stest_prefix_suffix%s", cyan, none);
     const char *const reference = "Remove the suffix! No, remove the prefix!";
     const char *const ref_prefix = "Remove the suffix!";
     const char *const ref_suffix = "No, remove the prefix!";
@@ -652,7 +664,7 @@ test_prefix_suffix(void)
 static bool
 test_svcmp(void)
 {
-    printf("test_svcmp");
+    printf("%stest_svcmp%s", cyan, none);
     if (sv_svcmp(sv(""), sv("")) != 0)
     {
         return false;
@@ -719,7 +731,7 @@ test_svcmp(void)
 static bool
 test_substr(void)
 {
-    printf("test_substr");
+    printf("%stest_substr%s", cyan, none);
     const char ref[27] = {
         [0] = 'A',  [1] = ' ',  [2] = 's',   [3] = 'u',  [4] = 'b',  [5] = 's',
         [6] = 't',  [7] = 'r',  [8] = 'i',   [9] = 'n',  [10] = 'g', [11] = '!',
@@ -764,7 +776,7 @@ test_substr(void)
 static bool
 test_argv_argc(void)
 {
-    printf("test_argv_argc");
+    printf("%stest_argv_argc%s", cyan, none);
     const char *const expected[4]
         = {"./build/targets/tidy", "--source=file", "-i", "lib/string_view.c"};
     const void *const buf_data
@@ -793,7 +805,7 @@ test_argv_argc(void)
 static bool
 test_mini_alloc_free(void)
 {
-    printf("test_mini_alloc_free");
+    printf("%stest_mini_alloc_free%s", cyan, none);
     const char *const expected[4]
         = {"./build/targets/tidy", "--source=file", "-i", "lib/string_view.c"};
     const void *const buf_data
@@ -828,7 +840,7 @@ test_mini_alloc_free(void)
 static bool
 test_get_line(void)
 {
-    printf("test_get_line");
+    printf("%stest_get_line%s", cyan, none);
     /* We will pretend like we used getline to read this into a heap
        allocated buffer from a file and now we are reading/parsing
        minus the correct EOF handling possibly. */
@@ -854,7 +866,7 @@ test_get_line(void)
 static bool
 test_substring_search(void)
 {
-    printf("test_substring_search");
+    printf("%stest_substring_search%s", cyan, none);
     const char *needle = "needle";
     const size_t needle_len = strlen(needle);
     const char *const haystack
