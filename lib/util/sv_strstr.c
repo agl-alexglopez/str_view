@@ -335,9 +335,10 @@ sv_twobyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
     uint16_t nw = needle[0] << 8 | needle[1];
     uint16_t hw = h[0] << 8 | h[1];
     size_t i = 0;
-    for (h++; i < haystack_sz && *h && hw != nw; hw = (hw << 8) | *++h)
+    for (h++, i++; i < haystack_sz && *h && hw != nw;
+         hw = (hw << 8) | *++h, ++i)
     {}
-    return (i < haystack_sz) ? (size_t)((h - 1) - haystack) : haystack_sz;
+    return (i < haystack_sz) ? i - 1 : haystack_sz;
 }
 
 static inline size_t
@@ -348,9 +349,10 @@ sv_threebyte_strnstrn(const unsigned char *const haystack, size_t haystack_sz,
     uint32_t nw = (uint32_t)needle[0] << 24 | needle[1] << 16 | needle[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
     size_t i = 0;
-    for (h += 2; i < haystack_sz && *h && hw != nw; hw = (hw | *++h) << 8)
+    for (h += 2, i += 2; i < haystack_sz && *h && hw != nw;
+         hw = (hw | *++h) << 8, ++i)
     {}
-    return (i < haystack_sz) ? (size_t)((h - 2) - haystack) : haystack_sz;
+    return (i < haystack_sz) ? i - 2 : haystack_sz;
 }
 
 static inline size_t
@@ -361,9 +363,10 @@ sv_fourbyte_strnstrn(const unsigned char *haystack, size_t haystack_sz,
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
     size_t i = 0;
-    for (h += 3; i < haystack_sz && *h && hw != nw; hw = (hw << 8) | *++h)
+    for (h += 3, i += 3; i < haystack_sz && *h && hw != nw;
+         hw = (hw << 8) | *++h, ++i)
     {}
-    return (i < haystack_sz) ? (size_t)((h - 3) - haystack) : haystack_sz;
+    return (i < haystack_sz) ? i - 3 : haystack_sz;
 }
 
 /* ======================   Static Helpers    ============================= */
