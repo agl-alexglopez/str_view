@@ -67,34 +67,6 @@ sv_delim(const char *const str, const char *const delim)
         });
 }
 
-char *
-sv_alloc(string_view sv)
-{
-    if (!sv.s || sv.sz == 0)
-    {
-        (void)fprintf(stderr, "sv_alloc accepted invalid string_view.\n");
-        exit(1);
-    }
-    char *const ret = calloc(sv_svbytes(sv), sizeof(char));
-    if (!ret)
-    {
-        (void)fprintf(stderr, "sv_alloc heap exhausted.\n");
-        exit(1);
-    }
-    sv_fill(ret, sv_svbytes(sv), sv);
-    return ret;
-}
-
-void
-sv_free(char *const s)
-{
-    if (!s)
-    {
-        return;
-    }
-    free(s);
-}
-
 void
 sv_print(string_view s)
 {

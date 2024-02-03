@@ -48,16 +48,6 @@ string_view sv_n(const char *, size_t n);
    This is similar to the tokenizing function in the iterator section. */
 string_view sv_delim(const char *, const char *delim);
 
-/* WARNING This returns a heap allocated, null terminated copy of the
-   string_view as a string that must be returned to this library for
-   freeing. It is a memory leak to forget to do so. */
-char *sv_alloc(string_view);
-
-/* WARNING This frees the heap allocated string that was previously created
-   by sv_alloc. The user must return the allocated pointer to the char *
-   before program exit or a memory leak has occured. */
-void sv_free(char *);
-
 /* A sentinel empty string. Safely dereferenced to view a null terminator. */
 const char *sv_null(void);
 
