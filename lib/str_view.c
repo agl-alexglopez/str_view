@@ -5,7 +5,7 @@
    string_view type. There are some minor differences and C flavor thrown
    in with the additional twist of a reimplementation of the Two-Way
    String-Searching algorithm, similar to glibc. */
-#include "string_view.h"
+#include "str_view.h"
 #include "sv_util.h"
 
 #include <stdbool.h>
@@ -20,55 +20,55 @@
    string_view even if it sized 0 and pointing to null terminator. */
 static const char *const nil = "";
 
-static size_t sv_after_find(string_view, string_view);
+static size_t sv_after_find(str_view, str_view);
 static size_t sv_min(size_t, size_t);
 
 /* ===================   Interface Implementation   ====================== */
 
-string_view
+str_view
 sv(const char *const str)
 {
     if (!str)
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
-    return (string_view){.s = str, .sz = sv_strlen(str)};
+    return (str_view){.s = str, .sz = sv_strlen(str)};
 }
 
-string_view
+str_view
 sv_n(const char *const str, size_t n)
 {
     if (!str || n == 0)
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
-    return (string_view){.s = str, .sz = sv_nlen(str, n)};
+    return (str_view){.s = str, .sz = sv_nlen(str, n)};
 }
 
-string_view
+str_view
 sv_delim(const char *const str, const char *const delim)
 {
     if (!str)
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
     if (!delim)
     {
-        return (string_view){.s = str, .sz = sv_strlen(str)};
+        return (str_view){.s = str, .sz = sv_strlen(str)};
     }
     return sv_begin_tok(
-        (string_view){
+        (str_view){
             .s = str,
             .sz = sv_strlen(str),
         },
-        (string_view){
+        (str_view){
             .s = delim,
             .sz = sv_strlen(delim),
         });
 }
 
 void
-sv_print(string_view s)
+sv_print(str_view s)
 {
     if (!s.s || nil == s.s || 0 == s.sz)
     {
@@ -79,14 +79,14 @@ sv_print(string_view s)
     (void)fwrite(s.s, sizeof(char), s.sz, stdout);
 }
 
-string_view
+str_view
 sv_copy(const char *const src_str, const size_t str_sz)
 {
     return sv_n(src_str, str_sz);
 }
 
 void
-sv_fill(char *dest_buf, size_t dest_sz, const string_view src)
+sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
 {
     if (!dest_buf || 0 == dest_sz || !src.s || 0 == src.sz)
     {
@@ -98,19 +98,19 @@ sv_fill(char *dest_buf, size_t dest_sz, const string_view src)
 }
 
 bool
-sv_empty(const string_view s)
+sv_empty(const str_view s)
 {
     return s.sz == 0;
 }
 
 size_t
-sv_svlen(string_view sv)
+sv_svlen(str_view sv)
 {
     return sv.sz;
 }
 
 size_t
-sv_svbytes(string_view sv)
+sv_svbytes(str_view sv)
 {
     return sv.sz + 1;
 }
@@ -138,7 +138,7 @@ sv_maxlen(const char *const str, size_t n)
 }
 
 char
-sv_at(string_view sv, size_t i)
+sv_at(str_view sv, size_t i)
 {
     if (i >= sv.sz)
     {
@@ -157,13 +157,13 @@ sv_null(void)
 }
 
 void
-sv_swap(string_view *a, string_view *b)
+sv_swap(str_view *a, str_view *b)
 {
     if (a == b || !a || !b)
     {
         return;
     }
-    const string_view tmp_b = (string_view){.s = b->s, .sz = b->sz};
+    const str_view tmp_b = (str_view){.s = b->s, .sz = b->sz};
     b->s = a->s;
     b->sz = a->sz;
     a->s = tmp_b.s;
@@ -171,7 +171,7 @@ sv_swap(string_view *a, string_view *b)
 }
 
 int
-sv_svcmp(string_view sv1, string_view sv2)
+sv_svcmp(str_view sv1, str_view sv2)
 {
     if (!sv1.s || !sv2.s)
     {
@@ -196,7 +196,7 @@ sv_svcmp(string_view sv1, string_view sv2)
 }
 
 int
-sv_strcmp(string_view sv, const char *str)
+sv_strcmp(str_view sv, const char *str)
 {
     if (!sv.s || !str)
     {
@@ -221,7 +221,7 @@ sv_strcmp(string_view sv, const char *str)
 }
 
 int
-sv_strncmp(string_view sv, const char *str, const size_t n)
+sv_strncmp(str_view sv, const char *str, const size_t n)
 {
     if (!sv.s || !str)
     {
@@ -247,7 +247,7 @@ sv_strncmp(string_view sv, const char *str, const size_t n)
 }
 
 char
-sv_front(struct string_view sv)
+sv_front(struct str_view sv)
 {
     if (!sv.s || 0 == sv.sz)
     {
@@ -257,7 +257,7 @@ sv_front(struct string_view sv)
 }
 
 char
-sv_back(struct string_view sv)
+sv_back(struct str_view sv)
 {
     if (!sv.s || 0 == sv.sz)
     {
@@ -267,7 +267,7 @@ sv_back(struct string_view sv)
 }
 
 const char *
-sv_begin(const string_view sv)
+sv_begin(const str_view sv)
 {
     if (!sv.s)
     {
@@ -277,7 +277,7 @@ sv_begin(const string_view sv)
 }
 
 const char *
-sv_end(const string_view sv)
+sv_end(const str_view sv)
 {
     if (!sv.s)
     {
@@ -297,7 +297,7 @@ sv_next(const char *c)
 }
 
 const char *
-sv_pos(string_view sv, size_t i)
+sv_pos(str_view sv, size_t i)
 {
     if (!sv.s)
     {
@@ -310,57 +310,57 @@ sv_pos(string_view sv, size_t i)
     return sv.s + i;
 }
 
-string_view
-sv_begin_tok(string_view sv, string_view delim)
+str_view
+sv_begin_tok(str_view sv, str_view delim)
 {
     if (!sv.s)
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
     if (!delim.s)
     {
-        return (string_view){.s = sv.s + sv.sz, 0};
+        return (str_view){.s = sv.s + sv.sz, 0};
     }
     const size_t sv_not = sv_after_find(sv, delim);
     sv.s += sv_not;
     if (*sv.s == '\0')
     {
-        return (string_view){.s = sv.s, .sz = 0};
+        return (str_view){.s = sv.s, .sz = 0};
     }
     return sv_substr(sv, 0, sv_find(sv, 0, delim));
 }
 
 bool
-sv_end_tok(const string_view sv)
+sv_end_tok(const str_view sv)
 {
     return 0 == sv.sz;
 }
 
-string_view
-sv_next_tok(string_view sv, string_view delim)
+str_view
+sv_next_tok(str_view sv, str_view delim)
 {
     if (!sv.s)
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
     if (!delim.s || sv.s[sv.sz] == '\0')
     {
-        return (string_view){.s = sv.s + sv.sz, .sz = 0};
+        return (str_view){.s = sv.s + sv.sz, .sz = 0};
     }
     const char *next = sv.s + sv.sz + delim.sz;
     const size_t next_sz = sv_strlen(next);
-    next += sv_after_find((string_view){.s = next, .sz = next_sz}, delim);
+    next += sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
     if (*next == '\0')
     {
-        return (string_view){.s = next, .sz = 0};
+        return (str_view){.s = next, .sz = 0};
     }
     const size_t found
         = sv_strnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
-    return (string_view){.s = next, .sz = found};
+    return (str_view){.s = next, .sz = found};
 }
 
 bool
-sv_starts_with(string_view sv, string_view prefix)
+sv_starts_with(str_view sv, str_view prefix)
 {
     if (prefix.sz > sv.sz)
     {
@@ -369,15 +369,15 @@ sv_starts_with(string_view sv, string_view prefix)
     return sv_svcmp(sv_substr(sv, 0, prefix.sz), prefix) == 0;
 }
 
-string_view
-sv_remove_prefix(const string_view sv, const size_t n)
+str_view
+sv_remove_prefix(const str_view sv, const size_t n)
 {
     const size_t remove = sv_min(sv.sz, n);
-    return (string_view){.s = sv.s + remove, .sz = sv.sz - remove};
+    return (str_view){.s = sv.s + remove, .sz = sv.sz - remove};
 }
 
 bool
-sv_ends_with(string_view sv, string_view suffix)
+sv_ends_with(str_view sv, str_view suffix)
 {
     if (suffix.sz > sv.sz)
     {
@@ -386,25 +386,25 @@ sv_ends_with(string_view sv, string_view suffix)
     return sv_svcmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == 0;
 }
 
-string_view
-sv_remove_suffix(const string_view sv, const size_t n)
+str_view
+sv_remove_suffix(const str_view sv, const size_t n)
 {
-    return (string_view){.s = sv.s, .sz = sv.sz - sv_min(sv.sz, n)};
+    return (str_view){.s = sv.s, .sz = sv.sz - sv_min(sv.sz, n)};
 }
 
-string_view
-sv_substr(string_view sv, size_t pos, size_t count)
+str_view
+sv_substr(str_view sv, size_t pos, size_t count)
 {
     if (pos > sv.sz)
     {
         printf("string_view index out of range. pos=%zu size=%zu", pos, sv.sz);
         exit(1);
     }
-    return (string_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
+    return (str_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
 }
 
 bool
-sv_contains(string_view haystack, string_view needle)
+sv_contains(str_view haystack, str_view needle)
 {
     if (needle.sz > haystack.sz)
     {
@@ -423,12 +423,12 @@ sv_contains(string_view haystack, string_view needle)
     return (found == haystack.sz) ? false : true;
 }
 
-string_view
-sv_svsv(string_view haystack, string_view needle)
+str_view
+sv_svsv(str_view haystack, str_view needle)
 {
     if (needle.sz > haystack.sz)
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
     if (sv_empty(haystack))
     {
@@ -436,19 +436,19 @@ sv_svsv(string_view haystack, string_view needle)
     }
     if (sv_empty(needle))
     {
-        return (string_view){.s = nil, .sz = 0};
+        return (str_view){.s = nil, .sz = 0};
     }
     const size_t found = sv_strnstrn(haystack.s, (ssize_t)haystack.sz, needle.s,
                                      (ssize_t)needle.sz);
     if (found == haystack.sz)
     {
-        return (string_view){.s = haystack.s + haystack.sz, .sz = 0};
+        return (str_view){.s = haystack.s + haystack.sz, .sz = 0};
     }
-    return (string_view){.s = haystack.s + found, .sz = needle.sz};
+    return (str_view){.s = haystack.s + found, .sz = needle.sz};
 }
 
 size_t
-sv_find(string_view haystack, size_t pos, string_view needle)
+sv_find(str_view haystack, size_t pos, str_view needle)
 {
     if (needle.sz > haystack.sz || pos > haystack.sz)
     {
@@ -459,7 +459,7 @@ sv_find(string_view haystack, size_t pos, string_view needle)
 }
 
 size_t
-sv_rfind(string_view haystack, size_t pos, string_view needle)
+sv_rfind(str_view haystack, size_t pos, str_view needle)
 {
     if (needle.sz >= haystack.sz)
     {
@@ -487,7 +487,7 @@ sv_rfind(string_view haystack, size_t pos, string_view needle)
 }
 
 size_t
-sv_find_first_of(string_view haystack, string_view set)
+sv_find_first_of(str_view haystack, str_view set)
 {
     if (!haystack.s)
     {
@@ -501,7 +501,7 @@ sv_find_first_of(string_view haystack, string_view set)
 }
 
 size_t
-sv_find_last_of(string_view haystack, string_view set)
+sv_find_last_of(str_view haystack, str_view set)
 {
     if (!haystack.s)
     {
@@ -528,7 +528,7 @@ sv_find_last_of(string_view haystack, string_view set)
 }
 
 size_t
-sv_find_first_not_of(string_view haystack, string_view set)
+sv_find_first_not_of(str_view haystack, str_view set)
 {
     if (!haystack.s)
     {
@@ -542,7 +542,7 @@ sv_find_first_not_of(string_view haystack, string_view set)
 }
 
 size_t
-sv_find_last_not_of(string_view haystack, string_view set)
+sv_find_last_not_of(str_view haystack, str_view set)
 {
     if (!haystack.s || 0 == haystack.sz)
     {
@@ -569,7 +569,7 @@ sv_find_last_not_of(string_view haystack, string_view set)
 }
 
 size_t
-sv_npos(string_view sv)
+sv_npos(str_view sv)
 {
     return sv.sz;
 }
@@ -577,7 +577,7 @@ sv_npos(string_view sv)
 /* ======================   Static Helpers    ============================= */
 
 static size_t
-sv_after_find(string_view haystack, string_view needle)
+sv_after_find(str_view haystack, str_view needle)
 {
     if (needle.sz > haystack.sz)
     {

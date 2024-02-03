@@ -1,8 +1,8 @@
-add_library(string_view string_view.h string_view.c)
+add_library(str_view str_view.h str_view.c)
 
 add_subdirectory("util/")
-target_include_directories(string_view PRIVATE "util/")
+target_include_directories(str_view PRIVATE "util/")
 
-target_link_libraries(string_view PRIVATE sv_util)
+target_link_libraries(str_view PRIVATE sv_util)
 
 

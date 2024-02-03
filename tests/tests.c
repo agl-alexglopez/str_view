@@ -1,4 +1,4 @@
-#include "string_view.h"
+#include "str_view.h"
 
 #include <limits.h>
 #include <signal.h>
@@ -131,7 +131,7 @@ static bool
 test_out_of_bounds(void)
 {
     printf("%stest_out_of_bounds...\n%s", cyan, none);
-    const string_view s = sv("");
+    const str_view s = sv("");
     const pid_t exiting_child = fork();
     if (exiting_child == 0)
     {
@@ -158,7 +158,7 @@ test_from_null(void)
 {
     printf("%stest_from_null...\n%s", cyan, none);
     const char *const reference = "Don't miss the terminator!";
-    const string_view s = sv(reference);
+    const str_view s = sv(reference);
     printf("reference=[%s]\n", reference);
     printf("string vw=[");
     sv_print(s);
@@ -174,7 +174,7 @@ test_from_null(void)
     }
     const char *const chunk = "Don't";
     const size_t chunk_len = strlen(chunk);
-    const string_view n_bytes = sv_n(reference, chunk_len);
+    const str_view n_bytes = sv_n(reference, chunk_len);
     printf("5 bytes=[%s]\n", chunk);
     printf("5 byte view=[");
     sv_print(n_bytes);
@@ -196,7 +196,7 @@ test_from_delim(void)
     printf("%stest_from_delim...\n%s", cyan, none);
     const char *const reference = "Don'tmissthedelim That was it!";
     const char *const reference_delim = "Don'tmissthedelim";
-    const string_view sv = sv_delim(reference, " ");
+    const str_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference_delim);
     printf("delimiter=[,]\n");
     printf("reference=[%s]\n", reference);
@@ -215,7 +215,7 @@ test_from_delim(void)
     /* If the string starts with delim we must skip it. */
     const char *const ref2 = ",Don't miss the delim, that was it!";
     const char *const ref2_delim = "Don't miss the delim";
-    const string_view sv2 = sv_delim(ref2, ",");
+    const str_view sv2 = sv_delim(ref2, ",");
     const size_t ref2_len = strlen(ref2_delim);
     printf("delimiter=[,]\n");
     printf("reference=[%s]\n", ref2);
@@ -239,7 +239,7 @@ test_from_delim_no_delim(void)
 {
     printf("%stest_from_delim_no_delim...\n%s", cyan, none);
     const char *const reference = "Don'tmissthedelimbutnodelim!";
-    const string_view sv = sv_delim(reference, " ");
+    const str_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference);
     printf("delimiter=[ ]\n");
     printf("reference=[%s]\n", reference);
@@ -262,7 +262,7 @@ test_empty_constructor(void)
 {
     printf("%stest_empty_constructor...\n%s", cyan, none);
     const char *const reference = "------------";
-    const string_view sv = sv_delim(reference, "-");
+    const str_view sv = sv_delim(reference, "-");
     const size_t reference_len = strlen(reference);
     printf("delimiter=[-]\n");
     printf("reference=[%s]\n", reference);
@@ -285,7 +285,7 @@ test_front_back(void)
         return false;
     }
     const char *const reference = "*The front was * the back is!";
-    const string_view s = sv(reference);
+    const str_view s = sv(reference);
     const size_t ref_len = strlen(reference);
     if (ref_len != sv_svlen(s))
     {
@@ -303,7 +303,7 @@ test_copy_fill(void)
 {
     printf("%stest_copy_fill...%s", cyan, none);
     const char *const reference = "Copy this over there!";
-    string_view this = sv_copy(reference, strlen(reference));
+    str_view this = sv_copy(reference, strlen(reference));
     char there[sv_strbytes(reference)];
     sv_fill(there, sv_strbytes(reference), this);
     if (strcmp(sv_begin(this), there) != 0)
@@ -318,7 +318,7 @@ test_iter(void)
 {
     printf("%stest_iter...%s", cyan, none);
     const char *const reference = "A B C D E G H I J K L M N O P";
-    string_view chars = sv(reference);
+    str_view chars = sv(reference);
     size_t i = 0;
     for (const char *cur = sv_begin(chars); cur != sv_end(chars);
          cur = sv_next(cur))
@@ -331,8 +331,8 @@ test_iter(void)
     }
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(chars, (string_view){" ", 1});
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (string_view){" ", 1}))
+    str_view cur = sv_begin_tok(chars, (str_view){" ", 1});
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (str_view){" ", 1}))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -345,8 +345,8 @@ test_iter(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(chars, (string_view){",", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){",", 1}))
+    str_view cur2 = sv_begin_tok(chars, (str_view){",", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){",", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -370,11 +370,11 @@ test_iter_repeating_delim(void)
     };
     const char *const reference
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
-    const string_view ref_view = sv(reference);
+    const str_view ref_view = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    string_view cur = sv_begin_tok(ref_view, (string_view){" ", 1});
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (string_view){" ", 1}))
+    str_view cur = sv_begin_tok(ref_view, (str_view){" ", 1});
+    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (str_view){" ", 1}))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -387,8 +387,8 @@ test_iter_repeating_delim(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(ref_view, (string_view){",", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){",", 1}))
+    str_view cur2 = sv_begin_tok(ref_view, (str_view){",", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){",", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -417,10 +417,10 @@ test_iter_multichar_delim(void)
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "abc";
     const size_t delim_len = strlen(delim);
-    const string_view ref_view = sv(reference);
-    string_view cur = sv_begin_tok(ref_view, (string_view){delim, delim_len});
+    const str_view ref_view = sv(reference);
+    str_view cur = sv_begin_tok(ref_view, (str_view){delim, delim_len});
     for (; !sv_end_tok(cur);
-         cur = sv_next_tok(cur, (string_view){delim, delim_len}))
+         cur = sv_next_tok(cur, (str_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -433,8 +433,8 @@ test_iter_multichar_delim(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(ref_view, (string_view){" ", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){" ", 1}))
+    str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){" ", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -463,10 +463,10 @@ test_iter_multichar_delim_short(void)
     /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
-    const string_view ref_view = sv(reference);
-    string_view cur = sv_begin_tok(ref_view, (string_view){delim, delim_len});
+    const str_view ref_view = sv(reference);
+    str_view cur = sv_begin_tok(ref_view, (str_view){delim, delim_len});
     for (; !sv_end_tok(cur);
-         cur = sv_next_tok(cur, (string_view){delim, delim_len}))
+         cur = sv_next_tok(cur, (str_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, toks[i]) != 0)
         {
@@ -479,8 +479,8 @@ test_iter_multichar_delim_short(void)
         return false;
     }
     /* Do at least one token iteration if we can't find any delims */
-    string_view cur2 = sv_begin_tok(ref_view, (string_view){" ", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (string_view){" ", 1}))
+    str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
+    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){" ", 1}))
     {
         if (strcmp(cur2.s, reference) != 0)
         {
@@ -502,10 +502,9 @@ test_iter_delim_larger_than_str(void)
     /* This delimeter is too large so we should just take the whole string */
     const char *const delim = "-----";
     const size_t delim_len = strlen(delim);
-    string_view constructed = sv_delim(reference, delim);
-    string_view cur
-        = sv_begin_tok((string_view){reference, sv_strlen(reference)},
-                       (string_view){delim, delim_len});
+    str_view constructed = sv_delim(reference, delim);
+    str_view cur = sv_begin_tok((str_view){reference, sv_strlen(reference)},
+                                (str_view){delim, delim_len});
     if (sv_svcmp(constructed, cur) != EQL
         || sv_strcmp(constructed, reference) != EQL
         || sv_strcmp(cur, reference) != EQL)
@@ -513,7 +512,7 @@ test_iter_delim_larger_than_str(void)
         return false;
     }
     for (; !sv_end_tok(cur);
-         cur = sv_next_tok(cur, (string_view){delim, delim_len}))
+         cur = sv_next_tok(cur, (str_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, reference) != EQL)
         {
@@ -537,9 +536,9 @@ test_find_rfind(void)
         [10] = ' ', [11] = '_', [12] = '_', [13] = ' ', [14] = '!',
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
-    string_view str = sv(ref);
+    str_view str = sv(ref);
     if (sv_find(str, 0,
-                (string_view){
+                (str_view){
                     .s = "C",
                     .sz = 1,
                 })
@@ -548,7 +547,7 @@ test_find_rfind(void)
         return false;
     }
     if (sv_find(str, 0,
-                (string_view){
+                (str_view){
                     .s = "",
                     .sz = 1,
                 })
@@ -557,7 +556,7 @@ test_find_rfind(void)
         return false;
     }
     if (sv_rfind(str, str.sz,
-                 (string_view){
+                 (str_view){
                      .s = "!",
                      .sz = 1,
                  })
@@ -579,9 +578,9 @@ test_find_of_sets(void)
         [15] = ' ', [16] = '_', [17] = '_', [18] = ' ', [19] = '!',
         [20] = '!', [21] = '!', [22] = 'Z', [23] = 'z', [24] = '\0',
     };
-    string_view str = sv(ref);
+    str_view str = sv(ref);
     if (sv_find_first_of(str,
-                         (string_view){
+                         (str_view){
                              .s = "CB!",
                              .sz = strlen("CB!"),
                          })
@@ -590,7 +589,7 @@ test_find_of_sets(void)
         return false;
     }
     if (sv_find_first_of(str,
-                         (string_view){
+                         (str_view){
                              .s = "",
                              .sz = 0,
                          })
@@ -599,7 +598,7 @@ test_find_of_sets(void)
         return false;
     }
     if (sv_find_last_of(str,
-                        (string_view){
+                        (str_view){
                             .s = "! _",
                             .sz = strlen("! _"),
                         })
@@ -608,7 +607,7 @@ test_find_of_sets(void)
         return false;
     }
     if (sv_find_last_not_of(str,
-                            (string_view){
+                            (str_view){
                                 .s = "CBA!",
                                 .sz = strlen("CBA!"),
                             })
@@ -617,7 +616,7 @@ test_find_of_sets(void)
         return false;
     }
     if (sv_find_first_not_of(str,
-                             (string_view){
+                             (str_view){
                                  .s = "ACB!;:, *.",
                                  .sz = strlen("ACB!;:, *."),
                              })
@@ -635,8 +634,8 @@ test_prefix_suffix(void)
     const char *const reference = "Remove the suffix! No, remove the prefix!";
     const char *const ref_prefix = "Remove the suffix!";
     const char *const ref_suffix = "No, remove the prefix!";
-    string_view entire_string = sv(reference);
-    string_view prefix = sv_remove_suffix(entire_string, 23);
+    str_view entire_string = sv(reference);
+    str_view prefix = sv_remove_suffix(entire_string, 23);
     size_t i = 0;
     for (const char *c = sv_begin(prefix); c != sv_end(prefix); c = sv_next(c))
     {
@@ -647,7 +646,7 @@ test_prefix_suffix(void)
         ++i;
     }
     i = 0;
-    const string_view suffix = sv_remove_prefix(entire_string, 19);
+    const str_view suffix = sv_remove_prefix(entire_string, 19);
     for (const char *c = sv_begin(suffix); c != sv_end(suffix); c = sv_next(c))
     {
         if (*c != ref_suffix[i])
@@ -790,10 +789,10 @@ test_argv_argc(void)
     /* This could be heap or stack allocated. Here we do stack space for
      * convenience testing */
     char argv[10][128];
-    string_view view = sv(buf_data);
+    str_view view = sv(buf_data);
     size_t i = 0;
-    for (string_view v = sv_begin_tok(view, (string_view){" ", 1});
-         !sv_end_tok(v); v = sv_next_tok(v, (string_view){" ", 1}))
+    for (str_view v = sv_begin_tok(view, (str_view){" ", 1}); !sv_end_tok(v);
+         v = sv_next_tok(v, (str_view){" ", 1}))
     {
         sv_fill(argv[i], sv_svbytes(v), v);
         ++i;
@@ -818,10 +817,9 @@ test_get_line(void)
     const char *lines[5] = {"1", "2", "3", "4", "5"};
     const char *const file_data = "1\n2\n3\n4\n5";
     size_t i = 0;
-    for (string_view v
-         = sv_begin_tok((string_view){file_data, sv_strlen(file_data)},
-                        (string_view){"\n", 1});
-         !sv_end_tok(v); v = sv_next_tok(v, (string_view){"\n", 1}))
+    for (str_view v = sv_begin_tok((str_view){file_data, sv_strlen(file_data)},
+                                   (str_view){"\n", 1});
+         !sv_end_tok(v); v = sv_next_tok(v, (str_view){"\n", 1}))
     {
         if (sv_strcmp(v, lines[i]) != EQL)
         {
@@ -850,8 +848,8 @@ test_substring_search(void)
           "_______________________needle___________________________________"
           "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennneeeeeeeeeeedneeddl"
           "haystackhaystackhaystackhaystackhaystackhaystackhaystack__needle";
-    const string_view haystack_view = sv(haystack);
-    const string_view needle_view = sv(needle);
+    const str_view haystack_view = sv(haystack);
+    const str_view needle_view = sv(needle);
     const char *a = strstr(haystack, needle);
     if (!a)
     {
@@ -859,8 +857,8 @@ test_substring_search(void)
         return false;
     }
 
-    string_view b = sv_n(a, needle_len);
-    string_view c = sv_svsv(haystack_view, needle_view);
+    str_view b = sv_n(a, needle_len);
+    str_view c = sv_svsv(haystack_view, needle_view);
 
     if (sv_svcmp(b, c) != EQL || c.s != a)
     {
@@ -873,7 +871,7 @@ test_substring_search(void)
         printf("clibrary strstr failed?\n");
         return false;
     }
-    const string_view new_haystack_view = sv(a);
+    const str_view new_haystack_view = sv(a);
     b = sv_n(a, needle_len);
     c = sv_svsv(new_haystack_view, needle_view);
     if (sv_svcmp(b, c) != 0 || c.s != a)
@@ -882,10 +880,9 @@ test_substring_search(void)
     }
     /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
-    for (string_view v
-         = sv_begin_tok(haystack_view, (string_view){"needle", needle_len});
-         !sv_end_tok(v);
-         v = sv_next_tok(v, (string_view){"needle", needle_len}))
+    for (str_view v
+         = sv_begin_tok(haystack_view, (str_view){"needle", needle_len});
+         !sv_end_tok(v); v = sv_next_tok(v, (str_view){"needle", needle_len}))
     {
         ++i;
     }
