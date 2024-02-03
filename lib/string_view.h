@@ -68,6 +68,7 @@ size_t sv_npos(string_view);
    between two string views.
    lhs LES(-1) rhs, lhs EQL(0) rhs, lhs (GRT) rhs*/
 sv_threeway_cmp sv_svcmp(string_view, string_view);
+
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a string_view and a c-string.
    lhs LES(-1) rhs, lhs EQL(0) rhs, lhs (GRT) rhs*/
