@@ -162,12 +162,14 @@ sv_two_way_memoization(struct sv_two_way_pack p)
         {
             ++r_pos;
         }
+
         if (r_pos < p.needle_sz)
         {
             l_pos += (r_pos - p.critical_pos);
             memoize_shift = -1;
             continue;
         }
+
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
         while (r_pos > memoize_shift
@@ -211,6 +213,7 @@ sv_two_way_normal(struct sv_two_way_pack p)
             l_pos += (r_pos - p.critical_pos);
             continue;
         }
+
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
         while (r_pos >= 0 && p.needle[r_pos] == p.haystack[r_pos + l_pos])
