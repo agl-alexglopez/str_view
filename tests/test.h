@@ -1,11 +1,20 @@
 #ifndef TEST
 #define TEST
 
+#include <stdbool.h>
 enum test_result
 {
     ERROR = -1,
     PASS = 0,
     FAIL = 1,
+};
+
+typedef bool (*test_fn)(void);
+
+struct fn_name
+{
+    test_fn fn;
+    const char *const name;
 };
 
 /* Set this breakpoint on any line where you wish
