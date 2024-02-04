@@ -22,7 +22,7 @@ macro(add_test TEST_NAME)
   )
 endmacro()
 
-# Add tests below here by the name of the c file without the .c
+# Add tests below here by the name of the c file without the .c suffix
 add_test(test_empty)
 add_test(test_out_of_bounds)
 add_test(test_constructors)
