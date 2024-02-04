@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 /* Read-only view of string data. Prefer the provided functions for
    string manipulations rather than using the provided fields. This
@@ -223,6 +224,6 @@ size_t sv_find_last_of(str_view haystack, str_view set);
 size_t sv_find_last_not_of(str_view haystack, str_view set);
 
 /* Writes all characters in str_view to stdout. */
-void sv_print(str_view);
+void sv_print(FILE *, str_view);
 
 #endif /* STR_VIEW */

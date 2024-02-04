@@ -160,7 +160,7 @@ test_from_null(void)
     const str_view s = sv(reference);
     printf("reference=[%s]\n", reference);
     printf("string vw=[");
-    sv_print(s);
+    sv_print(stdout, s);
     printf("]\n");
     const size_t reference_len = strlen(reference);
     if (reference_len != sv_svlen(s))
@@ -176,7 +176,7 @@ test_from_null(void)
     const str_view n_bytes = sv_n(reference, chunk_len);
     printf("5 bytes=[%s]\n", chunk);
     printf("5 byte view=[");
-    sv_print(n_bytes);
+    sv_print(stdout, n_bytes);
     printf("]\n");
     if (sv_svlen(n_bytes) != chunk_len)
     {
@@ -201,7 +201,7 @@ test_from_delim(void)
     printf("reference=[%s]\n", reference);
     printf("first tok=[%s]\n", reference_delim);
     printf("this should be first tok=[");
-    sv_print(sv);
+    sv_print(stdout, sv);
     printf("]\n");
     if (reference_len != sv_svlen(sv))
     {
@@ -220,7 +220,7 @@ test_from_delim(void)
     printf("reference=[%s]\n", ref2);
     printf("first tok=[%s]\n", ref2_delim);
     printf("this should be first tok=[");
-    sv_print(sv2);
+    sv_print(stdout, sv2);
     printf("]\n");
     if (ref2_len != sv_svlen(sv2))
     {
@@ -243,7 +243,7 @@ test_from_delim_no_delim(void)
     printf("delimiter=[ ]\n");
     printf("reference=[%s]\n", reference);
     printf("this should be reference=[");
-    sv_print(sv);
+    sv_print(stdout, sv);
     printf("]\n");
     if (reference_len != sv_svlen(sv))
     {
@@ -266,7 +266,7 @@ test_empty_constructor(void)
     printf("delimiter=[-]\n");
     printf("reference=[%s]\n", reference);
     printf("this should be empty=[");
-    sv_print(sv);
+    sv_print(stdout, sv);
     printf("]\n");
     if (reference_len == sv_svlen(sv) || !sv_empty(sv))
     {
