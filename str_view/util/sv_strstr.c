@@ -249,7 +249,7 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
-        break;
+            break;
         case SV_EQL:
             if (rest != period)
             {
@@ -260,12 +260,12 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
                 last_rest += period;
                 rest = 1;
             }
-        break;
+            break;
         case SV_GRT:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
-        break;
+            break;
         }
     }
     return (struct sv_factorization){.start_critical_pos = suff_pos,
@@ -290,7 +290,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
-        break;
+            break;
         case SV_EQL:
             if (rest != period)
             {
@@ -301,12 +301,12 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                 last_rest += period;
                 rest = 1;
             }
-        break;
+            break;
         case SV_LES:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
-        break;
+            break;
         }
     }
     return (struct sv_factorization){.start_critical_pos = suff_pos,
@@ -316,7 +316,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 /* ======================   Brute Force Search    ========================== */
 
 /* All brute force searches adapted from musl C library.
-   http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c 
+   http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c
    They must stop the search at haystack size and therefore required slight
    modification because string views may not be null terminated. */
 

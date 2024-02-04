@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 /* Avoid giving the user a chance to dereference null as much as posssible
    by returning this for various edgecases when it makes sense to communicate
