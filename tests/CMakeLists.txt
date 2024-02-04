@@ -5,25 +5,26 @@ target_link_libraries(run_tests str_view)
 
 ###########   Add Test Files Below This Point   ###########
 
-add_executable(test_empty test_empty.c)
-target_link_libraries(test_empty str_view test)
+# TEST_NAME should be the name of the .c file added to the test folder
+# and the macro will add the target, link the libraries, and put the
+# the test executable in the tests folder either in debug or release
+# depending on the build type. The run_tests program then runs all binaries.
+macro(add_test TEST_NAME)
+  add_executable(${TEST_NAME} ${TEST_NAME}.c)
+  target_link_libraries(${TEST_NAME} 
+    str_view 
+    test
+  )
+  set_target_properties(${TEST_NAME} 
+    PROPERTIES 
+      RUNTIME_OUTPUT_DIRECTORY 
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests
+  )
+endmacro()
 
-add_executable(test_out_of_bounds test_out_of_bounds.c)
-target_link_libraries(test_out_of_bounds str_view test)
-
-add_executable(test_constructors test_constructors.c)
-target_link_libraries(test_constructors str_view test)
-
-add_executable(test_str_positions test_str_positions.c)
-target_link_libraries(test_str_positions str_view test)
-
-
-########   Put All Tests in One Folder   ##########
-set_target_properties(
-  test_empty
-  test_out_of_bounds
-  test_constructors
-  test_str_positions  
-  PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests
-)
+# Add tests below here by the name of the c file without the .c
+add_test(test_empty)
+add_test(test_out_of_bounds)
+add_test(test_constructors)
+add_test(test_str_positions)
+add_test(test_copy_fill)
