@@ -86,16 +86,17 @@ sv_copy(const char *const src_str, const size_t str_sz)
     return sv_n(src_str, str_sz);
 }
 
-void
+size_t
 sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
 {
     if (!dest_buf || 0 == dest_sz || !src.s || 0 == src.sz)
     {
-        return;
+        return 0;
     }
     const size_t paste = sv_min(dest_sz, sv_svbytes(src));
     sv_memmove(dest_buf, src.s, paste);
     dest_buf[paste - 1] = '\0';
+    return paste;
 }
 
 bool

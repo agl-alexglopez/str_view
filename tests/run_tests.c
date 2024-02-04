@@ -27,6 +27,7 @@ const char *const none = "\033[0m";
 static int run(str_view);
 enum test_result run_test_process(struct path_bin);
 static DIR *open_test_dir(str_view);
+static bool fill_path(char *, str_view, str_view);
 
 int
 main(int argc, char **argv)
@@ -40,10 +41,10 @@ main(int argc, char **argv)
 }
 
 static int
-run(str_view tests_exe_folder)
+run(const str_view tests_dir)
 {
-    DIR *test_dir = open_test_dir(tests_exe_folder);
-    if (!test_dir)
+    DIR *dir_ptr = open_test_dir(tests_dir);
+    if (!dir_ptr)
     {
         return 1;
     }
@@ -51,17 +52,17 @@ run(str_view tests_exe_folder)
     size_t tests = 0;
     size_t passed = 0;
     const struct dirent *d;
-    while ((d = readdir(test_dir)) != NULL)
+    while ((d = readdir(dir_ptr)) != NULL)
     {
         const str_view entry = sv(d->d_name);
         if (!sv_starts_with(entry, test_prefix))
         {
             continue;
         }
-        sv_fill(absolute_path, PATH_MAX, tests_exe_folder);
-        sv_fill(absolute_path + sv_svlen(tests_exe_folder),
-                PATH_MAX - sv_svbytes(tests_exe_folder), entry);
-
+        if (!fill_path(absolute_path, tests_dir, entry))
+        {
+            return 1;
+        }
         printf("%s[%s...%s", cyan, sv_begin(entry), none);
         (void)fflush(stdout);
         const enum test_result res
@@ -138,4 +139,17 @@ open_test_dir(str_view tests_folder)
         return NULL;
     }
     return dir_ptr;
+}
+
+static bool
+fill_path(char *path_buf, str_view tests_dir, str_view entry)
+{
+    const size_t dir_bytes = sv_fill(path_buf, PATH_MAX, tests_dir);
+    if (PATH_MAX - dir_bytes < sv_svbytes(entry))
+    {
+        (void)fprintf(stderr, "Relaive path exceeds PATH_MAX?\n%s", path_buf);
+        return false;
+    }
+    (void)sv_fill(path_buf + sv_svlen(tests_dir), PATH_MAX - dir_bytes, entry);
+    return true;
 }

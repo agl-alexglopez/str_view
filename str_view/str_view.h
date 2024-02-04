@@ -113,8 +113,9 @@ str_view sv_copy(const char *src_str, size_t str_sz);
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
-   the string. This may cut off src data if dest_sz < src.sz */
-void sv_fill(char *dest_buf, size_t dest_sz, str_view src);
+   the string. This may cut off src data if dest_sz < src.sz.
+   Returns how many bytes were written to the buffer. */
+size_t sv_fill(char *dest_buf, size_t dest_sz, str_view src);
 
 /* Returns a read only pointer to the beginning of the string view,
    the first valid character in the view. If the view stores NULL,
@@ -168,12 +169,12 @@ str_view sv_next_tok(str_view, str_view delim);
    will exit if position is greater than str_view size. */
 str_view sv_substr(str_view, size_t pos, size_t count);
 
-/* Searching for needle in haystack starting at position. If the needle
-   is larger than the haystack of position is greater than haystack length
+/* Searches for needle in haystack starting from pos. If the needle
+   is larger than the haystack, or position is greater than haystack length,
    then haystack length is returned. */
 size_t sv_find(str_view haystack, size_t pos, str_view needle);
 
-/* Searching for the last occurence of needle in haystack starting from pos.
+/* Searches for the last occurence of needle in haystack starting from pos.
    If needle is larger than haystack, haystack length is returned. If the
    position is larger than the haystack, the entire haystack is searched. */
 size_t sv_rfind(str_view haystack, size_t pos, str_view needle);
