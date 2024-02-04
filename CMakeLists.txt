@@ -3,10 +3,10 @@ project(c-string-view VERSION 1.0 LANGUAGES C)
 
 include(etc/scanners.cmake)
 
-include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PROJECT_SOURCE_DIR}/lib")
+include_directories("${PROJECT_SOURCE_DIR}/sammples")
+include_directories("${PROJECT_SOURCE_DIR}/str_view")
 include_directories("${PROJECT_SOURCE_DIR}/tests")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/src")
-add_subdirectory("${PROJECT_SOURCE_DIR}/lib")
+add_subdirectory("${PROJECT_SOURCE_DIR}/samples")
+add_subdirectory("${PROJECT_SOURCE_DIR}/str_view")
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests")

@@ -246,14 +246,11 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
         switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
         case SV_LES:
-        {
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
-        }
         break;
         case SV_EQL:
-        {
             if (rest != period)
             {
                 ++rest;
@@ -263,14 +260,11 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
                 last_rest += period;
                 rest = 1;
             }
-        }
         break;
         case SV_GRT:
-        {
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
-        }
         break;
         }
     }
@@ -293,14 +287,11 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
         switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
         case SV_GRT:
-        {
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
-        }
         break;
         case SV_EQL:
-        {
             if (rest != period)
             {
                 ++rest;
@@ -310,14 +301,11 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                 last_rest += period;
                 rest = 1;
             }
-        }
         break;
         case SV_LES:
-        {
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
-        }
         break;
         }
     }
