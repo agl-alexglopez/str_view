@@ -1,7 +1,7 @@
 add_library(test INTERFACE test.h)
 
 add_executable(run_tests run_tests.c)
-target_link_libraries(run_tests str_view)
+target_link_libraries(run_tests str_view test)
 
 ###########   Add Test Files Below This Point   ###########
 
@@ -31,3 +31,5 @@ add_test(test_copy_fill)
 add_test(test_length_vs_bytes)
 add_test(test_iterators)
 add_test(test_comparisons)
+add_test(test_string_searching)
+add_test(test_view_editing)

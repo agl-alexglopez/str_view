@@ -8,8 +8,9 @@ static enum test_result test_compare_equal_view(void);
 static enum test_result test_compare_terminated(void);
 static enum test_result test_compare_different_lengths_terminated(void);
 static enum test_result test_compare_different_lengths_views(void);
+static enum test_result test_compare_misc(void);
 
-#define NUM_TESTS (size_t)6
+#define NUM_TESTS (size_t)7
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_compare_single, "test_compare_single"},
     {test_compare_equal, "test_compare_equal"},
@@ -19,6 +20,7 @@ const struct fn_name all_tests[NUM_TESTS] = {
      "test_compare_different_lengths_terminated"},
     {test_compare_different_lengths_views,
      "test_compare_different_lengths_views"},
+    {test_compare_misc, "test_compare_misc"},
 };
 
 int
@@ -174,6 +176,72 @@ test_compare_different_lengths_views(void)
         || str_cmp != sv_strcmp(lesser_view, greater_str)
         || str_cmp != sv_svcmp(lesser_view, greater_view)
         || str_cmp2 != sv_svcmp(greater_view, lesser_view))
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_compare_misc(void)
+{
+    if (sv_svcmp(sv(""), sv("")) != EQL)
+    {
+        return FAIL;
+    }
+    if (sv_strcmp(sv(""), "") != EQL)
+    {
+        return FAIL;
+    }
+    if (sv_svcmp(sv("same"), sv("same")) != EQL)
+    {
+        return FAIL;
+    }
+    if (sv_svcmp(sv("samz"), sv("same")) <= EQL)
+    {
+        return FAIL;
+    }
+    if (sv_svcmp(sv("same"), sv("samz")) >= EQL)
+    {
+        return FAIL;
+    }
+    /* The comparison function should treat the end of a string view as
+       null terminating character even if it points to a delimeter */
+    if (sv_svcmp(sv("same"), sv_delim("same same", " ")) != EQL)
+    {
+        return FAIL;
+    }
+    if (sv_svcmp(sv("same"), sv_delim("samz same", " ")) >= EQL)
+    {
+        return FAIL;
+    }
+    if (sv_svcmp(sv_delim("sameez same", " "), sv("same")) <= EQL)
+    {
+        return FAIL;
+    }
+    const char *const str = "same";
+    if (sv_strcmp(sv(str), str) != 0)
+    {
+        return FAIL;
+    }
+    if (sv_strcmp(sv_delim("same same", " "), str) != EQL)
+    {
+        return FAIL;
+    }
+    if (sv_strcmp(sv_delim("samez same", " "), str) <= EQL)
+    {
+        return FAIL;
+    }
+    if (sv_strcmp(sv_delim("sameez same", " "), str) <= EQL)
+    {
+        return FAIL;
+    }
+    /* strncmp compares at most n bytes inclusize or stops at null term */
+    if (sv_strncmp(sv_delim("sameez same", " "), str, 10) <= EQL)
+    {
+        return FAIL;
+    }
+    if (sv_strncmp(sv_delim("saaeez same", " "), str, 3) >= EQL)
     {
         return FAIL;
     }

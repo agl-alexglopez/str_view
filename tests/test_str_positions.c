@@ -8,8 +8,8 @@ static enum test_result test_front_back_view(void);
 
 #define NUM_TESTS (size_t)2
 const struct fn_name all_tests[NUM_TESTS] = {
-    {test_front_back_terminated, "construct from terminated string"},
-    {test_front_back_view, "construct from view of string"},
+    {test_front_back_terminated, "test_front_back_terminated"},
+    {test_front_back_view, "test_front_back_view"},
 };
 
 int
