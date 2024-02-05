@@ -22,7 +22,7 @@ main()
         if (t_res == FAIL)
         {
             printf("\n");
-            printf("test_constructors test failed: %s\n", all_tests[i].name);
+            printf("test_str_positions test failed: %s\n", all_tests[i].name);
             res = FAIL;
         }
     }

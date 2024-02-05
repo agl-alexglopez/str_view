@@ -4,13 +4,14 @@
 int
 main()
 {
+    enum test_result res = PASS;
     if (!sv_empty(sv("")))
     {
-        return FAIL;
+        res = FAIL;
     }
     if (*sv_null() != '\0')
     {
-        return FAIL;
+        res = FAIL;
     }
-    return PASS;
+    return res;
 }

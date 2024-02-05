@@ -27,7 +27,7 @@ main()
         if (t_res == FAIL)
         {
             printf("\n");
-            printf("test_substring_searching test failed: %s\n",
+            printf("test_string_searching test failed: %s\n",
                    all_tests[i].name);
             res = FAIL;
         }
