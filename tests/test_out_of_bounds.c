@@ -1,5 +1,7 @@
 #include "str_view.h"
 #include "test.h"
+
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -8,11 +10,13 @@
 int
 main()
 {
-    printf("\n");
     const str_view s = sv("");
     const pid_t exiting_child = fork();
     if (exiting_child == 0)
     {
+        /* Silence the str_view message that is about to output at exit. */
+        int silence = open("/dev/null", O_WRONLY);
+        dup2(silence, STDERR_FILENO);
         (void)sv_at(s, 1);
         /* We should not make it here */
         exit(ERROR);

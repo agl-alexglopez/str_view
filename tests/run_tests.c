@@ -63,7 +63,7 @@ run(const str_view tests_dir)
         {
             return 1;
         }
-        printf("%s[%s...%s", cyan, sv_begin(entry), none);
+        printf("%s(%s%s\n", cyan, sv_begin(entry), none);
         (void)fflush(stdout);
         const enum test_result res
             = run_test_process((struct path_bin){sv(absolute_path), entry});
@@ -74,10 +74,10 @@ run(const str_view tests_dir)
                           sv_begin(entry));
             break;
         case PASS:
-            printf("%s...%s%s%s]%s\n", cyan, green, pass_msg, cyan, none);
+            printf("%s%s%s)%s\n", green, pass_msg, cyan, none);
             break;
         case FAIL:
-            printf("%s...%s%s%s]%s\n", cyan, red, fail_msg, cyan, none);
+            printf("%s%s%s)%s\n", red, fail_msg, cyan, none);
             break;
         }
         passed += 1 - res;
