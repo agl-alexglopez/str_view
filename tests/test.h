@@ -9,7 +9,7 @@ enum test_result
     FAIL = 1,
 };
 
-typedef bool (*test_fn)(void);
+typedef enum test_result (*test_fn)(void);
 
 struct fn_name
 {

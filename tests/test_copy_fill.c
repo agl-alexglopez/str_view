@@ -2,8 +2,8 @@
 #include "test.h"
 #include <string.h>
 
-static bool test_copy_fill(void);
-static bool test_copy_section(void);
+static enum test_result test_copy_fill(void);
+static enum test_result test_copy_section(void);
 
 #define NUM_TESTS (size_t)2
 const struct fn_name all_tests[NUM_TESTS] = {
@@ -17,8 +17,8 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const bool passed = all_tests[i].fn();
-        if (!passed)
+        const enum test_result t_res = all_tests[i].fn();
+        if (t_res == FAIL)
         {
             printf("\n");
             printf("test_copy_fill test failed: %s\n", all_tests[i].name);
@@ -28,7 +28,7 @@ main()
     return res;
 }
 
-static bool
+static enum test_result
 test_copy_fill(void)
 {
     const char *const reference = "Copy this over there!";
@@ -36,24 +36,24 @@ test_copy_fill(void)
     char there[sv_strbytes(reference)];
     if (sv_fill(there, sizeof there, this) != sizeof there)
     {
-        return false;
+        return FAIL;
     }
     if (strcmp(sv_begin(this), there) != 0)
     {
-        return false;
+        return FAIL;
     }
     if (strlen(there) != sv_svlen(this))
     {
-        return false;
+        return FAIL;
     }
     if (there[(sizeof there) - 1] != '\0')
     {
-        return false;
+        return FAIL;
     }
-    return true;
+    return PASS;
 }
 
-static bool
+static enum test_result
 test_copy_section(void)
 {
     const char ref[20] = {
@@ -68,15 +68,15 @@ test_copy_section(void)
     char snip_buf[sv_svbytes(snip)];
     if (sv_fill(snip_buf, sizeof snip_buf, snip) != sv_svbytes(snip))
     {
-        return false;
+        return FAIL;
     }
     if (strcmp(expected_snip, snip_buf) != 0)
     {
-        return false;
+        return FAIL;
     }
     if (snip_buf[(sizeof snip_buf) - 1] != '\0')
     {
-        return false;
+        return FAIL;
     }
-    return true;
+    return PASS;
 }

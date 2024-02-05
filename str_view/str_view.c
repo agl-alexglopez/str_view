@@ -134,7 +134,7 @@ sv_strbytes(const char *const str)
 }
 
 size_t
-sv_maxlen(const char *const str, size_t n)
+sv_minlen(const char *const str, size_t n)
 {
     return sv_nlen(str, n);
 }

@@ -1,11 +1,10 @@
 #include "str_view.h"
 #include "test.h"
 
-#include <stdbool.h>
 #include <string.h>
 
-static bool test_front_back_terminated(void);
-static bool test_front_back_view(void);
+static enum test_result test_front_back_terminated(void);
+static enum test_result test_front_back_view(void);
 
 #define NUM_TESTS (size_t)2
 const struct fn_name all_tests[NUM_TESTS] = {
@@ -19,8 +18,8 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const bool passed = all_tests[i].fn();
-        if (!passed)
+        const enum test_result t_res = all_tests[i].fn();
+        if (t_res == FAIL)
         {
             printf("\n");
             printf("test_constructors test failed: %s\n", all_tests[i].name);
@@ -30,28 +29,28 @@ main()
     return res;
 }
 
-static bool
+static enum test_result
 test_front_back_terminated(void)
 {
     if (sv_back(sv("")) != '\0' || sv_front(sv("")) != '\0')
     {
-        return false;
+        return FAIL;
     }
     const char *const reference = "*The front was * the back is!";
     const str_view s = sv(reference);
     const size_t ref_len = strlen(reference);
     if (ref_len != sv_svlen(s))
     {
-        return false;
+        return FAIL;
     }
     if (sv_front(s) != '*' || sv_back(s) != '!')
     {
-        return false;
+        return FAIL;
     }
-    return true;
+    return PASS;
 }
 
-static bool
+static enum test_result
 test_front_back_view(void)
 {
     const char reference[20] = {
@@ -63,7 +62,7 @@ test_front_back_view(void)
     const str_view s = sv_n(reference + 4, 8);
     if (sv_front(s) != '^' || sv_back(s) != '@' || sv_svlen(s) != 8)
     {
-        return false;
+        return FAIL;
     }
-    return true;
+    return PASS;
 }

@@ -88,8 +88,8 @@ size_t sv_strlen(const char *);
 /* Returns the bytes of the string pointer to, null terminator included. */
 size_t sv_strbytes(const char *);
 
-/* Returns the maximum between the string size vs n bytes. */
-size_t sv_maxlen(const char *, size_t n);
+/* Returns the minimum between the string size vs n bytes. */
+size_t sv_minlen(const char *, size_t n);
 
 /* The characer in the string at position i with bounds checking.
    The program will exit if an out of bounds error occurs. */
