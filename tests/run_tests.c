@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <linux/limits.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>

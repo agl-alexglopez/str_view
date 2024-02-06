@@ -1,6 +1,8 @@
 #include "str_view.h"
 #include "test.h"
+
 #include <limits.h>
+#include <stdio.h>
 
 static enum test_result test_prefix_suffix(void);
 static enum test_result test_substr(void);

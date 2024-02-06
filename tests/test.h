@@ -1,7 +1,6 @@
 #ifndef TEST
 #define TEST
 
-#include <stdbool.h>
 enum test_result
 {
     ERROR = -1,

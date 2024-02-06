@@ -1,5 +1,7 @@
 #include "str_view.h"
 #include "test.h"
+
+#include <stdio.h>
 #include <string.h>
 
 static enum test_result test_find_rfind(void);

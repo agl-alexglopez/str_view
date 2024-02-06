@@ -1,6 +1,8 @@
 #include "str_view.h"
 #include "test.h"
 
+#include <stdio.h>
+
 static enum test_result test_iter(void);
 static enum test_result test_iter_repeating_delim(void);
 static enum test_result test_iter_multichar_delim(void);
