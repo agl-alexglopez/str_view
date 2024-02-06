@@ -127,14 +127,14 @@ open_test_dir(str_view tests_folder)
 {
     if (sv_empty(tests_folder) || sv_svlen(tests_folder) > PATH_MAX)
     {
-        (void)fprintf(stderr, "Invalid input to path to test executables %s",
+        (void)fprintf(stderr, "Invalid input to path to test executables %s\n",
                       sv_begin(tests_folder));
         return NULL;
     }
     DIR *dir_ptr = opendir(sv_begin(tests_folder));
     if (!dir_ptr)
     {
-        (void)fprintf(stderr, "Could not open directory %s",
+        (void)fprintf(stderr, "Could not open directory %s\n",
                       sv_begin(tests_folder));
         return NULL;
     }
@@ -147,7 +147,7 @@ fill_path(char *path_buf, str_view tests_dir, str_view entry)
     const size_t dir_bytes = sv_fill(path_buf, PATH_MAX, tests_dir);
     if (PATH_MAX - dir_bytes < sv_svbytes(entry))
     {
-        (void)fprintf(stderr, "Relaive path exceeds PATH_MAX?\n%s", path_buf);
+        (void)fprintf(stderr, "Relative path exceeds PATH_MAX?\n%s", path_buf);
         return false;
     }
     (void)sv_fill(path_buf + sv_svlen(tests_dir), PATH_MAX - dir_bytes, entry);
