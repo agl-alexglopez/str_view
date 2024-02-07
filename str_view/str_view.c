@@ -1050,8 +1050,7 @@ sv_two_way_normal(struct sv_two_way_pack p)
     return p.haystack_sz;
 }
 
-/* ================   Suffix and Critical Factorization    ===================
- */
+/* ================   Suffix and Critical Factorization    ================= */
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
