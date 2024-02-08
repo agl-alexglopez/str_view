@@ -290,7 +290,7 @@ sv_strncmp(str_view sv, const char *str, const size_t n)
 }
 
 char
-sv_front(struct str_view sv)
+sv_front(str_view sv)
 {
     if (!sv.s || 0 == sv.sz)
     {
@@ -300,7 +300,7 @@ sv_front(struct str_view sv)
 }
 
 char
-sv_back(struct str_view sv)
+sv_back(str_view sv)
 {
     if (!sv.s || 0 == sv.sz)
     {

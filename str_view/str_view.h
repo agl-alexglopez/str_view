@@ -11,13 +11,13 @@
    of C mixed in. The str_view type is 16 bytes meaning it is cheap
    to copy and flexible to work with in the provided functions. No
    functions accept str_view by reference, except for swap. */
-typedef struct str_view
+typedef struct
 {
     const char *s;
     size_t sz;
 } str_view;
 
-typedef enum sv_threeway_cmp
+typedef enum
 {
     LES = -1,
     EQL = 0,
