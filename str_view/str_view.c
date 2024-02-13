@@ -510,18 +510,11 @@ sv_rfind(str_view hay, size_t pos, str_view needle)
     }
     hay.sz -= (hay.sz - pos);
     size_t last_found = hay.sz;
-    size_t i = 0;
-    for (;;)
-    {
-        i += sv_strnstrn(hay.s + i, (ssize_t)(hay.sz - i), needle.s,
-                         (ssize_t)needle.sz);
-        if (i == hay.sz)
-        {
-            break;
-        }
-        last_found = i;
-        ++i;
-    }
+    for (size_t i = 0; (i += sv_strnstrn(hay.s + i, (ssize_t)(hay.sz - i),
+                                         needle.s, (ssize_t)needle.sz))
+                       != hay.sz;
+         last_found = i, ++i)
+    {}
     return last_found;
 }
 
