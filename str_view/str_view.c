@@ -24,8 +24,8 @@ struct sv_factorization
 
 struct sv_two_way_pack
 {
-    const char *const haystack;
-    ssize_t haystack_sz;
+    const char *const hay;
+    ssize_t hay_sz;
     const char *const needle;
     ssize_t needle_sz;
     /* Taken from the factorization of needle for two-way searching */
@@ -248,7 +248,7 @@ sv_strcmp(str_view sv, const char *str)
     }
     size_t i = 0;
     const size_t sz = sv.sz;
-    while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
+    while (i < sz && str[i] != '\0' && sv.s[i] == str[i])
     {
         ++i;
     }
@@ -447,13 +447,13 @@ sv_substr(str_view sv, size_t pos, size_t count)
 }
 
 bool
-sv_contains(str_view haystack, str_view needle)
+sv_contains(str_view hay, str_view needle)
 {
-    if (needle.sz > haystack.sz)
+    if (needle.sz > hay.sz)
     {
         return false;
     }
-    if (sv_empty(haystack))
+    if (sv_empty(hay))
     {
         return false;
     }
@@ -461,65 +461,61 @@ sv_contains(str_view haystack, str_view needle)
     {
         return true;
     }
-    const size_t found = sv_strnstrn(haystack.s, (ssize_t)haystack.sz, needle.s,
-                                     (ssize_t)needle.sz);
-    return (found == haystack.sz) ? false : true;
+    return hay.sz
+           != sv_strnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
 }
 
 str_view
-sv_svsv(str_view haystack, str_view needle)
+sv_svsv(str_view hay, str_view needle)
 {
-    if (needle.sz > haystack.sz)
+    if (needle.sz > hay.sz)
     {
         return (str_view){.s = nil, .sz = 0};
     }
-    if (sv_empty(haystack))
+    if (sv_empty(hay))
     {
-        return haystack;
+        return hay;
     }
     if (sv_empty(needle))
     {
         return (str_view){.s = nil, .sz = 0};
     }
-    const size_t found = sv_strnstrn(haystack.s, (ssize_t)haystack.sz, needle.s,
-                                     (ssize_t)needle.sz);
-    if (found == haystack.sz)
-    {
-        return (str_view){.s = haystack.s + haystack.sz, .sz = 0};
-    }
-    return (str_view){.s = haystack.s + found, .sz = needle.sz};
+    const size_t found
+        = sv_strnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
+    return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
+                           : (str_view){.s = hay.s + found, .sz = needle.sz};
 }
 
 size_t
-sv_find(str_view haystack, size_t pos, str_view needle)
+sv_find(str_view hay, size_t pos, str_view needle)
 {
-    if (needle.sz > haystack.sz || pos > haystack.sz)
+    if (needle.sz > hay.sz || pos > hay.sz)
     {
-        return haystack.sz;
+        return hay.sz;
     }
-    return sv_strnstrn(haystack.s + pos, (ssize_t)(haystack.sz - pos), needle.s,
+    return sv_strnstrn(hay.s + pos, (ssize_t)(hay.sz - pos), needle.s,
                        (ssize_t)needle.sz);
 }
 
 size_t
-sv_rfind(str_view haystack, size_t pos, str_view needle)
+sv_rfind(str_view hay, size_t pos, str_view needle)
 {
-    if (needle.sz >= haystack.sz)
+    if (needle.sz >= hay.sz)
     {
-        return haystack.sz;
+        return hay.sz;
     }
-    if (pos > haystack.sz)
+    if (pos > hay.sz)
     {
-        pos = haystack.sz;
+        pos = hay.sz;
     }
-    haystack.sz -= (haystack.sz - pos);
-    size_t last_found = haystack.sz;
+    hay.sz -= (hay.sz - pos);
+    size_t last_found = hay.sz;
     size_t i = 0;
     for (;;)
     {
-        i += sv_strnstrn(haystack.s + i, (ssize_t)(haystack.sz - i), needle.s,
+        i += sv_strnstrn(hay.s + i, (ssize_t)(hay.sz - i), needle.s,
                          (ssize_t)needle.sz);
-        if (i == haystack.sz)
+        if (i == hay.sz)
         {
             break;
         }
@@ -530,83 +526,77 @@ sv_rfind(str_view haystack, size_t pos, str_view needle)
 }
 
 size_t
-sv_find_first_of(str_view haystack, str_view set)
+sv_find_first_of(str_view hay, str_view set)
 {
-    if (!haystack.s)
+    if (!hay.s || 0 == hay.sz)
     {
         return 0;
     }
-    if (!set.s)
+    if (!set.s || 0 == set.sz)
     {
-        return haystack.sz;
+        return hay.sz;
     }
-    return sv_strcspn(haystack.s, haystack.sz, set.s, set.sz);
+    return sv_strcspn(hay.s, hay.sz, set.s, set.sz);
 }
 
 size_t
-sv_find_last_of(str_view haystack, str_view set)
+sv_find_last_of(str_view hay, str_view set)
 {
-    if (!haystack.s)
+    if (!hay.s || 0 == hay.sz)
     {
         return 0;
     }
-    if (!set.s)
+    if (!set.s || 0 == set.sz)
     {
-        return haystack.sz;
+        return hay.sz;
     }
-    size_t last_pos = haystack.sz;
-    size_t prev = 0;
-    size_t in = 0;
-    while ((in += sv_strspn(haystack.s + in, haystack.sz - in, set.s, set.sz))
-           != haystack.sz)
+    size_t last_pos = hay.sz;
+    for (size_t in = 0, prev = 0;
+         (in += sv_strspn(hay.s + in, hay.sz - in, set.s, set.sz)) != hay.sz;
+         ++in, prev = in)
     {
         if (in != prev)
         {
             last_pos = in - 1;
         }
-        ++in;
-        prev = in;
     }
     return last_pos;
 }
 
 size_t
-sv_find_first_not_of(str_view haystack, str_view set)
+sv_find_first_not_of(str_view hay, str_view set)
 {
-    if (!haystack.s)
+    if (!hay.s || 0 == hay.sz)
     {
         return 0;
     }
-    if (!set.s)
+    if (!set.s || 0 == set.sz)
     {
         return 0;
     }
-    return sv_strspn(haystack.s, haystack.sz, set.s, set.sz);
+    return sv_strspn(hay.s, hay.sz, set.s, set.sz);
 }
 
 size_t
-sv_find_last_not_of(str_view haystack, str_view set)
+sv_find_last_not_of(str_view hay, str_view set)
 {
-    if (!haystack.s || 0 == haystack.sz)
+    if (!hay.s || 0 == hay.sz)
     {
         return 0;
     }
-    if (!set.s)
+    if (!set.s || 0 == set.sz)
     {
-        return haystack.sz - 1;
+        return hay.sz - 1;
     }
-    size_t last_pos = haystack.sz;
-    size_t prev = 0;
-    size_t in = 0;
-    while ((in += sv_strspn(haystack.s + in, haystack.sz - in, set.s, set.sz))
-           != haystack.sz)
+    size_t last_pos = hay.sz;
+    for (size_t in = 0, prev = 0;
+         (in += sv_strspn(hay.s + in, hay.sz - in, set.s, set.sz)) != hay.sz;
+         ++in, prev = in)
     {
         if (in != prev)
         {
             last_pos = in;
         }
-        ++in;
-        prev = in;
     }
     return last_pos;
 }
@@ -620,15 +610,15 @@ sv_npos(str_view sv)
 /* ======================   Static Helpers    ============================= */
 
 static size_t
-sv_after_find(str_view haystack, str_view needle)
+sv_after_find(str_view hay, str_view needle)
 {
-    if (needle.sz > haystack.sz)
+    if (needle.sz > hay.sz)
     {
         return 0;
     }
     size_t i = 0;
     size_t delim_i = 0;
-    while (i < haystack.sz && needle.s[delim_i] == haystack.s[i])
+    while (i < hay.sz && needle.s[delim_i] == hay.s[i])
     {
         ++i;
         delim_i = (delim_i + 1) % needle.sz;
@@ -873,32 +863,32 @@ sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
 /* Providing strnstrn rather than strstr at the lowest level works better for
    string views where the string may not be null terminated. There needs to
    always be the additional constraint that a search cannot exceed the
-   haystack length. */
+   hay length. */
 size_t
-sv_strnstrn(const char *haystack, ssize_t haystack_sz, const char *needle,
+sv_strnstrn(const char *hay, ssize_t hay_sz, const char *needle,
             ssize_t needle_sz)
 {
-    if (!haystack || !needle || needle_sz == 0 || *needle == '\0'
-        || needle_sz > haystack_sz)
+    if (!hay || !needle || needle_sz == 0 || *needle == '\0'
+        || needle_sz > hay_sz)
     {
-        return haystack_sz;
+        return hay_sz;
     }
     if (2 == needle_sz)
     {
-        return sv_twobyte_strnstrn((unsigned char *)haystack, haystack_sz,
+        return sv_twobyte_strnstrn((unsigned char *)hay, hay_sz,
                                    (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_threebyte_strnstrn((unsigned char *)haystack, haystack_sz,
+        return sv_threebyte_strnstrn((unsigned char *)hay, hay_sz,
                                      (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_fourbyte_strnstrn((unsigned char *)haystack, haystack_sz,
+        return sv_fourbyte_strnstrn((unsigned char *)hay, hay_sz,
                                     (unsigned char *)needle);
     }
-    return sv_two_way(haystack, haystack_sz, needle, needle_sz);
+    return sv_two_way(hay, hay_sz, needle, needle_sz);
 }
 
 /* ==============   Post-Precomputation Two-Way Search    ================== */
@@ -921,13 +911,13 @@ sv_strnstrn(const char *haystack, ssize_t haystack_sz, const char *needle,
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260
 
-   Assumes the needle size is shorter than haystack size. Sizes are needed
+   Assumes the needle size is shorter than hay size. Sizes are needed
    for string view operations because strings may not be null terminated
    and the string view library is most likely search a view rather than
    an entire string. */
 static inline size_t
-sv_two_way(const char *const haystack, ssize_t haystack_sz,
-           const char *const needle, ssize_t needle_sz)
+sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
+           ssize_t needle_sz)
 {
     ssize_t critical_pos;
     ssize_t period_dist;
@@ -948,8 +938,8 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
     if (sv_memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
-            .haystack = haystack,
-            .haystack_sz = haystack_sz,
+            .hay = hay,
+            .hay_sz = hay_sz,
             .needle = needle,
             .needle_sz = needle_sz,
             .period_dist = period_dist,
@@ -957,8 +947,8 @@ sv_two_way(const char *const haystack, ssize_t haystack_sz,
         });
     }
     return sv_two_way_normal((struct sv_two_way_pack){
-        .haystack = haystack,
-        .haystack_sz = haystack_sz,
+        .hay = hay,
+        .hay_sz = hay_sz,
         .needle = needle,
         .needle_sz = needle_sz,
         .period_dist = period_dist,
@@ -975,11 +965,10 @@ sv_two_way_memoization(struct sv_two_way_pack p)
     ssize_t r_pos = 0;
     /* Eliminate worst case quadratic time complexity with memoization. */
     ssize_t memoize_shift = -1;
-    while (l_pos <= p.haystack_sz - p.needle_sz)
+    while (l_pos <= p.hay_sz - p.needle_sz)
     {
         r_pos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
-        while (r_pos < p.needle_sz
-               && p.needle[r_pos] == p.haystack[r_pos + l_pos])
+        while (r_pos < p.needle_sz && p.needle[r_pos] == p.hay[r_pos + l_pos])
         {
             ++r_pos;
         }
@@ -993,8 +982,7 @@ sv_two_way_memoization(struct sv_two_way_pack p)
 
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
-        while (r_pos > memoize_shift
-               && p.needle[r_pos] == p.haystack[r_pos + l_pos])
+        while (r_pos > memoize_shift && p.needle[r_pos] == p.hay[r_pos + l_pos])
         {
             --r_pos;
         }
@@ -1007,7 +995,7 @@ sv_two_way_memoization(struct sv_two_way_pack p)
            of this prefix to increase length of next shift, if possible. */
         memoize_shift = p.needle_sz - p.period_dist - 1;
     }
-    return p.haystack_sz;
+    return p.hay_sz;
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
@@ -1020,11 +1008,10 @@ sv_two_way_normal(struct sv_two_way_pack p)
           + 1;
     ssize_t l_pos = 0;
     ssize_t r_pos = 0;
-    while (l_pos <= p.haystack_sz - p.needle_sz)
+    while (l_pos <= p.hay_sz - p.needle_sz)
     {
         r_pos = p.critical_pos + 1;
-        while (r_pos < p.needle_sz
-               && p.needle[r_pos] == p.haystack[r_pos + l_pos])
+        while (r_pos < p.needle_sz && p.needle[r_pos] == p.hay[r_pos + l_pos])
         {
             ++r_pos;
         }
@@ -1037,7 +1024,7 @@ sv_two_way_normal(struct sv_two_way_pack p)
 
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
-        while (r_pos >= 0 && p.needle[r_pos] == p.haystack[r_pos + l_pos])
+        while (r_pos >= 0 && p.needle[r_pos] == p.hay[r_pos + l_pos])
         {
             --r_pos;
         }
@@ -1047,7 +1034,7 @@ sv_two_way_normal(struct sv_two_way_pack p)
         }
         l_pos += p.period_dist;
     }
-    return p.haystack_sz;
+    return p.hay_sz;
 }
 
 /* ================   Suffix and Critical Factorization    ================= */
@@ -1137,7 +1124,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 
 /* All brute force searches adapted from musl C library.
    http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c
-   They must stop the search at haystack size and therefore required slight
+   They must stop the search at hay size and therefore required slight
    modification because string views may not be null terminated. */
 
 static inline size_t

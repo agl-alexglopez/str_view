@@ -169,24 +169,24 @@ str_view sv_next_tok(str_view, str_view delim);
    will exit if position is greater than str_view size. */
 str_view sv_substr(str_view, size_t pos, size_t count);
 
-/* Searches for needle in haystack starting from pos. If the needle
-   is larger than the haystack, or position is greater than haystack length,
-   then haystack length is returned. */
-size_t sv_find(str_view haystack, size_t pos, str_view needle);
+/* Searches for needle in hay starting from pos. If the needle
+   is larger than the hay, or position is greater than hay length,
+   then hay length is returned. */
+size_t sv_find(str_view hay, size_t pos, str_view needle);
 
-/* Searches for the last occurence of needle in haystack starting from pos.
-   If needle is larger than haystack, haystack length is returned. If the
-   position is larger than the haystack, the entire haystack is searched. */
-size_t sv_rfind(str_view haystack, size_t pos, str_view needle);
+/* Searches for the last occurence of needle in hay starting from pos.
+   If needle is larger than hay, hay length is returned. If the
+   position is larger than the hay, the entire hay is searched. */
+size_t sv_rfind(str_view hay, size_t pos, str_view needle);
 
-/* Returns true if the needle is found in the haystack, false otherwise. */
-bool sv_contains(str_view haystack, str_view needle);
+/* Returns true if the needle is found in the hay, false otherwise. */
+bool sv_contains(str_view hay, str_view needle);
 
-/* Returns a view of the needle found in haystack at the first found
+/* Returns a view of the needle found in hay at the first found
    position. If the needle cannot be found the empty view at the
-   haystack length position is returned. This may or may not be null
+   hay length position is returned. This may or may not be null
    terminated at that position. */
-str_view sv_svsv(str_view haystack, str_view needle);
+str_view sv_svsv(str_view hay, str_view needle);
 
 /* Returns true if a prefix <= str_view is present, false otherwise. */
 bool sv_starts_with(str_view, str_view prefix);
@@ -202,27 +202,27 @@ bool sv_ends_with(str_view, str_view suffix);
 str_view sv_remove_suffix(str_view, size_t n);
 
 /* Finds the first position of an occurence of any character in set.
-   If no occurence is found haystack size is returned. An empty set (NULL)
-   is valid and will return position at haystack size. An empty haystack
+   If no occurence is found hay size is returned. An empty set (NULL)
+   is valid and will return position at hay size. An empty hay
    returns 0. */
-size_t sv_find_first_of(str_view haystack, str_view set);
+size_t sv_find_first_of(str_view hay, str_view set);
 
 /* Finds the first position at which no characters in set can be found.
-   If the string is all characters in set haystack length is returned.
+   If the string is all characters in set hay length is returned.
    An empty set (NULL) is valid and will return position 0. An empty
-   haystack returns 0. */
-size_t sv_find_first_not_of(str_view haystack, str_view set);
+   hay returns 0. */
+size_t sv_find_first_not_of(str_view hay, str_view set);
 
-/* Finds the last position of any character in set in haystack. If
-   no position is found haystack size is returned. An empty set (NULL)
-   is valid and returns haystack size. An empty haystack returns
+/* Finds the last position of any character in set in hay. If
+   no position is found hay size is returned. An empty set (NULL)
+   is valid and returns hay size. An empty hay returns
    0. */
-size_t sv_find_last_of(str_view haystack, str_view set);
+size_t sv_find_last_of(str_view hay, str_view set);
 
 /* Finds the last position at which no character in set can be found.
    An empty set (NULL) is valid and will return position 0. An empty
-   haystack will return 0. */
-size_t sv_find_last_not_of(str_view haystack, str_view set);
+   hay will return 0. */
+size_t sv_find_last_not_of(str_view hay, str_view set);
 
 /* Writes all characters in str_view to stdout. */
 void sv_print(FILE *, str_view);
