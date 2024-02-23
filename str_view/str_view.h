@@ -57,18 +57,24 @@ size_t sv_npos(str_view);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between two string views.
-   lhs LES(-1) rhs, lhs EQL(0) rhs, lhs (GRT) rhs*/
+   lhs LES(-1) rhs (lhs is less than rhs)
+   lhs EQL(0) rhs (lhs is equal to rhs)
+   lhs GRT(1) rhs (lhs is greater than rhs)*/
 sv_threeway_cmp sv_svcmp(str_view, str_view);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
-   lhs LES(-1) rhs, lhs EQL(0) rhs, lhs (GRT) rhs*/
+   str_view LES(-1) rhs (str_view is less than str)
+   str_view EQL(0) rhs (str_view is equal to str)
+   str_view GRT(1) rhs (str_view is greater than str)*/
 sv_threeway_cmp sv_strcmp(str_view, const char *str);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
    or stops at the null terminator if that is encountered first.
-   lhs LES(-1) rhs, lhs EQL(0) rhs, lhs (GRT) rhs*/
+   str_view LES(-1) rhs (str_view is less than str)
+   str_view EQL(0) rhs (str_view is equal to str)
+   str_view GRT(1) rhs (str_view is greater than str)*/
 sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
 
 /* Returns true if the provided str_view is empty, false otherwise. */
