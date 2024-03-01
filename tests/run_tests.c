@@ -107,7 +107,7 @@ run_test_process(struct path_bin pb)
     if (test_proc == 0)
     {
         execl(sv_begin(pb.path), sv_begin(pb.bin), NULL);
-        (void)fprintf(stderr, "Child test proces could not start.\n");
+        (void)fprintf(stderr, "Child test process could not start.\n");
         exit(1);
     }
     int status = 0;
