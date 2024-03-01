@@ -223,7 +223,7 @@ sv_svcmp(str_view sv1, str_view sv2)
     }
     size_t i = 0;
     const size_t sz = sv_min(sv1.sz, sv2.sz);
-    while (sv1.s[i] == sv2.s[i] && i < sz)
+    while (i < sz && sv1.s[i] == sv2.s[i])
     {
         ++i;
     }
@@ -273,7 +273,7 @@ sv_strncmp(str_view sv, const char *str, const size_t n)
     }
     size_t i = 0;
     const size_t sz = sv_min(sv.sz, n);
-    while (str[i] != '\0' && sv.s[i] == str[i] && i < sz)
+    while (i < sz && str[i] != '\0' && sv.s[i] == str[i])
     {
         ++i;
     }
@@ -386,6 +386,10 @@ sv_next_tok(str_view sv, str_view delim)
     {
         return (str_view){.s = nil, .sz = 0};
     }
+    if (!sv.sz)
+    {
+        return sv;
+    }
     if (!delim.s || sv.s[sv.sz] == '\0')
     {
         return (str_view){.s = sv.s + sv.sz, .sz = 0};
@@ -409,7 +413,7 @@ sv_starts_with(str_view sv, str_view prefix)
     {
         return false;
     }
-    return sv_svcmp(sv_substr(sv, 0, prefix.sz), prefix) == 0;
+    return sv_svcmp(sv_substr(sv, 0, prefix.sz), prefix) == EQL;
 }
 
 str_view
@@ -426,7 +430,7 @@ sv_ends_with(str_view sv, str_view suffix)
     {
         return false;
     }
-    return sv_svcmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == 0;
+    return sv_svcmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == EQL;
 }
 
 str_view
@@ -498,23 +502,25 @@ sv_find(str_view hay, size_t pos, str_view needle)
 }
 
 size_t
-sv_rfind(str_view hay, size_t pos, str_view needle)
+sv_rfind(str_view h, size_t pos, str_view n)
 {
-    if (needle.sz >= hay.sz)
+    if (n.sz >= h.sz)
     {
-        return hay.sz;
+        return h.sz;
     }
-    if (pos > hay.sz)
+    if (pos > h.sz)
     {
-        pos = hay.sz;
+        pos = h.sz;
     }
-    hay.sz -= (hay.sz - pos);
-    size_t last_found = hay.sz;
-    for (size_t i = 0; (i += sv_strnstrn(hay.s + i, (ssize_t)(hay.sz - i),
-                                         needle.s, (ssize_t)needle.sz))
-                       != hay.sz;
-         last_found = i, ++i)
-    {}
+    h.sz -= (h.sz - pos);
+    const ssize_t n_sz = (ssize_t)n.sz;
+    size_t last_found = h.sz;
+    size_t i = 0;
+    while ((i += sv_strnstrn(h.s + i, (ssize_t)(h.sz - i), n.s, n_sz)) != h.sz)
+    {
+        last_found = i;
+        ++i;
+    }
     return last_found;
 }
 
@@ -616,10 +622,9 @@ sv_after_find(str_view hay, str_view needle)
         ++i;
         delim_i = (delim_i + 1) % needle.sz;
     }
-    /* We need to also reset to the last mismatch we found. Imagine
-       we started to find the delimeter but then the string changed
-       into a mismatch. We go back to get characters that are partially
-       in the delimeter. */
+    /* Also reset to the last mismatch found. If some of the delimeter matched
+       but then the string changed into a mismatch go back to get characters
+       that are partially in the delimeter. */
     return i - delim_i;
 }
 
@@ -643,17 +648,17 @@ sv_char_cmp(char a, char b)
 
 /* ======================   Static Utilities    =========================== */
 
-/* This is section is modeled after the string.h library. However, using
+/* This is section is modeled after the musl string.h library. However, using
    str_view that may not be null terminated requires modifications. Also
    it is important to not use string.h functionality which would force
-   the user to include string.h in addition to custom implementations in
-   this library. */
+   the user to include string.h in addition to custom implementations here.
+   Save code bloat though compilers/linkers may help with that. */
 
 #define BITOP(a, b, op)                                                        \
     ((a)[(size_t)(b) / (8 * sizeof *(a))] op(size_t) 1                         \
      << ((size_t)(b) % (8 * sizeof *(a))))
 
-/* Taken from musl
+/* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strlen.c */
 size_t
 sv_len(const char *const str)
@@ -668,7 +673,7 @@ sv_len(const char *const str)
     return i - str;
 }
 
-/* Taken from musl
+/* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/memcmp.c */
 int
 sv_memcmp(const void *const vl, const void *const vr, size_t n)
@@ -680,7 +685,7 @@ sv_memcmp(const void *const vl, const void *const vr, size_t n)
     return n ? *l - *r : 0;
 }
 
-/* Taken from musl
+/* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/memcpy.c */
 void *
 sv_memcpy(void *restrict dest, const void *const restrict src, size_t n)
@@ -694,7 +699,7 @@ sv_memcpy(void *restrict dest, const void *const restrict src, size_t n)
     return dest;
 }
 
-/* Taken from musl
+/* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/memmove.c */
 void *
 sv_memmove(void *dest, const void *const src, size_t n)
@@ -727,7 +732,7 @@ sv_memmove(void *dest, const void *const src, size_t n)
     return dest;
 }
 
-/* Taken from musl implementation
+/* Modeled after musl implementation
    https://git.musl-libc.org/cgit/musl/tree/src/string/memset.c */
 void *
 sv_memset(void *dest, int c, size_t n)
@@ -780,7 +785,7 @@ sv_memset(void *dest, int c, size_t n)
     return dest;
 }
 
-/* Taken from musl
+/* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strnlen.c */
 size_t
 sv_nlen(const char *const str, size_t n)
