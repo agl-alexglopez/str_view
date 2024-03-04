@@ -24,6 +24,28 @@ typedef enum
     GRT = 1,
 } sv_threeway_cmp;
 
+/* A macro provided to make str_view constants less error prone at
+   compile time. For example, if it is desirable to construct a str_view
+   constant the following will obtain the length field for the user.
+
+      static const str_view prefix = {.s = "test_", .sz = SVLEN("test_")};
+      int main()
+      {
+         ...
+      }
+
+   Alternatively, this works with a constant to reduce chances for errors.
+
+      static const char *const str = "test_";
+      static const str_view prefix = {.s = str, .sz = SVLEN(str)};
+      int main()
+      {
+         ...
+      }
+
+   At runtime, prefer the provided functions for all other str_view needs. */
+#define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
+
 /* Constructs and returns a string view from a NULL TERMINATED string. */
 str_view sv(const char *);
 

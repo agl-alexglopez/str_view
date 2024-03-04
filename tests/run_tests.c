@@ -17,7 +17,7 @@ struct path_bin
     str_view bin;
 };
 
-static const str_view test_prefix = {.s = "test_", .sz = 5};
+static const str_view test_prefix = {.s = "test_", .sz = SVLEN("test_")};
 const char *const pass_msg = "⬤";
 const char *const fail_msg = "X";
 const char *const red = "\033[38;5;9m";

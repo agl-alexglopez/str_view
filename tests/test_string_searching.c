@@ -1,6 +1,7 @@
 #include "str_view.h"
 #include "test.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -191,10 +192,10 @@ test_substring_off_by_one(void)
         return FAIL;
     }
     const char *ref2 = strstr(haystack + needle_len, needle);
-    const str_view found_second
-        = sv_svsv(sv_substr(haystack_view, needle_len, 99), needle_view);
-    const size_t find_pos2
-        = sv_find(sv_substr(haystack_view, needle_len, 99), 0, needle_view);
+    const str_view found_second = sv_svsv(
+        sv_substr(haystack_view, needle_len, ULLONG_MAX), needle_view);
+    const size_t find_pos2 = sv_find(
+        sv_substr(haystack_view, needle_len, ULLONG_MAX), 0, needle_view);
     const size_t find_pos2_rev
         = sv_rfind(haystack_view, sv_svlen(haystack_view), needle_view);
     if (sv_strcmp(found_second, needle) != 0 || sv_begin(found_second) != ref2
