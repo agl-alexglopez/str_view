@@ -3,7 +3,7 @@
    ===================
    This file implements the string_view interface as an approximation of C++
    string_view type. There are some minor differences and C flavor thrown
-   in with the additional twist of a reimplementation of the Two-Way
+   in. Additionally, there is a provided reimplementation of the Two-Way
    String-Searching algorithm, similar to glibc. */
 #include "str_view.h"
 
@@ -60,10 +60,10 @@ static size_t sv_fourbyte_strnstrn(const unsigned char *, size_t,
                                    const unsigned char *);
 static size_t sv_len(const char *);
 static size_t sv_nlen(const char *, size_t);
-size_t sv_strcspn(const char *, size_t, const char *, size_t);
-size_t sv_strspn(const char *, size_t, const char *, size_t);
-size_t sv_strnstrn(const char *, ssize_t, const char *, ssize_t);
-void *sv_memmove(void *, const void *, size_t);
+static size_t sv_strcspn(const char *, size_t, const char *, size_t);
+static size_t sv_strspn(const char *, size_t, const char *, size_t);
+static size_t sv_strnstrn(const char *, ssize_t, const char *, ssize_t);
+static void *sv_memmove(void *, const void *, size_t);
 
 /* ===================   Interface Implementation   ====================== */
 
@@ -660,7 +660,7 @@ sv_char_cmp(char a, char b)
 
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strlen.c */
-size_t
+static size_t
 sv_len(const char *const str)
 {
     if (!str)
@@ -675,7 +675,7 @@ sv_len(const char *const str)
 
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/memcmp.c */
-int
+static int
 sv_memcmp(const void *const vl, const void *const vr, size_t n)
 {
     const unsigned char *l = vl;
@@ -687,7 +687,7 @@ sv_memcmp(const void *const vl, const void *const vr, size_t n)
 
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/memcpy.c */
-void *
+static void *
 sv_memcpy(void *restrict dest, const void *const restrict src, size_t n)
 {
     unsigned char *d = dest;
@@ -701,7 +701,7 @@ sv_memcpy(void *restrict dest, const void *const restrict src, size_t n)
 
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/memmove.c */
-void *
+static void *
 sv_memmove(void *dest, const void *const src, size_t n)
 {
     char *d = dest;
@@ -734,7 +734,7 @@ sv_memmove(void *dest, const void *const src, size_t n)
 
 /* Modeled after musl implementation
    https://git.musl-libc.org/cgit/musl/tree/src/string/memset.c */
-void *
+static void *
 sv_memset(void *dest, int c, size_t n)
 {
     if (!dest)
@@ -787,7 +787,7 @@ sv_memset(void *dest, int c, size_t n)
 
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strnlen.c */
-size_t
+static size_t
 sv_nlen(const char *const str, size_t n)
 {
     if (!str)
@@ -806,7 +806,7 @@ sv_nlen(const char *const str, size_t n)
    have no concept of a string view and will continue searching beyond the
    end of a view until null is found. This way, string searches are efficient
    and only within the range specified. */
-size_t
+static size_t
 sv_strcspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
 {
     const char *a = str;
@@ -832,7 +832,7 @@ sv_strcspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
    have no concept of a string view and will continue searching beyond the
    end of a view until null is found. This way, string searches are efficient
    and only within the range specified. */
-size_t
+static size_t
 sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
 {
     const char *a = str;
@@ -862,7 +862,7 @@ sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
    string views where the string may not be null terminated. There needs to
    always be the additional constraint that a search cannot exceed the
    hay length. */
-size_t
+static size_t
 sv_strnstrn(const char *hay, ssize_t hay_sz, const char *needle,
             ssize_t needle_sz)
 {
