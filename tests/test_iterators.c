@@ -133,7 +133,6 @@ test_iter_multichar_delim(void)
         = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
           "abcOabcabcPiabcabc\\(*.*)/abc";
     size_t i = 0;
-    /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "abc";
     const size_t delim_len = sv_strlen(delim);
     const str_view ref_view = sv(reference);
@@ -151,7 +150,6 @@ test_iter_multichar_delim(void)
     {
         return FAIL;
     }
-    /* Do at least one token iteration if we can't find any delims */
     str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
     for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){" ", 1}))
     {
@@ -178,7 +176,6 @@ test_iter_multichar_delim_short(void)
                                   "---H---I-----J-----K-----L-M--N"
                                   "-------O-----Pi-----\\(*.*)/-----";
     size_t i = 0;
-    /* This version should only give us the letters because delim is ' ' */
     const char *const delim = "-----";
     const size_t delim_len = sv_strlen(delim);
     const str_view ref_view = sv(reference);
@@ -196,7 +193,6 @@ test_iter_multichar_delim_short(void)
     {
         return FAIL;
     }
-    /* Do at least one token iteration if we can't find any delims */
     str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
     for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){" ", 1}))
     {

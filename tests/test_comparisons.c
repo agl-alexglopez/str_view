@@ -103,10 +103,9 @@ test_compare_equal_view(void)
     const str_view e1_view = sv(e1);
     const str_view e2_view = sv_n(e2, sv_strlen(e1));
     const int cmp_res = strcmp(e1, e1);
-    const int cmp_res2 = strcmp(e1, e1);
     if (cmp_res != sv_svcmp(e1_view, e2_view)
-        || cmp_res2 != sv_strcmp(e2_view, e1)
-        || cmp_res2 != sv_svcmp(e2_view, e1_view))
+        || cmp_res != sv_strcmp(e2_view, e1)
+        || cmp_res != sv_svcmp(e2_view, e1_view))
     {
         return FAIL;
     }
@@ -122,14 +121,14 @@ test_compare_terminated(void)
     const char greater[5] = {
         [0] = 'A', [1] = 'A', [2] = 'A', [3] = 'B', [4] = '\0',
     };
-    const str_view less_view = sv(lesser);
+    const str_view lesser_view = sv(lesser);
     const str_view greater_view = sv(greater);
     const int cmp_res = strcmp(lesser, greater);
     const int cmp_res2 = strcmp(greater, lesser);
-    if (cmp_res != sv_strcmp(less_view, greater)
-        || cmp_res != sv_svcmp(less_view, greater_view)
+    if (cmp_res != sv_strcmp(lesser_view, greater)
+        || cmp_res != sv_svcmp(lesser_view, greater_view)
         || cmp_res2 != sv_strcmp(greater_view, lesser)
-        || cmp_res2 != sv_svcmp(greater_view, less_view))
+        || cmp_res2 != sv_svcmp(greater_view, lesser_view))
     {
         return FAIL;
     }
@@ -199,11 +198,11 @@ test_compare_misc(void)
     {
         return FAIL;
     }
-    if (sv_svcmp(sv("samz"), sv("same")) <= EQL)
+    if (sv_svcmp(sv("samz"), sv("same")) != GRT)
     {
         return FAIL;
     }
-    if (sv_svcmp(sv("same"), sv("samz")) >= EQL)
+    if (sv_svcmp(sv("same"), sv("samz")) != LES)
     {
         return FAIL;
     }
@@ -213,16 +212,16 @@ test_compare_misc(void)
     {
         return FAIL;
     }
-    if (sv_svcmp(sv("same"), sv_delim("samz same", " ")) >= EQL)
+    if (sv_svcmp(sv("same"), sv_delim("samz same", " ")) != LES)
     {
         return FAIL;
     }
-    if (sv_svcmp(sv_delim("sameez same", " "), sv("same")) <= EQL)
+    if (sv_svcmp(sv_delim("sameez same", " "), sv("same")) != GRT)
     {
         return FAIL;
     }
     const char *const str = "same";
-    if (sv_strcmp(sv(str), str) != 0)
+    if (sv_strcmp(sv(str), str) != EQL)
     {
         return FAIL;
     }
@@ -230,20 +229,20 @@ test_compare_misc(void)
     {
         return FAIL;
     }
-    if (sv_strcmp(sv_delim("samez same", " "), str) <= EQL)
+    if (sv_strcmp(sv_delim("samez same", " "), str) != GRT)
     {
         return FAIL;
     }
-    if (sv_strcmp(sv_delim("sameez same", " "), str) <= EQL)
+    if (sv_strcmp(sv_delim("sameez same", " "), str) != GRT)
     {
         return FAIL;
     }
     /* strncmp compares at most n bytes inclusize or stops at null term */
-    if (sv_strncmp(sv_delim("sameez same", " "), str, 10) <= EQL)
+    if (sv_strncmp(sv_delim("sameez same", " "), str, 10) != GRT)
     {
         return FAIL;
     }
-    if (sv_strncmp(sv_delim("saaeez same", " "), str, 3) >= EQL)
+    if (sv_strncmp(sv_delim("saaeez same", " "), str, 3) != LES)
     {
         return FAIL;
     }
