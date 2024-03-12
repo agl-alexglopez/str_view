@@ -27,17 +27,9 @@ typedef enum
 /* A macro provided to make str_view constants less error prone at
    compile time. For example, if it is desirable to construct a str_view
    constant the following will obtain the length field for the user.
+   Simply copy and paste the same string twice for best results.
 
       static const str_view prefix = {.s = "test_", .sz = SVLEN("test_")};
-      int main()
-      {
-         ...
-      }
-
-   Alternatively, this works with a constant to reduce chances for errors.
-
-      static const char *const str = "test_";
-      static const str_view prefix = {.s = str, .sz = SVLEN(str)};
       int main()
       {
          ...

@@ -4,13 +4,19 @@
 #include <limits.h>
 #include <stdio.h>
 
+static const str_view dirslash = {.s = "/", .sz = SVLEN("/")};
+
 static enum test_result test_prefix_suffix(void);
 static enum test_result test_substr(void);
+static enum test_result test_dir_entries(void);
+static enum test_result test_progressive_search(void);
 
-#define NUM_TESTS (size_t)2
+#define NUM_TESTS (size_t)4
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_prefix_suffix, "test_prefix_suffix"},
     {test_substr, "test_substr"},
+    {test_dir_entries, "test_dir_entries"},
+    {test_progressive_search, "test_dir_dfs"},
 };
 
 int
@@ -110,6 +116,103 @@ test_substr(void)
         dump_substr2, 27,
         sv_substr(sv(ref), sv_strlen(substr1) + 1, sv_strlen(substr2)));
     if (sv_strcmp(substr2_view, dump_substr2) != EQL)
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_dir_entries(void)
+{
+    const str_view root_single_entry = {"/usr", SVLEN("/usr")};
+    const str_view root_single_entry_slash = {"/usr/", SVLEN("/usr/")};
+    if (!sv_empty(sv_substr(dirslash, 0, sv_rfind(dirslash, 0, dirslash))))
+    {
+        return FAIL;
+    }
+    const str_view without_last_slash
+        = sv_substr(root_single_entry_slash, 0,
+                    sv_rfind(root_single_entry_slash,
+                             sv_svlen(root_single_entry_slash), dirslash));
+    if (sv_svcmp(without_last_slash, root_single_entry) != EQL)
+    {
+        return FAIL;
+    }
+    const str_view special_file = {"/this/is/a/very/special/file",
+                                   SVLEN("/this/is/a/very/special/file")};
+    const char *const toks[6] = {"this", "is", "a", "very", "special", "file"};
+    size_t i = 0;
+    for (str_view tok = sv_begin_tok(special_file, dirslash); !sv_end_tok(tok);
+         tok = sv_next_tok(tok, dirslash), ++i)
+    {
+        if (sv_strcmp(tok, toks[i]) != EQL)
+        {
+            return FAIL;
+        }
+    }
+    if (i != sizeof(toks) / sizeof(toks[0]))
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_progressive_search(void)
+{
+    const str_view starting_path
+        = {"/this/is/not/the/file/you/are/looking/for",
+           SVLEN("/this/is/not/the/file/you/are/looking/for")};
+    const char *const sub_paths[10] = {
+        "/this/is/not/the/file/you/are/looking/for",
+        "this/is/not/the/file/you/are/looking/for",
+        "is/not/the/file/you/are/looking/for",
+        "not/the/file/you/are/looking/for",
+        "the/file/you/are/looking/for",
+        "file/you/are/looking/for",
+        "you/are/looking/for",
+        "are/looking/for",
+        "looking/for",
+        "for",
+    };
+    size_t i = 0;
+    for (str_view path = starting_path; !sv_empty(path);
+         path = sv_remove_prefix(path, sv_find_first_of(path, dirslash) + 1))
+    {
+        if (sv_strcmp(path, sub_paths[i]) != EQL)
+        {
+            return FAIL;
+        }
+        ++i;
+    }
+    if (i != sizeof(sub_paths) / sizeof(sub_paths[0]))
+    {
+        return FAIL;
+    }
+    const char *const sub_paths_rev[9] = {
+        "/this/is/not/the/file/you/are/looking/for",
+        "/this/is/not/the/file/you/are/looking",
+        "/this/is/not/the/file/you/are",
+        "/this/is/not/the/file/you",
+        "/this/is/not/the/file",
+        "/this/is/not/the",
+        "/this/is/not",
+        "/this/is",
+        "/this",
+    };
+    i = 0;
+    for (str_view path = starting_path; !sv_empty(path);
+         path = sv_remove_suffix(path, sv_svlen(path)
+                                           - sv_find_last_of(path, dirslash)))
+    {
+        if (sv_strcmp(path, sub_paths_rev[i]) != EQL)
+        {
+            return FAIL;
+        }
+        ++i;
+    }
+    if (i != sizeof(sub_paths_rev) / sizeof(sub_paths_rev[0]))
     {
         return FAIL;
     }

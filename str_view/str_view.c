@@ -504,7 +504,7 @@ sv_find(str_view hay, size_t pos, str_view needle)
 size_t
 sv_rfind(str_view h, size_t pos, str_view n)
 {
-    if (n.sz >= h.sz)
+    if (n.sz > h.sz)
     {
         return h.sz;
     }
@@ -807,13 +807,19 @@ sv_nlen(const char *const str, size_t n)
    end of a view until null is found. This way, string searches are efficient
    and only within the range specified. */
 static size_t
-sv_strcspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
+sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 {
     const char *a = str;
     size_t byteset[32 / sizeof(size_t)];
-    if (!set[0] || !set[1])
+    if (!set[0])
     {
         return str_sz;
+    }
+    if (!set[1])
+    {
+        for (; *a && *a != *set; a++)
+            ;
+        return a - str;
     }
     sv_memset(byteset, 0, sizeof byteset);
     for (size_t i = 0;
@@ -821,9 +827,9 @@ sv_strcspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
          set++, ++i)
         ;
     for (size_t i = 0;
-         *str && !BITOP(byteset, *(unsigned char *)str, &) && i < str_sz; str++)
+         *a && !BITOP(byteset, *(unsigned char *)a, &) && i < str_sz; a++)
         ;
-    return str - a;
+    return a - str;
 }
 
 /* strspn is based on musl C-standard library implementation
@@ -833,7 +839,7 @@ sv_strcspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
    end of a view until null is found. This way, string searches are efficient
    and only within the range specified. */
 static size_t
-sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
+sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 {
     const char *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
@@ -843,19 +849,18 @@ sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
     }
     if (!set[1])
     {
-        for (size_t i = 0; *str == *set && i < str_sz && i < set_sz; str++, ++i)
+        for (size_t i = 0; *a == *set && i < str_sz && i < set_sz; a++, ++i)
             ;
-        return str - a;
+        return a - str;
     }
     for (size_t i = 0;
          *set && BITOP(byteset, *(unsigned char *)set, |=) && i < set_sz;
          set++, ++i)
         ;
     for (size_t i = 0;
-         *str && BITOP(byteset, *(unsigned char *)str, &) && i < str_sz;
-         str++, ++i)
+         *a && BITOP(byteset, *(unsigned char *)a, &) && i < str_sz; a++, ++i)
         ;
-    return str - a;
+    return a - str;
 }
 
 /* Providing strnstrn rather than strstr at the lowest level works better for
@@ -863,7 +868,7 @@ sv_strspn(const char *str, size_t str_sz, const char *set, size_t set_sz)
    always be the additional constraint that a search cannot exceed the
    hay length. */
 static size_t
-sv_strnstrn(const char *hay, ssize_t hay_sz, const char *needle,
+sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
 {
     if (!hay || !needle || needle_sz == 0 || *needle == '\0'
