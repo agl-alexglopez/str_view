@@ -367,6 +367,7 @@ sv_begin_tok(str_view sv, str_view delim)
     }
     const size_t sv_not = sv_after_find(sv, delim);
     sv.s += sv_not;
+    sv.sz -= sv_not;
     if (*sv.s == '\0')
     {
         return (str_view){.s = sv.s, .sz = 0};
