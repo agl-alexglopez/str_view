@@ -64,6 +64,7 @@ static size_t sv_strcspn(const char *, size_t, const char *, size_t);
 static size_t sv_strspn(const char *, size_t, const char *, size_t);
 static size_t sv_strnstrn(const char *, ssize_t, const char *, ssize_t);
 static void *sv_memmove(void *, const void *, size_t);
+static size_t sv_strnchr(const char *, char, size_t);
 
 /* ===================   Interface Implementation   ====================== */
 
@@ -395,8 +396,11 @@ sv_next_tok(str_view sv, str_view delim)
         return (str_view){.s = sv.s + sv.sz, .sz = 0};
     }
     const char *next = sv.s + sv.sz + delim.sz;
-    const size_t next_sz = sv_strlen(next);
-    next += sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
+    size_t next_sz = sv_strlen(next);
+    const size_t after_delim
+        = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
+    next += after_delim;
+    next_sz -= after_delim;
     if (*next == '\0')
     {
         return (str_view){.s = next, .sz = 0};
@@ -876,6 +880,10 @@ sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
     {
         return hay_sz;
     }
+    if (1 == needle_sz)
+    {
+        return sv_strnchr(hay, *needle, hay_sz);
+    }
     if (2 == needle_sz)
     {
         return sv_twobyte_strnstrn((unsigned char *)hay, hay_sz,
@@ -1129,6 +1137,15 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
    http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c
    They must stop the search at hay size and therefore required slight
    modification because string views may not be null terminated. */
+
+static inline size_t
+sv_strnchr(const char *s, char c, size_t n)
+{
+    size_t i = 0;
+    for (; n && *s != c; s++, n--, ++i)
+    {}
+    return i;
+}
 
 static inline size_t
 sv_twobyte_strnstrn(const unsigned char *h, size_t sz, const unsigned char *n)

@@ -4,14 +4,20 @@
 #include <stdio.h>
 
 static enum test_result test_iter(void);
+static enum test_result test_min_delim(void);
+static enum test_result test_simple_delim(void);
+static enum test_result test_tail_delim(void);
 static enum test_result test_iter_repeating_delim(void);
 static enum test_result test_iter_multichar_delim(void);
 static enum test_result test_iter_multichar_delim_short(void);
 static enum test_result test_iter_delim_larger_than_str(void);
 
-#define NUM_TESTS (size_t)5
+#define NUM_TESTS (size_t)8
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
+    {test_min_delim, "test_min_delim"},
+    {test_simple_delim, "test_simple_delim"},
+    {test_tail_delim, "test_tail_delim"},
     {test_iter_repeating_delim, "test_iter_repeating_delim"},
     {test_iter_multichar_delim, "test_iter_multichar_delim"},
     {test_iter_multichar_delim_short, "test_iter_multichar_delim_short"},
@@ -75,6 +81,79 @@ test_iter(void)
         }
     }
     if (*cur2.s != '\0')
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_min_delim(void)
+{
+    const char *const reference = "0/0";
+    const char *const toks[2] = {"0", "0"};
+    const str_view delim = {"/", SVLEN("/")};
+    size_t i = 0;
+    for (str_view tok = sv_begin_tok(sv(reference), delim); !sv_end_tok(tok);
+         tok = sv_next_tok(tok, delim))
+    {
+        if (sv_strcmp(tok, toks[i]))
+        {
+            return FAIL;
+        }
+        ++i;
+    }
+    if (i != sizeof(toks) / sizeof(toks[0]))
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_simple_delim(void)
+{
+    const char *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
+    const char *const toks[11] = {
+        "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
+    };
+    const str_view delim = {"/", SVLEN("/")};
+    size_t i = 0;
+    for (str_view tok = sv_begin_tok(sv(reference), delim); !sv_end_tok(tok);
+         tok = sv_next_tok(tok, delim))
+    {
+        if (sv_strcmp(tok, toks[i]))
+        {
+            return FAIL;
+        }
+        ++i;
+    }
+    if (i != sizeof(toks) / sizeof(toks[0]))
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_tail_delim(void)
+{
+    const char *const reference = "0/1//2//2//3//3////3//4//4//4///////4578";
+    const char *const toks[10] = {
+        "0/1", "2", "2", "3", "3", "3", "4", "4", "4", "/4578",
+    };
+    const str_view delim = {"//", SVLEN("//")};
+    size_t i = 0;
+    for (str_view tok = sv_begin_tok(sv(reference), delim); !sv_end_tok(tok);
+         tok = sv_next_tok(tok, delim))
+    {
+        if (sv_strcmp(tok, toks[i]))
+        {
+            return FAIL;
+        }
+        ++i;
+    }
+    if (i != sizeof(toks) / sizeof(toks[0]))
     {
         return FAIL;
     }
