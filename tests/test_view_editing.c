@@ -143,8 +143,9 @@ test_dir_entries(void)
                                    SVLEN("/this/is/a/very/special/file")};
     const char *const toks[6] = {"this", "is", "a", "very", "special", "file"};
     size_t i = 0;
-    for (str_view tok = sv_begin_tok(special_file, dirslash); !sv_end_tok(tok);
-         tok = sv_next_tok(tok, dirslash), ++i)
+    for (str_view tok = sv_begin_tok(special_file, dirslash);
+         !sv_end_tok(special_file, tok);
+         tok = sv_next_tok(special_file, tok, dirslash), ++i)
     {
         if (sv_strcmp(tok, toks[i]) != EQL)
         {

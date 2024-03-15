@@ -11,8 +11,10 @@ static enum test_result test_iter_repeating_delim(void);
 static enum test_result test_iter_multichar_delim(void);
 static enum test_result test_iter_multichar_delim_short(void);
 static enum test_result test_iter_delim_larger_than_str(void);
+static enum test_result test_tokenize_not_terminated(void);
+static enum test_result test_tokenize_three_views(void);
 
-#define NUM_TESTS (size_t)8
+#define NUM_TESTS (size_t)10
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
     {test_min_delim, "test_min_delim"},
@@ -22,6 +24,8 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter_multichar_delim, "test_iter_multichar_delim"},
     {test_iter_multichar_delim_short, "test_iter_multichar_delim_short"},
     {test_iter_delim_larger_than_str, "test_iter_delim_larger_than_str"},
+    {test_tokenize_not_terminated, "test_tokenize_not_terminated"},
+    {test_tokenize_three_views, "test_tokenize_three_view"},
 };
 
 int
@@ -59,7 +63,8 @@ test_iter(void)
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_begin_tok(chars, (str_view){" ", 1});
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (str_view){" ", 1}))
+    for (; !sv_end_tok(chars, cur);
+         cur = sv_next_tok(chars, cur, (str_view){" ", 1}))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -73,7 +78,8 @@ test_iter(void)
     }
     /* Do at least one token iteration if we can't find any delims */
     str_view cur2 = sv_begin_tok(chars, (str_view){",", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){",", 1}))
+    for (; !sv_end_tok(chars, cur2);
+         cur2 = sv_next_tok(chars, cur2, (str_view){",", 1}))
     {
         if (sv_strcmp(cur2, reference) != 0)
         {
@@ -93,9 +99,10 @@ test_min_delim(void)
     const char *const reference = "/0/0";
     const char *const toks[2] = {"0", "0"};
     const str_view delim = {"/", SVLEN("/")};
+    const str_view ref_view = sv(reference);
     size_t i = 0;
-    for (str_view tok = sv_begin_tok(sv(reference), delim); !sv_end_tok(tok);
-         tok = sv_next_tok(tok, delim))
+    for (str_view tok = sv_begin_tok(ref_view, delim);
+         !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
     {
         if (sv_strcmp(tok, toks[i]) != EQL
             || sv_svlen(tok) != sv_strlen(toks[i]))
@@ -118,10 +125,11 @@ test_simple_delim(void)
     const char *const toks[11] = {
         "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
     };
+    const str_view ref_view = sv(reference);
     const str_view delim = {"/", SVLEN("/")};
     size_t i = 0;
-    for (str_view tok = sv_begin_tok(sv(reference), delim); !sv_end_tok(tok);
-         tok = sv_next_tok(tok, delim))
+    for (str_view tok = sv_begin_tok(ref_view, delim);
+         !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
     {
         if (sv_strcmp(tok, toks[i]) || sv_svlen(tok) != sv_strlen(toks[i]))
         {
@@ -143,10 +151,11 @@ test_tail_delim(void)
     const char *const toks[10] = {
         "0/1", "2", "2", "3", "3", "3", "4", "4", "4", "/4578",
     };
+    const str_view ref_view = sv(reference);
     const str_view delim = {"//", SVLEN("//")};
     size_t i = 0;
-    for (str_view tok = sv_begin_tok(sv(reference), delim); !sv_end_tok(tok);
-         tok = sv_next_tok(tok, delim))
+    for (str_view tok = sv_begin_tok(ref_view, delim);
+         !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
     {
         if (sv_strcmp(tok, toks[i]) || sv_svlen(tok) != sv_strlen(toks[i]))
         {
@@ -173,8 +182,9 @@ test_iter_repeating_delim(void)
     const str_view ref_view = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    str_view cur = sv_begin_tok(ref_view, (str_view){" ", 1});
-    for (; !sv_end_tok(cur); cur = sv_next_tok(cur, (str_view){" ", 1}))
+    str_view cur = sv_begin_tok(ref_view, SV(" "));
+    for (; !sv_end_tok(ref_view, cur);
+         cur = sv_next_tok(ref_view, cur, SV(" ")))
     {
         if (sv_strcmp(cur, toks[i]) != 0 || sv_svlen(cur) != sv_strlen(toks[i]))
         {
@@ -187,8 +197,9 @@ test_iter_repeating_delim(void)
         return FAIL;
     }
     /* Do at least one token iteration if we can't find any delims */
-    str_view cur2 = sv_begin_tok(ref_view, (str_view){",", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){",", 1}))
+    str_view cur2 = sv_begin_tok(ref_view, SV(","));
+    for (; !sv_end_tok(ref_view, cur2);
+         cur2 = sv_next_tok(ref_view, cur2, SV(",")))
     {
         if (sv_strcmp(cur2, reference) != 0
             || sv_svlen(cur2) != sv_strlen(reference))
@@ -218,8 +229,8 @@ test_iter_multichar_delim(void)
     const size_t delim_len = sv_strlen(delim);
     const str_view ref_view = sv(reference);
     str_view cur = sv_begin_tok(ref_view, (str_view){delim, delim_len});
-    for (; !sv_end_tok(cur);
-         cur = sv_next_tok(cur, (str_view){delim, delim_len}))
+    for (; !sv_end_tok(ref_view, cur);
+         cur = sv_next_tok(ref_view, cur, (str_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, toks[i]) != 0 || sv_svlen(cur) != sv_strlen(toks[i]))
         {
@@ -231,8 +242,9 @@ test_iter_multichar_delim(void)
     {
         return FAIL;
     }
-    str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){" ", 1}))
+    str_view cur2 = sv_begin_tok(ref_view, SV(" "));
+    for (; !sv_end_tok(ref_view, cur2);
+         cur2 = sv_next_tok(ref_view, cur2, SV(" ")))
     {
         if (sv_strcmp(cur2, reference) != 0
             || sv_svlen(cur2) != sv_strlen(reference))
@@ -262,8 +274,8 @@ test_iter_multichar_delim_short(void)
     const size_t delim_len = sv_strlen(delim);
     const str_view ref_view = sv(reference);
     str_view cur = sv_begin_tok(ref_view, (str_view){delim, delim_len});
-    for (; !sv_end_tok(cur);
-         cur = sv_next_tok(cur, (str_view){delim, delim_len}))
+    for (; !sv_end_tok(ref_view, cur);
+         cur = sv_next_tok(ref_view, cur, (str_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, toks[i]) != 0 || sv_svlen(cur) != sv_strlen(toks[i]))
         {
@@ -276,7 +288,8 @@ test_iter_multichar_delim_short(void)
         return FAIL;
     }
     str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
-    for (; !sv_end_tok(cur2); cur2 = sv_next_tok(cur2, (str_view){" ", 1}))
+    for (; !sv_end_tok(ref_view, cur2);
+         cur2 = sv_next_tok(ref_view, cur2, (str_view){" ", 1}))
     {
         if (sv_strcmp(cur2, reference) != 0
             || sv_svlen(cur2) != sv_strlen(reference))
@@ -307,8 +320,8 @@ test_iter_delim_larger_than_str(void)
     {
         return FAIL;
     }
-    for (; !sv_end_tok(cur);
-         cur = sv_next_tok(cur, (str_view){delim, delim_len}))
+    for (; !sv_end_tok(sv(reference), cur);
+         cur = sv_next_tok(sv(reference), cur, (str_view){delim, delim_len}))
     {
         if (sv_strcmp(cur, reference) != EQL
             || sv_svlen(cur) != sv_strlen(reference))
@@ -319,6 +332,77 @@ test_iter_delim_larger_than_str(void)
     if (*cur.s != '\0')
     {
         return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_tokenize_not_terminated(void)
+{
+    const char *const path_str = "this/path/will/be/missing/its/child";
+    const char *const toks[6] = {
+        "this", "path", "will", "be", "missing", "its",
+    };
+    const str_view path = sv(path_str);
+    const str_view delim = SV("/");
+    const str_view childless_path
+        = sv_remove_suffix(path, sv_svlen(path) - sv_find_last_of(path, delim));
+    size_t i = 0;
+    for (str_view tok = sv_begin_tok(childless_path, delim);
+         !sv_end_tok(childless_path, tok);
+         tok = sv_next_tok(childless_path, tok, delim))
+    {
+        if (sv_strcmp(tok, toks[i]) || sv_svlen(tok) != sv_strlen(toks[i]))
+        {
+            return FAIL;
+        }
+        ++i;
+    }
+    if (i != sizeof(toks) / sizeof(toks[0]))
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_tokenize_three_views(void)
+{
+    const char *const path_str = "all/of/these/paths/are/unique/and/split/up";
+    const char *const toks[3][3] = {
+        {"all", "of", "these"},
+        {"paths", "are", "unique"},
+        {"and", "split", "up"},
+    };
+    const str_view path = sv(path_str);
+    const str_view delim = SV("/");
+    const str_view first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
+    const str_view second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
+                                      sv_find(path, 0, SV("/and/"))
+                                          - sv_find(path, 0, SV("/paths/")));
+    const str_view third
+        = sv_substr(path, sv_find(path, 0, SV("/and/")),
+                    sv_svlen(path) - sv_find(path, 0, SV("/and/")));
+    size_t i = 0;
+    for (str_view tok1 = sv_begin_tok(first, delim),
+                  tok2 = sv_begin_tok(second, delim),
+                  tok3 = sv_begin_tok(third, delim);
+         !sv_end_tok(first, tok1) && !sv_end_tok(second, tok2)
+         && !sv_end_tok(third, tok3);
+         tok1 = sv_next_tok(first, tok1, delim),
+                  tok2 = sv_next_tok(second, tok2, delim),
+                  tok3 = sv_next_tok(third, tok3, delim))
+    {
+        if (sv_strcmp(tok1, toks[0][i])
+            || sv_svlen(tok1) != sv_strlen(toks[0][i])
+            || sv_strcmp(tok2, toks[1][i])
+            || sv_svlen(tok2) != sv_strlen(toks[1][i])
+            || sv_strcmp(tok3, toks[2][i])
+            || sv_svlen(tok3) != sv_strlen(toks[2][i]))
+        {
+            return FAIL;
+        }
+        ++i;
     }
     return PASS;
 }

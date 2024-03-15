@@ -355,48 +355,52 @@ sv_pos(str_view sv, size_t i)
 }
 
 str_view
-sv_begin_tok(str_view sv, str_view delim)
+sv_begin_tok(str_view src, str_view delim)
 {
-    if (!sv.s)
+    if (!src.s)
     {
         return (str_view){.s = nil, .sz = 0};
     }
     if (!delim.s)
     {
-        return (str_view){.s = sv.s + sv.sz, 0};
+        return (str_view){.s = src.s + src.sz, 0};
     }
-    const size_t sv_not = sv_after_find(sv, delim);
-    sv.s += sv_not;
-    sv.sz -= sv_not;
-    if (*sv.s == '\0')
+    const size_t sv_not = sv_after_find(src, delim);
+    src.s += sv_not;
+    src.sz -= sv_not;
+    if (*src.s == '\0')
     {
-        return (str_view){.s = sv.s, .sz = 0};
+        return (str_view){.s = src.s, .sz = 0};
     }
-    return sv_substr(sv, 0, sv_find(sv, 0, delim));
+    return sv_substr(src, 0, sv_find(src, 0, delim));
 }
 
 bool
-sv_end_tok(const str_view sv)
+sv_end_tok(const str_view src, const str_view tok)
 {
-    return 0 == sv.sz;
+    return 0 == tok.sz || tok.s >= (src.s + src.sz);
 }
 
 str_view
-sv_next_tok(str_view sv, str_view delim)
+sv_next_tok(const str_view src, str_view tok, str_view delim)
 {
-    if (!sv.s)
+    if (!tok.s)
     {
         return (str_view){.s = nil, .sz = 0};
     }
-    if (!sv.sz)
+    if (!tok.sz)
     {
-        return sv;
+        return tok;
     }
-    if (!delim.s || sv.s[sv.sz] == '\0')
+    if (!delim.s || tok.s[tok.sz] == '\0')
     {
-        return (str_view){.s = sv.s + sv.sz, .sz = 0};
+        return (str_view){.s = tok.s + tok.sz, .sz = 0};
     }
-    const char *next = sv.s + sv.sz + delim.sz;
+    const char *next = tok.s + tok.sz + delim.sz;
+    if (next >= src.s + src.sz)
+    {
+        return (str_view){.s = next, .sz = 0};
+    }
     size_t next_sz = sv_strlen(next);
     const size_t after_delim
         = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);

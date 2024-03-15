@@ -38,6 +38,24 @@ typedef enum
    At runtime, prefer the provided functions for all other str_view needs. */
 #define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
 
+/* A macro to further reduce the chance for errors in repeating oneself
+   when constructing inline or const str_views. The input must be a string
+   literal. For example, the above example becomes:
+
+      static const str_view prefix = SV("test_");
+
+   But more importantly this allows for inline constructors that are
+   easier to read than struct declarations and don't risk mistakes in
+   counting characters. For example:
+
+       for (str_view cur = sv_begin_tok(ref, SV(" "));
+            !sv_end_tok(ref_view, cur);
+            cur = sv_next_tok(ref_view, cur, SV(" "))
+       {}
+
+   However saving the delimiter in a constant may be more convenient. */
+#define SV(str) ((str_view){(str), SVLEN((str))})
+
 /* Constructs and returns a string view from a NULL TERMINATED string. */
 str_view sv(const char *);
 
@@ -171,18 +189,18 @@ const char *sv_pos(str_view, size_t i);
    terminating character or empty string and the size zero substring
    at the final position in the str_view is returned wich may or
    may not be the null termiator. */
-str_view sv_begin_tok(str_view, str_view delim);
+str_view sv_begin_tok(str_view src, str_view delim);
 
 /* Returns true if no further tokes are found and position is at the end
    position, meaning a call to sv_next_tok has yielded a size 0 str_view */
-bool sv_end_tok(str_view);
+bool sv_end_tok(str_view src, str_view tok);
 
 /* Advances to the next token in the remaining view seperated by the delim.
    Repeating delimter patterns will be skipped until the next token or end
    of string is found. If str_view stores NULL the sv_null() placeholder
    is returned. If delim stores NULL the end position of the str_view
    is returned which may or may not be the null terminator. */
-str_view sv_next_tok(str_view, str_view delim);
+str_view sv_next_tok(str_view src, str_view tok, str_view delim);
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (str_view.sz - pos). The process

@@ -252,9 +252,9 @@ test_substring_search(void)
     }
     /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
-    for (str_view v
-         = sv_begin_tok(haystack_view, (str_view){"needle", needle_len});
-         !sv_end_tok(v); v = sv_next_tok(v, (str_view){"needle", needle_len}))
+    for (str_view v = sv_begin_tok(haystack_view, SV("needle"));
+         !sv_end_tok(haystack_view, v);
+         v = sv_next_tok(haystack_view, v, SV("needle")))
     {
         ++i;
     }
