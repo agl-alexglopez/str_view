@@ -396,11 +396,12 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = tok.s + tok.sz, .sz = 0};
     }
-    const char *next = tok.s + tok.sz + delim.sz;
+    const char *next = tok.s + tok.sz;
     if (next >= src.s + src.sz)
     {
         return (str_view){.s = next, .sz = 0};
     }
+    next += delim.sz;
     size_t next_sz = sv_strlen(next);
     const size_t after_delim
         = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
