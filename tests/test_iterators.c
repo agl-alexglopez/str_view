@@ -393,16 +393,20 @@ test_tokenize_three_views(void)
                   tok2 = sv_next_tok(second, tok2, delim),
                   tok3 = sv_next_tok(third, tok3, delim))
     {
-        if (sv_strcmp(tok1, toks[0][i])
+        if (sv_strcmp(tok1, toks[0][i]) != EQL
             || sv_svlen(tok1) != sv_strlen(toks[0][i])
-            || sv_strcmp(tok2, toks[1][i])
+            || sv_strcmp(tok2, toks[1][i]) != EQL
             || sv_svlen(tok2) != sv_strlen(toks[1][i])
-            || sv_strcmp(tok3, toks[2][i])
+            || sv_strcmp(tok3, toks[2][i]) != EQL
             || sv_svlen(tok3) != sv_strlen(toks[2][i]))
         {
             return FAIL;
         }
         ++i;
+    }
+    if (i != sizeof(toks) / sizeof(toks[0]))
+    {
+        return FAIL;
     }
     return PASS;
 }
