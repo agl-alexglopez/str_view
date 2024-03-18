@@ -9,6 +9,14 @@ There are still improvements to be made to this library as time allows for packa
 ## Interface
 
 ```c
+
+#ifndef STR_VIEW
+#define STR_VIEW
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+
 /* Read-only view of string data. Prefer the provided functions for
    string manipulations rather than using the provided fields. This
    interface is modeled after std::string_view in C++ with elements
@@ -41,6 +49,24 @@ typedef enum
 
    At runtime, prefer the provided functions for all other str_view needs. */
 #define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
+
+/* A macro to further reduce the chance for errors in repeating oneself
+   when constructing inline or const str_views. The input must be a string
+   literal. For example, the above example becomes:
+
+      static const str_view prefix = SV("test_");
+
+   But more importantly this allows for inline constructors that are
+   easier to read than struct declarations and don't risk mistakes in
+   counting characters. For example:
+
+       for (str_view cur = sv_begin_tok(ref, SV(" "));
+            !sv_end_tok(ref_view, cur);
+            cur = sv_next_tok(ref_view, cur, SV(" "))
+       {}
+
+   However saving the delimiter in a constant may be more convenient. */
+#define SV(str) ((str_view){(str), SVLEN((str))})
 
 /* Constructs and returns a string view from a NULL TERMINATED string. */
 str_view sv(const char *);
@@ -75,14 +101,14 @@ size_t sv_npos(str_view);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between two string views.
-   lhs LES(-1) rhs (lhs is less than rhs) 
+   lhs LES(-1) rhs (lhs is less than rhs)
    lhs EQL(0) rhs (lhs is equal to rhs)
    lhs GRT(1) rhs (lhs is greater than rhs)*/
 sv_threeway_cmp sv_svcmp(str_view, str_view);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
-   str_view LES(-1) rhs (str_view is less than str) 
+   str_view LES(-1) rhs (str_view is less than str)
    str_view EQL(0) rhs (str_view is equal to str)
    str_view GRT(1) rhs (str_view is greater than str)*/
 sv_threeway_cmp sv_strcmp(str_view, const char *str);
@@ -90,7 +116,7 @@ sv_threeway_cmp sv_strcmp(str_view, const char *str);
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
    or stops at the null terminator if that is encountered first.
-   str_view LES(-1) rhs (str_view is less than str) 
+   str_view LES(-1) rhs (str_view is less than str)
    str_view EQL(0) rhs (str_view is equal to str)
    str_view GRT(1) rhs (str_view is greater than str)*/
 sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
@@ -175,18 +201,18 @@ const char *sv_pos(str_view, size_t i);
    terminating character or empty string and the size zero substring
    at the final position in the str_view is returned wich may or
    may not be the null termiator. */
-str_view sv_begin_tok(str_view, str_view delim);
+str_view sv_begin_tok(str_view src, str_view delim);
 
 /* Returns true if no further tokes are found and position is at the end
    position, meaning a call to sv_next_tok has yielded a size 0 str_view */
-bool sv_end_tok(str_view);
+bool sv_end_tok(str_view src, str_view tok);
 
 /* Advances to the next token in the remaining view seperated by the delim.
    Repeating delimter patterns will be skipped until the next token or end
    of string is found. If str_view stores NULL the sv_null() placeholder
    is returned. If delim stores NULL the end position of the str_view
    is returned which may or may not be the null terminator. */
-str_view sv_next_tok(str_view, str_view delim);
+str_view sv_next_tok(str_view src, str_view tok, str_view delim);
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (str_view.sz - pos). The process
@@ -250,6 +276,8 @@ size_t sv_find_last_not_of(str_view hay, str_view set);
 
 /* Writes all characters in str_view to stdout. */
 void sv_print(FILE *, str_view);
+
+#endif /* STR_VIEW */
 ```
 
 Thanks for reading!
