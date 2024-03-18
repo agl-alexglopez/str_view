@@ -214,7 +214,9 @@ size_t sv_find(str_view hay, size_t pos, str_view needle);
 
 /* Searches for the last occurence of needle in hay starting from pos.
    If needle is larger than hay, hay length is returned. If the
-   position is larger than the hay, the entire hay is searched. */
+   position is larger than the hay, the entire hay is searched.
+   Note: searches from left to right for now though will be updated
+   to to proper right to left search soon. */
 size_t sv_rfind(str_view hay, size_t pos, str_view needle);
 
 /* Returns true if the needle is found in the hay, false otherwise. */
