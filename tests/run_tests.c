@@ -84,14 +84,9 @@ run(const str_view tests_dir)
         passed += 1 - res;
         ++tests;
     }
-    if (passed == tests)
-    {
-        printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", green, passed, tests, none);
-    }
-    else
-    {
-        printf("%sPASSED %zu/%zu T_T%s\n\n", red, passed, tests, none);
-    }
+    passed == tests
+        ? printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", green, passed, tests, none)
+        : printf("%sPASSED %zu/%zu T_T%s\n\n", red, passed, tests, none);
     return 0;
 }
 
