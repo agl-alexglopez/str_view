@@ -51,21 +51,16 @@ typedef enum
 #define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
 
 /* A macro to further reduce the chance for errors in repeating oneself
-   when constructing inline or const str_views. The input must be a string
+   when constructing compile time str_views. The input must be a string
    literal. For example, the above example becomes:
 
       static const str_view prefix = SV("test_");
+      int main()
+      {
+         ...
+      }
 
-   But more importantly this allows for inline constructors that are
-   easier to read than struct declarations and don't risk mistakes in
-   counting characters. For example:
-
-       for (str_view cur = sv_begin_tok(ref, SV(" "));
-            !sv_end_tok(ref_view, cur);
-            cur = sv_next_tok(ref_view, cur, SV(" "))
-       {}
-
-   However saving the delimiter in a constant may be more convenient. */
+   In normal runtime code, prefer the provided constructor functions. */
 #define SV(str) ((str_view){(str), SVLEN((str))})
 
 /* Constructs and returns a string view from a NULL TERMINATED string. */

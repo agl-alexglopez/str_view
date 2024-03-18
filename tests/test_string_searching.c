@@ -48,30 +48,15 @@ test_find_rfind(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     str_view str = sv(ref);
-    if (sv_find(str, 0,
-                (str_view){
-                    .s = "C",
-                    .sz = 1,
-                })
-        != 2)
+    if (sv_find(str, 0, sv("C")) != 2)
     {
         return FAIL;
     }
-    if (sv_find(str, 0,
-                (str_view){
-                    .s = "",
-                    .sz = 1,
-                })
-        != 19)
+    if (sv_find(str, 0, sv("")) != 19)
     {
         return FAIL;
     }
-    if (sv_rfind(str, str.sz,
-                 (str_view){
-                     .s = "!",
-                     .sz = 1,
-                 })
-        != 16)
+    if (sv_rfind(str, str.sz, sv("!")) != 16)
     {
         return FAIL;
     }
@@ -89,48 +74,23 @@ test_find_of_sets(void)
         [20] = '!', [21] = '!', [22] = 'Z', [23] = 'z', [24] = '\0',
     };
     str_view str = sv(ref);
-    if (sv_find_first_of(str,
-                         (str_view){
-                             .s = "CB!",
-                             .sz = sv_strlen("CB!"),
-                         })
-        != 2)
+    if (sv_find_first_of(str, sv("CB!")) != 2)
     {
         return FAIL;
     }
-    if (sv_find_first_of(str,
-                         (str_view){
-                             .s = "",
-                             .sz = 0,
-                         })
-        != 24)
+    if (sv_find_first_of(str, sv("")) != 24)
     {
         return FAIL;
     }
-    if (sv_find_last_of(str,
-                        (str_view){
-                            .s = "! _",
-                            .sz = sv_strlen("! _"),
-                        })
-        != 21)
+    if (sv_find_last_of(str, sv("! _")) != 21)
     {
         return FAIL;
     }
-    if (sv_find_last_not_of(str,
-                            (str_view){
-                                .s = "CBA!",
-                                .sz = sv_strlen("CBA!"),
-                            })
-        != 22)
+    if (sv_find_last_not_of(str, sv("CBA!")) != 22)
     {
         return FAIL;
     }
-    if (sv_find_first_not_of(str,
-                             (str_view){
-                                 .s = "ACB!;:, *.",
-                                 .sz = sv_strlen("ACB!;:, *."),
-                             })
-        != 14)
+    if (sv_find_first_not_of(str, sv("ACB!;:, *.")) != 14)
     {
         return FAIL;
     }
@@ -252,9 +212,9 @@ test_substring_search(void)
     }
     /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
-    for (str_view v = sv_begin_tok(haystack_view, SV("needle"));
+    for (str_view v = sv_begin_tok(haystack_view, sv("needle"));
          !sv_end_tok(haystack_view, v);
-         v = sv_next_tok(haystack_view, v, SV("needle")))
+         v = sv_next_tok(haystack_view, v, sv("needle")))
     {
         ++i;
     }

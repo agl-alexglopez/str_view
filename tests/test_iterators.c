@@ -62,9 +62,8 @@ test_iter(void)
     }
     i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    str_view cur = sv_begin_tok(chars, (str_view){" ", 1});
-    for (; !sv_end_tok(chars, cur);
-         cur = sv_next_tok(chars, cur, (str_view){" ", 1}))
+    str_view cur = sv_begin_tok(chars, sv(" "));
+    for (; !sv_end_tok(chars, cur); cur = sv_next_tok(chars, cur, sv(" ")))
     {
         if (sv_front(cur) != reference[i])
         {
@@ -77,9 +76,8 @@ test_iter(void)
         return FAIL;
     }
     /* Do at least one token iteration if we can't find any delims */
-    str_view cur2 = sv_begin_tok(chars, (str_view){",", 1});
-    for (; !sv_end_tok(chars, cur2);
-         cur2 = sv_next_tok(chars, cur2, (str_view){",", 1}))
+    str_view cur2 = sv_begin_tok(chars, sv(","));
+    for (; !sv_end_tok(chars, cur2); cur2 = sv_next_tok(chars, cur2, sv(",")))
     {
         if (sv_strcmp(cur2, reference) != 0)
         {
@@ -98,7 +96,7 @@ test_min_delim(void)
 {
     const char *const reference = "/0/0";
     const char *const toks[2] = {"0", "0"};
-    const str_view delim = {"/", SVLEN("/")};
+    const str_view delim = sv("/");
     const str_view ref_view = sv(reference);
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
@@ -126,7 +124,7 @@ test_simple_delim(void)
         "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
     };
     const str_view ref_view = sv(reference);
-    const str_view delim = {"/", SVLEN("/")};
+    const str_view delim = sv("/");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
@@ -152,7 +150,7 @@ test_tail_delim(void)
         "0/1", "2", "2", "3", "3", "3", "4", "4", "4", "/4578",
     };
     const str_view ref_view = sv(reference);
-    const str_view delim = {"//", SVLEN("//")};
+    const str_view delim = sv("//");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
@@ -182,9 +180,9 @@ test_iter_repeating_delim(void)
     const str_view ref_view = sv(reference);
     size_t i = 0;
     /* This version should only give us the letters because delim is ' ' */
-    str_view cur = sv_begin_tok(ref_view, SV(" "));
+    str_view cur = sv_begin_tok(ref_view, sv(" "));
     for (; !sv_end_tok(ref_view, cur);
-         cur = sv_next_tok(ref_view, cur, SV(" ")))
+         cur = sv_next_tok(ref_view, cur, sv(" ")))
     {
         if (sv_strcmp(cur, toks[i]) != 0 || sv_svlen(cur) != sv_strlen(toks[i]))
         {
@@ -197,9 +195,9 @@ test_iter_repeating_delim(void)
         return FAIL;
     }
     /* Do at least one token iteration if we can't find any delims */
-    str_view cur2 = sv_begin_tok(ref_view, SV(","));
+    str_view cur2 = sv_begin_tok(ref_view, sv(","));
     for (; !sv_end_tok(ref_view, cur2);
-         cur2 = sv_next_tok(ref_view, cur2, SV(",")))
+         cur2 = sv_next_tok(ref_view, cur2, sv(",")))
     {
         if (sv_strcmp(cur2, reference) != 0
             || sv_svlen(cur2) != sv_strlen(reference))
@@ -242,9 +240,9 @@ test_iter_multichar_delim(void)
     {
         return FAIL;
     }
-    str_view cur2 = sv_begin_tok(ref_view, SV(" "));
+    str_view cur2 = sv_begin_tok(ref_view, sv(" "));
     for (; !sv_end_tok(ref_view, cur2);
-         cur2 = sv_next_tok(ref_view, cur2, SV(" ")))
+         cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
     {
         if (sv_strcmp(cur2, reference) != 0
             || sv_svlen(cur2) != sv_strlen(reference))
@@ -287,9 +285,9 @@ test_iter_multichar_delim_short(void)
     {
         return FAIL;
     }
-    str_view cur2 = sv_begin_tok(ref_view, (str_view){" ", 1});
+    str_view cur2 = sv_begin_tok(ref_view, sv(" "));
     for (; !sv_end_tok(ref_view, cur2);
-         cur2 = sv_next_tok(ref_view, cur2, (str_view){" ", 1}))
+         cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
     {
         if (sv_strcmp(cur2, reference) != 0
             || sv_svlen(cur2) != sv_strlen(reference))
@@ -309,11 +307,10 @@ test_iter_delim_larger_than_str(void)
 {
     const char *const reference = "A-B";
     /* This delimeter is too large so we should just take the whole string */
-    const char *const delim = "-----";
-    const size_t delim_len = sv_strlen(delim);
-    str_view constructed = sv_delim(reference, delim);
-    str_view cur = sv_begin_tok((str_view){reference, sv_strlen(reference)},
-                                (str_view){delim, delim_len});
+    const str_view delim = sv("-----");
+    str_view constructed = sv_delim(reference, delim.s);
+    str_view cur
+        = sv_begin_tok((str_view){reference, sv_strlen(reference)}, delim);
     if (sv_svcmp(constructed, cur) != EQL
         || sv_strcmp(constructed, reference) != EQL
         || sv_strcmp(cur, reference) != EQL)
@@ -321,7 +318,7 @@ test_iter_delim_larger_than_str(void)
         return FAIL;
     }
     for (; !sv_end_tok(sv(reference), cur);
-         cur = sv_next_tok(sv(reference), cur, (str_view){delim, delim_len}))
+         cur = sv_next_tok(sv(reference), cur, delim))
     {
         if (sv_strcmp(cur, reference) != EQL
             || sv_svlen(cur) != sv_strlen(reference))
@@ -344,7 +341,7 @@ test_tokenize_not_terminated(void)
         "this", "path", "will", "be", "missing", "its",
     };
     const str_view path = sv(path_str);
-    const str_view delim = SV("/");
+    const str_view delim = sv("/");
     const str_view childless_path
         = sv_remove_suffix(path, sv_svlen(path) - sv_find_last_of(path, delim));
     size_t i = 0;
@@ -375,14 +372,14 @@ test_tokenize_three_views(void)
         {"and", "split", "up"},
     };
     const str_view path = sv(path_str);
-    const str_view delim = SV("/");
-    const str_view first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
-    const str_view second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
-                                      sv_find(path, 0, SV("/and/"))
-                                          - sv_find(path, 0, SV("/paths/")));
+    const str_view delim = sv("/");
+    const str_view first = sv_substr(path, 0, sv_find(path, 0, sv("/paths/")));
+    const str_view second = sv_substr(path, sv_find(path, 0, sv("/paths/")),
+                                      sv_find(path, 0, sv("/and/"))
+                                          - sv_find(path, 0, sv("/paths/")));
     const str_view third
-        = sv_substr(path, sv_find(path, 0, SV("/and/")),
-                    sv_svlen(path) - sv_find(path, 0, SV("/and/")));
+        = sv_substr(path, sv_find(path, 0, sv("/and/")),
+                    sv_svlen(path) - sv_find(path, 0, sv("/and/")));
     size_t i = 0;
     for (str_view tok1 = sv_begin_tok(first, delim),
                   tok2 = sv_begin_tok(second, delim),
