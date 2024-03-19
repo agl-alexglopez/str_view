@@ -14,8 +14,9 @@ static enum test_result test_rfind_brute_force(void);
 static enum test_result test_find_rfind_memoization(void);
 static enum test_result test_substring_off_by_one(void);
 static enum test_result test_substring_search(void);
+static enum test_result test_rsubstring_search(void);
 
-#define NUM_TESTS (size_t)9
+#define NUM_TESTS (size_t)10
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_small_find, "test_small_find"},
     {test_small_rfind, "test_small_rfind"},
@@ -26,6 +27,7 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_find_rfind_memoization, "test_find_rfind_memoization"},
     {test_substring_off_by_one, "test_substring_off_by_one"},
     {test_substring_search, "test_substring_search"},
+    {test_rsubstring_search, "test_rsubstring_search"},
 };
 
 int
@@ -395,6 +397,47 @@ test_substring_search(void)
         ++i;
     }
     if (i != 2)
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_rsubstring_search(void)
+{
+    const char *needle = "needle";
+    const char *const haystack
+        = "needle___khaystackhaystackhaystackhaystackhaystackhaystackhaystack"
+          "haystackhaystackhaystackhaystackhaystackhaystack--------___---**"
+          "haystackhaystackhaystackhaystackhaystackhaystack\n\n\n\n\n\n\n\n"
+          "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennnnnnnnnneeeedneeddl"
+          "_______________________needle___________________________________"
+          "neeedleneeddleneedlaneeeeeeeeeeeeeedlenedlennneeeeeeeeeeedneeddl"
+          "haystackhaystackhaystackhaystackhaystackhaystackhaystack";
+    const str_view haystack_view = sv(haystack);
+    const str_view needle_view = sv(needle);
+    const char *middle = strstr(haystack + 1, needle);
+    const char *begin = strstr(haystack, needle);
+    if (!middle || !begin || begin == middle)
+    {
+        printf("clibrary strstr failed?\n");
+        return FAIL;
+    }
+    const str_view middle_needle = sv_rsvsv(haystack_view, needle_view);
+    const size_t middle_pos
+        = sv_rfind(haystack_view, haystack_view.sz, needle_view);
+    if (sv_svcmp(middle_needle, needle_view) != EQL || middle_needle.s != middle
+        || middle_pos != (size_t)(middle - haystack))
+    {
+        return FAIL;
+    }
+    const str_view first_chunk_view = sv_n(haystack, middle_pos);
+    const str_view begin_needle = sv_rsvsv(first_chunk_view, needle_view);
+    const size_t begin_pos
+        = sv_rfind(first_chunk_view, first_chunk_view.sz, needle_view);
+    if (sv_svcmp(begin_needle, needle_view) != EQL || begin_needle.s != begin
+        || begin_pos != (size_t)(begin - haystack))
     {
         return FAIL;
     }
