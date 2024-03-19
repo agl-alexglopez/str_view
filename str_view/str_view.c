@@ -430,7 +430,7 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
 }
 
 str_view
-sv_extend(const str_view src)
+sv_extend(str_view src)
 {
     if (!src.s)
     {
@@ -439,7 +439,8 @@ sv_extend(const str_view src)
     const char *i = src.s;
     while (*i++)
     {}
-    return (str_view){.s = src.s, .sz = i - src.s - 1};
+    src.sz = i - src.s - 1;
+    return src;
 }
 
 bool
