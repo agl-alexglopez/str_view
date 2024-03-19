@@ -879,13 +879,13 @@ sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
     }
     if (!set[1])
     {
-        for (; *a && *a != *set; a++)
+        for (size_t i = 0; i < str_sz && *a && *a != *set; a++)
             ;
         return a - str;
     }
     sv_memset(byteset, 0, sizeof byteset);
     for (size_t i = 0;
-         *set && BITOP(byteset, *(unsigned char *)set, |=) && i < set_sz;
+         i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
          set++, ++i)
         ;
     for (size_t i = 0;
@@ -911,16 +911,16 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
     }
     if (!set[1])
     {
-        for (size_t i = 0; *a == *set && i < str_sz && i < set_sz; a++, ++i)
+        for (size_t i = 0; i < str_sz && i < set_sz && *a == *set; a++, ++i)
             ;
         return a - str;
     }
     for (size_t i = 0;
-         *set && BITOP(byteset, *(unsigned char *)set, |=) && i < set_sz;
+         i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
          set++, ++i)
         ;
     for (size_t i = 0;
-         *a && BITOP(byteset, *(unsigned char *)a, &) && i < str_sz; a++, ++i)
+         *a && i < str_sz && BITOP(byteset, *(unsigned char *)a, &); a++, ++i)
         ;
     return a - str;
 }
