@@ -9,7 +9,6 @@ There are still improvements to be made to this library as time allows for packa
 ## Interface
 
 ```c
-
 #ifndef STR_VIEW
 #define STR_VIEW
 
@@ -51,16 +50,21 @@ typedef enum
 #define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
 
 /* A macro to further reduce the chance for errors in repeating oneself
-   when constructing compile time str_views. The input must be a string
+   when constructing inline or const str_views. The input must be a string
    literal. For example, the above example becomes:
 
       static const str_view prefix = SV("test_");
-      int main()
-      {
-         ...
-      }
 
-   In normal runtime code, prefer the provided constructor functions. */
+   But more importantly this allows for inline constructors that are
+   easier to read than struct declarations and don't risk mistakes in
+   counting characters. For example:
+
+       for (str_view cur = sv_begin_tok(ref, SV(" "));
+            !sv_end_tok(ref_view, cur);
+            cur = sv_next_tok(ref_view, cur, SV(" "))
+       {}
+
+   However saving the delimiter in a constant may be more convenient. */
 #define SV(str) ((str_view){(str), SVLEN((str))})
 
 /* Constructs and returns a string view from a NULL TERMINATED string. */
@@ -209,6 +213,13 @@ bool sv_end_tok(str_view src, str_view tok);
    is returned which may or may not be the null terminator. */
 str_view sv_next_tok(str_view src, str_view tok, str_view delim);
 
+/* Returns a str_view of the entirety of the underlying string. This
+   guarantees that the str_view returned ends at the null terminator
+   of the underlying string as all strings used with str_views are
+   assumed to be null terminated. It is undefined behavior to provide
+   non null terminated strings to any str_view code. */
+str_view sv_extend(str_view src);
+
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (str_view.sz - pos). The process
    will exit if position is greater than str_view size. */
@@ -219,9 +230,11 @@ str_view sv_substr(str_view, size_t pos, size_t count);
    then hay length is returned. */
 size_t sv_find(str_view hay, size_t pos, str_view needle);
 
-/* Searches for the last occurence of needle in hay starting from pos.
-   If needle is larger than hay, hay length is returned. If the
-   position is larger than the hay, the entire hay is searched. */
+/* Searches for the last occurence of needle in hay starting from pos
+   from right to left. If found the starting position of the string
+   is returned, the same as find. The only difference is the search
+   direction. If needle is larger than hay, hay length is returned.
+   If the position is larger than the hay, the entire hay is searched. */
 size_t sv_rfind(str_view hay, size_t pos, str_view needle);
 
 /* Returns true if the needle is found in the hay, false otherwise. */
@@ -230,8 +243,16 @@ bool sv_contains(str_view hay, str_view needle);
 /* Returns a view of the needle found in hay at the first found
    position. If the needle cannot be found the empty view at the
    hay length position is returned. This may or may not be null
-   terminated at that position. */
+   terminated at that position. If needle is greater than
+   hay length sv_null is returned. */
 str_view sv_svsv(str_view hay, str_view needle);
+
+/* Returns a view of the needle found in hay at the last found
+   position. If the needle cannot be found the empty view at the
+   hay length position is returned. This may or may not be null
+   terminated at that position. If needle is greater than
+   hay length sv_null is returned. */
+str_view sv_rsvsv(str_view hay, str_view needle);
 
 /* Returns true if a prefix <= str_view is present, false otherwise. */
 bool sv_starts_with(str_view, str_view prefix);
