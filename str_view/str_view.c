@@ -39,7 +39,7 @@ struct sv_two_way_pack
    empty, null, invalid, not found etc. Used on cases by case basis.
    It is usually better to justify giving back the user pointer in a
    string_view even if it sized 0 and pointing to null terminator. */
-static const char *const nil = "";
+static const str_view nil = SV("");
 
 /* =========================   Prototypes   =============================== */
 
@@ -86,7 +86,7 @@ sv(const char *const str)
 {
     if (!str)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     return (str_view){.s = str, .sz = sv_strlen(str)};
 }
@@ -96,7 +96,7 @@ sv_n(const char *const str, size_t n)
 {
     if (!str || n == 0)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     return (str_view){.s = str, .sz = sv_nlen(str, n)};
 }
@@ -106,7 +106,7 @@ sv_delim(const char *const str, const char *const delim)
 {
     if (!str)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     if (!delim)
     {
@@ -126,7 +126,7 @@ sv_delim(const char *const str, const char *const delim)
 void
 sv_print(FILE *f, str_view s)
 {
-    if (!s.s || nil == s.s || 0 == s.sz || !f)
+    if (!s.s || nil.s == s.s || 0 == s.sz || !f)
     {
         return;
     }
@@ -210,7 +210,7 @@ sv_at(str_view sv, size_t i)
 const char *
 sv_null(void)
 {
-    return nil;
+    return nil.s;
 }
 
 void
@@ -308,7 +308,7 @@ sv_front(str_view sv)
 {
     if (!sv.s || 0 == sv.sz)
     {
-        return *nil;
+        return *nil.s;
     }
     return *sv.s;
 }
@@ -318,7 +318,7 @@ sv_back(str_view sv)
 {
     if (!sv.s || 0 == sv.sz)
     {
-        return *nil;
+        return *nil.s;
     }
     return sv.s[sv.sz - 1];
 }
@@ -328,7 +328,7 @@ sv_begin(const str_view sv)
 {
     if (!sv.s)
     {
-        return nil;
+        return nil.s;
     }
     return sv.s;
 }
@@ -338,7 +338,7 @@ sv_end(const str_view sv)
 {
     if (!sv.s)
     {
-        return nil;
+        return nil.s;
     }
     return sv.s + sv.sz;
 }
@@ -348,7 +348,7 @@ sv_next(const char *c)
 {
     if (!c)
     {
-        return nil;
+        return nil.s;
     }
     return ++c;
 }
@@ -358,7 +358,7 @@ sv_pos(str_view sv, size_t i)
 {
     if (!sv.s)
     {
-        return nil;
+        return nil.s;
     }
     if (i > sv.sz)
     {
@@ -372,7 +372,7 @@ sv_begin_tok(str_view src, str_view delim)
 {
     if (!src.s)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     if (!delim.s)
     {
@@ -399,7 +399,7 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
 {
     if (!tok.s)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     if (!tok.sz)
     {
@@ -432,6 +432,10 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
 str_view
 sv_extend(const str_view src)
 {
+    if (!src.s)
+    {
+        return nil;
+    }
     const char *i = src.s;
     while (*i++)
     {}
@@ -506,7 +510,7 @@ sv_svsv(str_view hay, str_view needle)
 {
     if (needle.sz > hay.sz)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     if (sv_empty(hay))
     {
@@ -514,7 +518,7 @@ sv_svsv(str_view hay, str_view needle)
     }
     if (sv_empty(needle))
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     const size_t found
         = sv_strnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
@@ -527,7 +531,7 @@ sv_rsvsv(str_view hay, str_view needle)
 {
     if (needle.sz > hay.sz)
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     if (sv_empty(hay))
     {
@@ -535,7 +539,7 @@ sv_rsvsv(str_view hay, str_view needle)
     }
     if (sv_empty(needle))
     {
-        return (str_view){.s = nil, .sz = 0};
+        return nil;
     }
     const size_t found
         = sv_rstrnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
