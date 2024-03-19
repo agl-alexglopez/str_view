@@ -90,7 +90,8 @@ test_from_delim(void)
     {
         return FAIL;
     }
-    if (sv_strcmp(sv2, ref2_chunk) != EQL)
+    if (sv_strcmp(sv2, ref2_chunk) != EQL
+        || sv_strcmp(sv_extend(sv2), ref2 + 1) != EQL)
     {
         return FAIL;
     }
