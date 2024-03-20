@@ -235,12 +235,10 @@ sv_svcmp(str_view sv1, str_view sv2)
         (void)fprintf(stderr, "sv_svcmp cannot compare NULL.\n");
         exit(1);
     }
-    size_t i = 0;
     const size_t sz = sv_min(sv1.sz, sv2.sz);
-    while (i < sz && sv1.s[i] == sv2.s[i])
-    {
-        ++i;
-    }
+    size_t i = 0;
+    for (; i < sz && sv1.s[i] == sv2.s[i]; ++i)
+    {}
     if (i == sv1.sz && i == sv2.sz)
     {
         return EQL;
@@ -260,12 +258,10 @@ sv_strcmp(str_view sv, const char *str)
         (void)fprintf(stderr, "sv_strcmp cannot compare NULL.\n");
         exit(1);
     }
-    size_t i = 0;
     const size_t sz = sv.sz;
-    while (i < sz && str[i] != '\0' && sv.s[i] == str[i])
-    {
-        ++i;
-    }
+    size_t i = 0;
+    for (; i < sz && str[i] != '\0' && sv.s[i] == str[i]; ++i)
+    {}
     if (i == sv.sz && str[i] == '\0')
     {
         return EQL;
@@ -285,12 +281,10 @@ sv_strncmp(str_view sv, const char *str, const size_t n)
         (void)fprintf(stderr, "sv_strncmp cannot compare NULL.\n");
         exit(1);
     }
-    size_t i = 0;
     const size_t sz = sv_min(sv.sz, n);
-    while (i < sz && str[i] != '\0' && sv.s[i] == str[i])
-    {
-        ++i;
-    }
+    size_t i = 0;
+    for (; i < sz && str[i] != '\0' && sv.s[i] == str[i]; ++i)
+    {}
     if (i == sv.sz && sz == n)
     {
         return EQL;
@@ -666,11 +660,10 @@ sv_after_find(str_view hay, str_view needle)
     {
         return 0;
     }
-    size_t i = 0;
     size_t delim_i = 0;
-    while (i < hay.sz && needle.s[delim_i] == hay.s[i])
+    size_t i = 0;
+    for (; i < hay.sz && needle.s[delim_i] == hay.s[i]; ++i)
     {
-        ++i;
         delim_i = (delim_i + 1) % needle.sz;
     }
     /* Also reset to the last mismatch found. If some of the delimeter matched
@@ -1235,18 +1228,18 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
     ssize_t period = 1;
     ssize_t last_rest = 0;
     ssize_t rest = 1;
-    ssize_t negation = 0;
-    ssize_t one = 0;
+    ssize_t negate_sz = 0;
+    ssize_t negate_one = 0;
     if (direction == FORWARD)
     {
-        negation = needle_sz;
-        one = 1;
+        negation_sz = needle_sz;
+        negate_one = 1;
     }
     while (last_rest + rest < needle_sz)
     {
         switch (sv_char_cmp(
-                needle[needle_sz - (last_rest + rest) - 1 + negation + one],
-                needle[needle_sz - (suff_pos + rest) - 1 + negation + one]))
+        needle[needle_sz - (last_rest + rest) - 1 + negation_sz + negate_one],
+        needle[needle_sz - (suff_pos + rest) - 1 + negation_sz + negate_one]))
         {
         ...
 

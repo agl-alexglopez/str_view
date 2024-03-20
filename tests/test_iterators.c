@@ -96,11 +96,13 @@ test_min_delim(void)
 {
     const char *const reference = "/0/0";
     const char *const toks[2] = {"0", "0"};
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view delim = sv("/");
     const str_view ref_view = sv(reference);
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
-         !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
+         i < size && !sv_end_tok(ref_view, tok);
+         tok = sv_next_tok(ref_view, tok, delim))
     {
         if (sv_strcmp(tok, toks[i]) != EQL
             || sv_svlen(tok) != sv_strlen(toks[i]))
@@ -127,7 +129,8 @@ test_simple_delim(void)
     const str_view delim = sv("/");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
-         !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
+         !sv_end_tok(ref_view, tok) && i < sizeof(toks) / sizeof(toks[0]);
+         tok = sv_next_tok(ref_view, tok, delim))
     {
         if (sv_strcmp(tok, toks[i]) || sv_svlen(tok) != sv_strlen(toks[i]))
         {
@@ -371,6 +374,7 @@ test_tokenize_three_views(void)
         {"paths", "are", "unique"},
         {"and", "split", "up"},
     };
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view path = sv(path_str);
     const str_view delim = sv("/");
     const str_view first = sv_substr(path, 0, sv_find(path, 0, sv("/paths/")));
@@ -385,7 +389,7 @@ test_tokenize_three_views(void)
                   tok2 = sv_begin_tok(second, delim),
                   tok3 = sv_begin_tok(third, delim);
          !sv_end_tok(first, tok1) && !sv_end_tok(second, tok2)
-         && !sv_end_tok(third, tok3);
+         && !sv_end_tok(third, tok3) && i < size;
          tok1 = sv_next_tok(first, tok1, delim),
                   tok2 = sv_next_tok(second, tok2, delim),
                   tok3 = sv_next_tok(third, tok3, delim))
