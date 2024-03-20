@@ -1019,7 +1019,8 @@ sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
    Assumes the needle size is shorter than hay size. Sizes are needed
    for string view operations because strings may not be null terminated
    and the string view library is most likely search a view rather than
-   an entire string. */
+   an entire string. Returns the position at which needle begins if found
+   and the size of the hay stack if not found. */
 static inline size_t
 sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
            ssize_t needle_sz)
@@ -1061,49 +1062,6 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
     });
 }
 
-static inline size_t
-sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
-            ssize_t needle_sz)
-{
-    ssize_t critical_pos;
-    ssize_t period_dist;
-    /* Preprocessing to get critical position and period distance. */
-    const struct sv_factorization s = sv_rmaximal_suffix(needle, needle_sz);
-    const struct sv_factorization r = sv_rmaximal_suffix_rev(needle, needle_sz);
-    if (s.start_critical_pos > r.start_critical_pos)
-    {
-        critical_pos = s.start_critical_pos;
-        period_dist = s.period_dist;
-    }
-    else
-    {
-        critical_pos = r.start_critical_pos;
-        period_dist = r.period_dist;
-    }
-    /* Determine if memoization is be available due to found border/overlap. */
-    if (sv_rmemcmp(needle + needle_sz - 1, needle + needle_sz - period_dist - 1,
-                   critical_pos + 1)
-        == 0)
-    {
-        return sv_rtwo_way_memoization((struct sv_two_way_pack){
-            .hay = hay,
-            .hay_sz = hay_sz,
-            .needle = needle,
-            .needle_sz = needle_sz,
-            .period_dist = period_dist,
-            .critical_pos = critical_pos,
-        });
-    }
-    return sv_rtwo_way_normal((struct sv_two_way_pack){
-        .hay = hay,
-        .hay_sz = hay_sz,
-        .needle = needle,
-        .needle_sz = needle_sz,
-        .period_dist = period_dist,
-        .critical_pos = critical_pos,
-    });
-}
-
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static inline size_t
@@ -1120,14 +1078,12 @@ sv_two_way_memoization(struct sv_two_way_pack p)
         {
             ++r_pos;
         }
-
         if (r_pos < p.needle_sz)
         {
             l_pos += (r_pos - p.critical_pos);
             memoize_shift = -1;
             continue;
         }
-
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
         while (r_pos > memoize_shift && p.needle[r_pos] == p.hay[r_pos + l_pos])
@@ -1137,50 +1093,6 @@ sv_two_way_memoization(struct sv_two_way_pack p)
         if (r_pos <= memoize_shift)
         {
             return l_pos;
-        }
-        l_pos += p.period_dist;
-        /* Some prefix of needle coincides with the text. Memoize the length
-           of this prefix to increase length of next shift, if possible. */
-        memoize_shift = p.needle_sz - p.period_dist - 1;
-    }
-    return p.hay_sz;
-}
-
-static inline size_t
-sv_rtwo_way_memoization(struct sv_two_way_pack p)
-{
-    ssize_t l_pos = 0;
-    ssize_t r_pos = 0;
-    /* Eliminate worst case quadratic time complexity with memoization. */
-    ssize_t memoize_shift = -1;
-    while (l_pos <= p.hay_sz - p.needle_sz)
-    {
-        r_pos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
-        while (r_pos < p.needle_sz
-               && p.needle[p.needle_sz - r_pos - 1]
-                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
-        {
-            ++r_pos;
-        }
-
-        if (r_pos < p.needle_sz)
-        {
-            l_pos += (r_pos - p.critical_pos);
-            memoize_shift = -1;
-            continue;
-        }
-
-        /* p.r_pos >= p.needle_sz */
-        r_pos = p.critical_pos;
-        while (r_pos > memoize_shift
-               && p.needle[p.needle_sz - r_pos - 1]
-                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
-        {
-            --r_pos;
-        }
-        if (r_pos <= memoize_shift)
-        {
-            return p.hay_sz - l_pos - p.needle_sz;
         }
         l_pos += p.period_dist;
         /* Some prefix of needle coincides with the text. Memoize the length
@@ -1207,13 +1119,11 @@ sv_two_way_normal(struct sv_two_way_pack p)
         {
             ++r_pos;
         }
-
         if (r_pos < p.needle_sz)
         {
             l_pos += (r_pos - p.critical_pos);
             continue;
         }
-
         /* p.r_pos >= p.needle_sz */
         r_pos = p.critical_pos;
         while (r_pos >= 0 && p.needle[r_pos] == p.hay[r_pos + l_pos])
@@ -1223,47 +1133,6 @@ sv_two_way_normal(struct sv_two_way_pack p)
         if (r_pos < 0)
         {
             return l_pos;
-        }
-        l_pos += p.period_dist;
-    }
-    return p.hay_sz;
-}
-
-static inline size_t
-sv_rtwo_way_normal(struct sv_two_way_pack p)
-{
-    p.period_dist
-        = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
-          + 1;
-    ssize_t l_pos = 0;
-    ssize_t r_pos = 0;
-    while (l_pos <= p.hay_sz - p.needle_sz)
-    {
-        r_pos = p.critical_pos + 1;
-        while (r_pos < p.needle_sz
-               && (p.needle[p.needle_sz - r_pos - 1]
-                   == p.hay[p.hay_sz - (r_pos + l_pos) - 1]))
-        {
-            ++r_pos;
-        }
-
-        if (r_pos < p.needle_sz)
-        {
-            l_pos += (r_pos - p.critical_pos);
-            continue;
-        }
-
-        /* p.r_pos >= p.needle_sz */
-        r_pos = p.critical_pos;
-        while (r_pos >= 0
-               && p.needle[p.needle_sz - r_pos - 1]
-                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
-        {
-            --r_pos;
-        }
-        if (r_pos < 0)
-        {
-            return p.hay_sz - l_pos - p.needle_sz;
         }
         l_pos += p.period_dist;
     }
@@ -1284,45 +1153,6 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
     while (last_rest + rest < needle_sz)
     {
         switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
-        {
-        case LES:
-            last_rest += rest;
-            rest = 1;
-            period = last_rest - suff_pos;
-            break;
-        case EQL:
-            if (rest != period)
-            {
-                ++rest;
-            }
-            else
-            {
-                last_rest += period;
-                rest = 1;
-            }
-            break;
-        case GRT:
-            suff_pos = last_rest;
-            last_rest = suff_pos + 1;
-            rest = period = 1;
-            break;
-        }
-    }
-    return (struct sv_factorization){.start_critical_pos = suff_pos,
-                                     .period_dist = period};
-}
-
-static inline struct sv_factorization
-sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
-{
-    ssize_t suff_pos = -1;
-    ssize_t period = 1;
-    ssize_t last_rest = 0;
-    ssize_t rest = 1;
-    while (last_rest + rest < needle_sz)
-    {
-        switch (sv_char_cmp(needle[needle_sz - (last_rest + rest) - 1],
-                            needle[needle_sz - (suff_pos + rest) - 1]))
         {
         case LES:
             last_rest += rest;
@@ -1392,6 +1222,201 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
+/*=======================  Right to Left Search  ============================*/
+
+/* Two way algorithm is easy to reverse. Instead of trying to reverse all
+   logic in the factorizations and two way searches, leave the algorithms
+   and calculate the values returned as offsets from the end of the string
+   instead of indices starting from 0. It would be even be possible to unite
+   these functions into one with the following formula
+   (using the suffix calculation as an example):
+
+    ssize_t suff_pos = -1;
+    ssize_t period = 1;
+    ssize_t last_rest = 0;
+    ssize_t rest = 1;
+    ssize_t negation = 0;
+    ssize_t one = 0;
+    if (direction == FORWARD)
+    {
+        negation = needle_sz;
+        one = 1;
+    }
+    while (last_rest + rest < needle_sz)
+    {
+        switch (sv_char_cmp(
+                needle[needle_sz - (last_rest + rest) - 1 + negation + one],
+                needle[needle_sz - (suff_pos + rest) - 1 + negation + one]))
+        {
+        ...
+
+    That would save the code repitition across all of the following functions
+    but probably would make the code even harder to read and maintain. These
+    algorithms are dense enough already so I think repetion is fine. Leaving
+    this here if that changes or an even better way comes along. */
+
+/* Searches a string from right to left with a two-way algorithm. Returns
+   the position of the start of the strig if found and string size if not. */
+static inline size_t
+sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
+            ssize_t needle_sz)
+{
+    ssize_t critical_pos;
+    ssize_t period_dist;
+    const struct sv_factorization s = sv_rmaximal_suffix(needle, needle_sz);
+    const struct sv_factorization r = sv_rmaximal_suffix_rev(needle, needle_sz);
+    if (s.start_critical_pos > r.start_critical_pos)
+    {
+        critical_pos = s.start_critical_pos;
+        period_dist = s.period_dist;
+    }
+    else
+    {
+        critical_pos = r.start_critical_pos;
+        period_dist = r.period_dist;
+    }
+    if (sv_rmemcmp(needle + needle_sz - 1, needle + needle_sz - period_dist - 1,
+                   critical_pos + 1)
+        == 0)
+    {
+        return sv_rtwo_way_memoization((struct sv_two_way_pack){
+            .hay = hay,
+            .hay_sz = hay_sz,
+            .needle = needle,
+            .needle_sz = needle_sz,
+            .period_dist = period_dist,
+            .critical_pos = critical_pos,
+        });
+    }
+    return sv_rtwo_way_normal((struct sv_two_way_pack){
+        .hay = hay,
+        .hay_sz = hay_sz,
+        .needle = needle,
+        .needle_sz = needle_sz,
+        .period_dist = period_dist,
+        .critical_pos = critical_pos,
+    });
+}
+
+static inline size_t
+sv_rtwo_way_memoization(struct sv_two_way_pack p)
+{
+    ssize_t l_pos = 0;
+    ssize_t r_pos = 0;
+    ssize_t memoize_shift = -1;
+    while (l_pos <= p.hay_sz - p.needle_sz)
+    {
+        r_pos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
+        while (r_pos < p.needle_sz
+               && p.needle[p.needle_sz - r_pos - 1]
+                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
+        {
+            ++r_pos;
+        }
+        if (r_pos < p.needle_sz)
+        {
+            l_pos += (r_pos - p.critical_pos);
+            memoize_shift = -1;
+            continue;
+        }
+        /* p.r_pos >= p.needle_sz */
+        r_pos = p.critical_pos;
+        while (r_pos > memoize_shift
+               && p.needle[p.needle_sz - r_pos - 1]
+                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
+        {
+            --r_pos;
+        }
+        if (r_pos <= memoize_shift)
+        {
+            return p.hay_sz - l_pos - p.needle_sz;
+        }
+        l_pos += p.period_dist;
+        /* Some prefix of needle coincides with the text. Memoize the length
+           of this prefix to increase length of next shift, if possible. */
+        memoize_shift = p.needle_sz - p.period_dist - 1;
+    }
+    return p.hay_sz;
+}
+
+static inline size_t
+sv_rtwo_way_normal(struct sv_two_way_pack p)
+{
+    p.period_dist
+        = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
+          + 1;
+    ssize_t l_pos = 0;
+    ssize_t r_pos = 0;
+    while (l_pos <= p.hay_sz - p.needle_sz)
+    {
+        r_pos = p.critical_pos + 1;
+        while (r_pos < p.needle_sz
+               && (p.needle[p.needle_sz - r_pos - 1]
+                   == p.hay[p.hay_sz - (r_pos + l_pos) - 1]))
+        {
+            ++r_pos;
+        }
+        if (r_pos < p.needle_sz)
+        {
+            l_pos += (r_pos - p.critical_pos);
+            continue;
+        }
+        /* p.r_pos >= p.needle_sz */
+        r_pos = p.critical_pos;
+        while (r_pos >= 0
+               && p.needle[p.needle_sz - r_pos - 1]
+                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
+        {
+            --r_pos;
+        }
+        if (r_pos < 0)
+        {
+            return p.hay_sz - l_pos - p.needle_sz;
+        }
+        l_pos += p.period_dist;
+    }
+    return p.hay_sz;
+}
+
+static inline struct sv_factorization
+sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
+{
+    ssize_t suff_pos = -1;
+    ssize_t period = 1;
+    ssize_t last_rest = 0;
+    ssize_t rest = 1;
+    while (last_rest + rest < needle_sz)
+    {
+        switch (sv_char_cmp(needle[needle_sz - (last_rest + rest) - 1],
+                            needle[needle_sz - (suff_pos + rest) - 1]))
+        {
+        case LES:
+            last_rest += rest;
+            rest = 1;
+            period = last_rest - suff_pos;
+            break;
+        case EQL:
+            if (rest != period)
+            {
+                ++rest;
+            }
+            else
+            {
+                last_rest += period;
+                rest = 1;
+            }
+            break;
+        case GRT:
+            suff_pos = last_rest;
+            last_rest = suff_pos + 1;
+            rest = period = 1;
+            break;
+        }
+    }
+    return (struct sv_factorization){.start_critical_pos = suff_pos,
+                                     .period_dist = period};
+}
+
 static inline struct sv_factorization
 sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 {
@@ -1436,7 +1461,10 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
 /* All brute force searches adapted from musl C library.
    http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c
    They must stop the search at hay size and therefore required slight
-   modification because string views may not be null terminated. */
+   modification because string views may not be null terminated. Reverse
+   methods are my own additions provided to support a compliant reverse
+   search for rfind which most string libraries specify must search right
+   to left. */
 
 static inline size_t
 sv_strnchr(const char *s, const char c, size_t n)
