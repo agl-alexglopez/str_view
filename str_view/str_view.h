@@ -202,6 +202,12 @@ bool sv_end_tok(str_view src, str_view tok);
    is returned which may or may not be the null terminator. */
 str_view sv_next_tok(str_view src, str_view tok, str_view delim);
 
+str_view sv_rbegin_tok(str_view src, str_view delim);
+
+bool sv_rend_tok(str_view src, str_view tok);
+
+str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
+
 /* Returns a str_view of the entirety of the underlying string. This
    guarantees that the str_view returned ends at the null terminator
    of the underlying string as all strings used with str_views are

@@ -44,6 +44,7 @@ static const str_view nil = SV("");
 /* =========================   Prototypes   =============================== */
 
 static size_t sv_after_find(str_view, str_view);
+static size_t sv_before_rfind(str_view, str_view);
 static size_t sv_min(size_t, size_t);
 static size_t sv_two_way(const char *, ssize_t, const char *, ssize_t);
 static size_t sv_rtwo_way(const char *, ssize_t, const char *, ssize_t);
@@ -373,12 +374,13 @@ sv_begin_tok(str_view src, str_view delim)
         return (str_view){.s = src.s + src.sz, 0};
     }
     const size_t sv_not = sv_after_find(src, delim);
+    const char *const begin = src.s;
     src.s += sv_not;
-    src.sz -= sv_not;
-    if (*src.s == '\0')
+    if (begin + src.sz == src.s || !src.s)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
+    src.sz -= sv_not;
     return sv_substr(src, 0, sv_find(src, 0, delim));
 }
 
@@ -409,18 +411,82 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
         return (str_view){.s = next, .sz = 0};
     }
     next += delim.sz;
-    size_t next_sz = sv_strlen(next);
+    size_t next_sz = src.sz - (next - src.s);
     const size_t after_delim
         = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
     next += after_delim;
     next_sz -= after_delim;
-    if (*next == '\0')
+    if (!*next)
     {
         return (str_view){.s = next, .sz = 0};
     }
     const size_t found
         = sv_strnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
     return (str_view){.s = next, .sz = found};
+}
+
+str_view
+sv_rbegin_tok(str_view src, str_view delim)
+{
+    if (!src.s)
+    {
+        return nil;
+    }
+    if (!delim.s)
+    {
+        return (str_view){.s = src.s + src.sz, 0};
+    }
+    const size_t sv_not = sv_before_rfind(src, delim);
+    if (!sv_not && src.s[0] != delim.s[0])
+    {
+        return (str_view){.s = src.s, .sz = 0};
+    }
+    const size_t start = sv_rfind(src, src.sz, delim);
+    if (start == src.sz)
+    {
+        return (str_view){.s = src.s, .sz = 0};
+    }
+    return sv_substr(src, start + delim.sz, src.sz - start - delim.sz);
+}
+
+str_view
+sv_rnext_tok(const str_view src, str_view tok, str_view delim)
+{
+    if (!tok.s)
+    {
+        return nil;
+    }
+    if (!tok.sz)
+    {
+        return tok;
+    }
+    if (!delim.s || tok.s == src.s)
+    {
+        return (str_view){.s = src.s, .sz = 0};
+    }
+    const char *next = tok.s - tok.sz;
+    if (next == src.s)
+    {
+        return (str_view){.s = next, .sz = 0};
+    }
+    next -= delim.sz;
+    size_t next_sz = next - src.s;
+    const size_t before_delim
+        = sv_before_rfind((str_view){.s = next, .sz = next_sz}, delim);
+    next -= (next_sz - before_delim);
+    if (next == src.s)
+    {
+        return (str_view){.s = next, .sz = 0};
+    }
+    const size_t found
+        = sv_rstrnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
+    return (str_view){.s = next, .sz = found};
+}
+
+bool
+sv_rend_tok(const str_view src, const str_view tok)
+{
+    return 0 == tok.sz || tok.s <= src.s;
 }
 
 str_view
@@ -663,6 +729,29 @@ sv_after_find(str_view hay, str_view needle)
     size_t delim_i = 0;
     size_t i = 0;
     for (; i < hay.sz && needle.s[delim_i] == hay.s[i]; ++i)
+    {
+        delim_i = (delim_i + 1) % needle.sz;
+    }
+    /* Also reset to the last mismatch found. If some of the delimeter matched
+       but then the string changed into a mismatch go back to get characters
+       that are partially in the delimeter. */
+    return i - delim_i;
+}
+
+static size_t
+sv_before_rfind(str_view hay, str_view needle)
+{
+    if (needle.sz > hay.sz)
+    {
+        return 0;
+    }
+    if (!needle.sz || !hay.sz)
+    {
+        return hay.sz;
+    }
+    size_t delim_i = 0;
+    size_t i = hay.sz;
+    for (; i > 0 && needle.s[needle.sz - delim_i - 1] == hay.s[--i];)
     {
         delim_i = (delim_i + 1) % needle.sz;
     }

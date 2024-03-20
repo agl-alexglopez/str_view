@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 static enum test_result test_iter(void);
+static enum test_result test_riter(void);
 static enum test_result test_min_delim(void);
 static enum test_result test_simple_delim(void);
 static enum test_result test_tail_delim(void);
@@ -14,9 +15,10 @@ static enum test_result test_iter_delim_larger_than_str(void);
 static enum test_result test_tokenize_not_terminated(void);
 static enum test_result test_tokenize_three_views(void);
 
-#define NUM_TESTS (size_t)10
+#define NUM_TESTS (size_t)11
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
+    {test_riter, "test_riter"},
     {test_min_delim, "test_min_delim"},
     {test_simple_delim, "test_simple_delim"},
     {test_tail_delim, "test_tail_delim"},
@@ -80,6 +82,41 @@ test_iter(void)
     for (; !sv_end_tok(chars, cur2); cur2 = sv_next_tok(chars, cur2, sv(",")))
     {
         if (sv_strcmp(cur2, reference) != 0)
+        {
+            return FAIL;
+        }
+    }
+    if (*cur2.s != '\0')
+    {
+        return FAIL;
+    }
+    return PASS;
+}
+
+static enum test_result
+test_riter(void)
+{
+    const str_view ref = sv("A B C D E G H I J K L M N O P");
+    size_t i = ref.sz - 1;
+    /* This version should only give us the letters because delim is ' ' */
+    str_view cur = sv_rbegin_tok(ref, sv(" "));
+    for (; !sv_rend_tok(ref, cur); cur = sv_rnext_tok(ref, cur, sv(" ")))
+    {
+        if (sv_front(cur) != *sv_pos(ref, i))
+        {
+            return FAIL;
+        }
+        i -= 2;
+    }
+    if (*cur.s != '\0')
+    {
+        return FAIL;
+    }
+    /* Do at least one token iteration if we can't find any delims */
+    str_view cur2 = sv_rbegin_tok(ref, sv(","));
+    for (; !sv_rend_tok(ref, cur2); cur2 = sv_rnext_tok(ref, cur2, sv(",")))
+    {
+        if (sv_svcmp(cur2, ref) != EQL)
         {
             return FAIL;
         }
