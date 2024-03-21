@@ -436,17 +436,18 @@ sv_rbegin_tok(str_view src, str_view delim)
     {
         return (str_view){.s = src.s + src.sz, 0};
     }
-    const size_t sv_not = sv_before_rfind(src, delim);
-    if (!sv_not && src.s[0] != delim.s[0])
+    size_t before_delim = sv_before_rfind(src, delim);
+    if (before_delim == src.sz - 1)
     {
-        return (str_view){.s = src.s, .sz = 0};
+        before_delim = src.sz;
     }
-    const size_t start = sv_rfind(src, src.sz, delim);
-    if (start == src.sz)
+    const size_t found = sv_rfind(src, before_delim, delim);
+    if (found == before_delim)
     {
-        return (str_view){.s = src.s, .sz = 0};
+        return (str_view){.s = src.s, .sz = before_delim};
     }
-    return sv_substr(src, start + delim.sz, src.sz - start - delim.sz);
+    return (str_view){.s = src.s + found + delim.sz,
+                      .sz = (before_delim + 1) - (found + delim.sz)};
 }
 
 str_view
@@ -464,29 +465,32 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
-    const char *next = tok.s - tok.sz;
-    if (next == src.s)
+    const char *next = tok.s - 1;
+    if (next <= src.s)
     {
         return (str_view){.s = next, .sz = 0};
     }
-    next -= delim.sz;
-    size_t next_sz = next - src.s;
     const size_t before_delim
-        = sv_before_rfind((str_view){.s = next, .sz = next_sz}, delim);
-    next -= (next_sz - before_delim);
-    if (next == src.s)
+        = sv_before_rfind((str_view){.s = src.s, .sz = next - src.s}, delim);
+    if (before_delim == src.sz)
     {
-        return (str_view){.s = next, .sz = 0};
+        return (str_view){.s = src.s, .sz = 0};
     }
+    if (before_delim == 0)
+    {
+        return (str_view){.s = src.s, .sz = before_delim + 1};
+    }
+    next = src.s + before_delim;
     const size_t found
-        = sv_rstrnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
-    return (str_view){.s = next, .sz = found};
+        = sv_rstrnstrn(src.s, next - src.s, delim.s, (ssize_t)delim.sz);
+    next = src.s + found + delim.sz;
+    return (str_view){.s = next, .sz = (before_delim + 1) - (found + delim.sz)};
 }
 
 bool
 sv_rend_tok(const str_view src, const str_view tok)
 {
-    return 0 == tok.sz || tok.s <= src.s;
+    return tok.sz == 0 && tok.s == src.s;
 }
 
 str_view
@@ -750,15 +754,17 @@ sv_before_rfind(str_view hay, str_view needle)
         return hay.sz;
     }
     size_t delim_i = 0;
-    size_t i = hay.sz;
-    for (; i > 0 && needle.s[needle.sz - delim_i - 1] == hay.s[--i];)
+    size_t i = 0;
+    for (; i < hay.sz
+           && needle.s[needle.sz - delim_i - 1] == hay.s[hay.sz - i - 1];
+         ++i)
     {
         delim_i = (delim_i + 1) % needle.sz;
     }
     /* Also reset to the last mismatch found. If some of the delimeter matched
        but then the string changed into a mismatch go back to get characters
        that are partially in the delimeter. */
-    return i - delim_i;
+    return i == hay.sz ? hay.sz : hay.sz - (i + delim_i + 1);
 }
 
 static inline size_t
@@ -1587,9 +1593,9 @@ sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
     ssize_t i = (ssize_t)sz - 2;
-    for (h--; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
+    for (; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
     {}
-    return i == -1 ? sz : (size_t)(i - 1);
+    return i == -1 ? sz : (size_t)i;
 }
 
 static inline size_t
@@ -1608,11 +1614,11 @@ static inline size_t
 sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
                        const unsigned char *const n)
 {
-    h = h + sz - 2;
+    h = h + sz - 3;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
-    ssize_t i = (ssize_t)sz - 2;
-    for (h -= 2, i -= 2; i != -1 && hw != nw; hw = (hw | *--h) << 8, --i)
+    ssize_t i = (ssize_t)sz - 3;
+    for (; i != -1 && hw != nw; hw = (hw | *--h) << 8, --i)
     {}
     return i == -1 ? sz : (size_t)i;
 }
@@ -1633,11 +1639,11 @@ static inline size_t
 sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
                       const unsigned char *const n)
 {
-    h = h + sz - 3;
+    h = h + sz - 4;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    ssize_t i = (ssize_t)sz;
-    for (h -= 3, i -= 3; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
+    ssize_t i = (ssize_t)sz - 4;
+    for (; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
     {}
-    return i == -1 ? sz : (size_t)(i - 3);
+    return i == -1 ? sz : (size_t)i;
 }
