@@ -1633,13 +1633,13 @@ sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
     h = h + sz - 2;
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
-    ssize_t i = (ssize_t)sz - 2;
+    size_t i = sz - 1;
     /* The search is right to left therefore the Most Significant Byte will
        be the leading character of the string and the previous leading
        character is shifted to the right. */
-    for (; i != -1 && hw != nw; hw = (hw >> 8) | (*--h << 8), --i)
+    for (; i && hw != nw; hw = (hw >> 8) | (*--h << 8), --i)
     {}
-    return i == -1 ? sz : (size_t)i;
+    return i ? i - 1 : sz;
 }
 
 static inline size_t
@@ -1661,14 +1661,14 @@ sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
     h = h + sz - 3;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
-    ssize_t i = (ssize_t)sz - 3;
+    size_t i = sz - 2;
     /* The right to left search means we don't benefit from a left shift as
        in the forward three byte search. The leading character occupies the
        Most Significant position of these bytes so as the other two character
        bytes shift right the Least Significant Byte must be zeroed out. */
-    for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)) & ~0xff, --i)
+    for (; i && hw != nw; hw = ((hw >> 8) | (*--h << 24)) & ~0xff, --i)
     {}
-    return i == -1 ? sz : (size_t)i;
+    return i ? i - 1 : sz;
 }
 
 static inline size_t
@@ -1690,12 +1690,12 @@ sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
     h = h + sz - 4;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    ssize_t i = (ssize_t)sz - 4;
+    size_t i = sz - 3;
     /* Even though the interpretation of the shifting has now been
        reversed, all 32 bits are available for the comparison meaning
        there is no longer a need for masks and shifting takes care of
        the comparison. */
-    for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)), --i)
+    for (; i && hw != nw; hw = ((hw >> 8) | (*--h << 24)), --i)
     {}
-    return i == -1 ? sz : (size_t)i;
+    return i ? i - 1 : sz;
 }
