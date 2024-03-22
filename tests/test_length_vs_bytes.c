@@ -40,12 +40,12 @@ test_length_terminated(void)
     };
     const size_t len = strlen(ref);
     const size_t bytes = sizeof ref;
-    if (len != sv_strlen(ref) || len != sv_svlen(sv(ref))
-        || bytes != sv_strbytes(ref) || bytes != sv_svbytes(sv(ref))
-        || len != sv_npos(sv(ref)) || len != sv_minlen(ref, -1))
-    {
-        return FAIL;
-    }
+    CHECK(len, sv_strlen(ref));
+    CHECK(len, sv_svlen(sv(ref)));
+    CHECK(bytes, sv_strbytes(ref));
+    CHECK(bytes, sv_svbytes(sv(ref)));
+    CHECK(len, sv_npos(sv(ref)));
+    CHECK(len, sv_minlen(ref, -1));
     return PASS;
 }
 
@@ -60,12 +60,12 @@ test_length_unterminated(void)
     const size_t len = strlen(snip);
     const size_t bytes = sizeof snip;
     const str_view snip_view = sv_n(ref + 6, len);
-    if (sv_strlen(snip) != len || sv_svlen(snip_view) != len
-        || sv_strbytes(snip) != bytes || sv_svbytes(snip_view) != bytes
-        || len != sv_npos(snip_view) || len != sv_minlen(snip, 99))
-    {
-        return FAIL;
-    }
+    CHECK(sv_strlen(snip), len);
+    CHECK(sv_svlen(snip_view), len);
+    CHECK(sv_strbytes(snip), bytes);
+    CHECK(sv_svbytes(snip_view), bytes);
+    CHECK(len, sv_npos(snip_view));
+    CHECK(len, sv_minlen(snip, 99));
     return PASS;
 }
 
@@ -81,18 +81,18 @@ test_length_innacurate(void)
     const size_t len = strlen(ref);
     const size_t bytes = len + 1;
     const str_view view = sv_n(ref, 99);
-    if (len != sv_strlen(ref) || len != sv_svlen(view)
-        || bytes != sv_strbytes(ref) || bytes != sv_svbytes(view)
-        || len != (sv_npos(view)) || len != sv_minlen(ref, 99))
-    {
-        return FAIL;
-    }
+    CHECK(len, sv_strlen(ref));
+    CHECK(len, sv_svlen(view));
+    CHECK(bytes, sv_strbytes(ref));
+    CHECK(bytes, sv_svbytes(view));
+    CHECK(len, sv_npos(view));
+    CHECK(len, sv_minlen(ref, 99));
     const str_view view2 = sv_n(ref, -1);
-    if (len != sv_strlen(ref) || len != sv_svlen(view2)
-        || bytes != sv_strbytes(ref) || bytes != sv_svbytes(view2)
-        || len != (sv_npos(view2)) || len != sv_minlen(ref, 99))
-    {
-        return FAIL;
-    }
+    CHECK(len, sv_strlen(ref));
+    CHECK(len, sv_svlen(view2));
+    CHECK(bytes, sv_strbytes(ref));
+    CHECK(bytes, sv_svbytes(view2));
+    CHECK(len, (sv_npos(view2)));
+    CHECK(len, sv_minlen(ref, 99));
     return PASS;
 }

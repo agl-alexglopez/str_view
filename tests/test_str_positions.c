@@ -33,21 +33,14 @@ main()
 static enum test_result
 test_front_back_terminated(void)
 {
-    if (sv_back(sv("")) != '\0' || sv_front(sv("")) != '\0')
-    {
-        return FAIL;
-    }
+    CHECK(sv_back(sv("")), '\0');
+    CHECK(sv_front(sv("")), '\0');
     const char *const reference = "*The front was * the back is!";
     const str_view s = sv(reference);
     const size_t ref_len = strlen(reference);
-    if (ref_len != sv_svlen(s))
-    {
-        return FAIL;
-    }
-    if (sv_front(s) != '*' || sv_back(s) != '!')
-    {
-        return FAIL;
-    }
+    CHECK(ref_len, sv_svlen(s));
+    CHECK(sv_front(s), '*');
+    CHECK(sv_back(s), '!');
     return PASS;
 }
 
@@ -61,9 +54,8 @@ test_front_back_view(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     const str_view s = sv_n(reference + 4, 8);
-    if (sv_front(s) != '^' || sv_back(s) != '@' || sv_svlen(s) != 8)
-    {
-        return FAIL;
-    }
+    CHECK(sv_front(s), '^');
+    CHECK(sv_back(s), '@');
+    CHECK(sv_svlen(s), 8);
     return PASS;
 }

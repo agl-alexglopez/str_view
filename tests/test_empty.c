@@ -5,13 +5,7 @@ int
 main()
 {
     enum test_result res = PASS;
-    if (!sv_empty(sv("")))
-    {
-        res = FAIL;
-    }
-    if (*sv_null() != '\0')
-    {
-        res = FAIL;
-    }
+    CHECK(sv_empty(sv("")), true);
+    CHECK(*sv_null(), '\0');
     return res;
 }
