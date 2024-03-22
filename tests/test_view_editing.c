@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-static const str_view dirslash = {.s = "/", .sz = SVLEN("/")};
+static const str_view dirslash = SV("/");
 
 static enum test_result test_prefix_suffix(void);
 static enum test_result test_substr(void);
@@ -99,10 +99,10 @@ test_substr(void)
 static enum test_result
 test_dir_entries(void)
 {
-    const str_view root_single_entry = {"/usr", SVLEN("/usr")};
-    const str_view root_single_entry_slash = {"/usr/", SVLEN("/usr/")};
     CHECK(sv_empty(sv_substr(dirslash, 0, sv_rfind(dirslash, 0, dirslash))),
           true);
+    const str_view root_single_entry = SV("/usr");
+    const str_view root_single_entry_slash = SV("/usr/");
     const str_view without_last_slash
         = sv_substr(root_single_entry_slash, 0,
                     sv_rfind(root_single_entry_slash,

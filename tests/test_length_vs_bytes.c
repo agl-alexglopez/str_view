@@ -72,7 +72,6 @@ test_length_unterminated(void)
 static enum test_result
 test_length_innacurate(void)
 {
-    /* Strings should stop at the first null terminator */
     const char ref[18]
         = {[0] = 'H',  [1] = 'e',   [2] = 'l',  [3] = 'l',  [4] = 'l',
            [5] = ' ',  [6] = 's',   [7] = 'n',  [8] = 'i',  [9] = 'p',

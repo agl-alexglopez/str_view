@@ -29,6 +29,6 @@ main()
         exit(1);
     }
     /* We expect to have exited with a status of 1 */
-    const bool correct_failure = WIFEXITED(status) && WEXITSTATUS(status) == 1;
-    return correct_failure ? PASS : FAIL;
+    CHECK(WIFEXITED(status) && WEXITSTATUS(status) == 1, true);
+    return PASS;
 }

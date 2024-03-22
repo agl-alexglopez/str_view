@@ -378,10 +378,7 @@ test_substring_search(void)
         }
         ++i;
     }
-    if (i != 2)
-    {
-        return FAIL;
-    }
+    CHECK(i, 2);
     return PASS;
 }
 
@@ -404,7 +401,7 @@ test_rsubstring_search(void)
     if (!middle || !begin || begin == middle)
     {
         printf("clibrary strstr failed?\n");
-        return FAIL;
+        return ERROR;
     }
     const str_view middle_needle = sv_rsvsv(haystack_view, needle_view);
     const size_t middle_pos

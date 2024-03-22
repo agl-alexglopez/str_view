@@ -84,7 +84,6 @@ test_iter(void)
         ++i;
     }
     i = 0;
-    /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_begin_tok(chars, sv(" "));
     for (; !sv_end_tok(chars, cur); cur = sv_next_tok(chars, cur, sv(" ")))
     {
@@ -92,7 +91,6 @@ test_iter(void)
         i += 2;
     }
     CHECK(*cur.s, '\0');
-    /* Do at least one token iteration if we can't find any delims */
     str_view cur2 = sv_begin_tok(chars, sv(","));
     for (; !sv_end_tok(chars, cur2); cur2 = sv_next_tok(chars, cur2, sv(",")))
     {
@@ -105,7 +103,6 @@ test_iter(void)
 static enum test_result
 test_iter2(void)
 {
-    /* Start and end the string with spaces to check edgecases. */
     const char *const reference = " A B C D E G H I J K L M N O P ";
     const size_t size = 15;
     const char *const toks[15] = {
@@ -121,7 +118,6 @@ test_iter2(void)
         ++i;
     }
     i = 0;
-    /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_begin_tok(chars, sv(" "));
     for (; !sv_end_tok(chars, cur) && i < size;
          cur = sv_next_tok(chars, cur, sv(" ")))
@@ -131,7 +127,6 @@ test_iter2(void)
         ++i;
     }
     CHECK(*cur.s, '\0');
-    /* Do at least one token iteration if we can't find any delims */
     i = 0;
     str_view cur2 = sv_begin_tok(chars, sv(","));
     for (; !sv_end_tok(chars, cur2) && i < 1;
@@ -149,7 +144,6 @@ test_riter(void)
 {
     const str_view ref = sv("A B C D E G H I J K L M N O P");
     size_t i = ref.sz - 1;
-    /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_rbegin_tok(ref, sv(" "));
     for (; !sv_rend_tok(ref, cur); cur = sv_rnext_tok(ref, cur, sv(" ")))
     {
@@ -157,7 +151,6 @@ test_riter(void)
         i -= 2;
     }
     CHECK(cur.s, ref.s);
-    /* Do at least one token iteration if we can't find any delims */
     str_view cur2 = sv_rbegin_tok(ref, sv(","));
     for (; !sv_rend_tok(ref, cur2); cur2 = sv_rnext_tok(ref, cur2, sv(",")))
     {
@@ -170,7 +163,6 @@ test_riter(void)
 static enum test_result
 test_riter2(void)
 {
-    /* Start and end the string with spaces to check edgecases. */
     const str_view ref = sv(" A B C D E G H I J K L M N O P ");
     const size_t size = 15;
     const char *const toks[15] = {
@@ -186,7 +178,6 @@ test_riter2(void)
         CHECK(*c, ref.s[character]);
     }
     CHECK(character, 0);
-    /* This version should only give us the letters because delim is ' ' */
     size_t i = size;
     str_view cur = sv_rbegin_tok(ref, sv(" "));
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, sv(" ")))
@@ -196,7 +187,6 @@ test_riter2(void)
         CHECK(sv_len(cur), sv_strlen(toks[i]));
     }
     CHECK(cur.s, ref.s);
-    /* Do at least one token iteration if we can't find any delims */
     i = 1;
     str_view cur2 = sv_rbegin_tok(ref, sv(","));
     for (; !sv_rend_tok(ref, cur2) && i;
@@ -223,7 +213,6 @@ test_riter_multi(void)
     size_t i = size;
     const size_t last_delim_pos = sv_rfind(ref, sv_len(ref), delim);
     CHECK(last_delim_pos, sv_len(ref) - 2);
-    /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, delim))
     {
@@ -232,7 +221,6 @@ test_riter_multi(void)
         CHECK(sv_len(cur), sv_strlen(toks[i]));
     }
     CHECK(cur.s, ref.s);
-    /* Do at least one token iteration if we can't find any delims */
     i = 1;
     str_view cur2 = sv_rbegin_tok(ref, SV(","));
     for (; !sv_rend_tok(ref, cur2) && i;
@@ -541,7 +529,6 @@ test_iter_repeating_delim(void)
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
     const str_view ref_view = sv(reference);
     size_t i = 0;
-    /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_begin_tok(ref_view, sv(" "));
     for (; !sv_end_tok(ref_view, cur);
          cur = sv_next_tok(ref_view, cur, sv(" ")))
@@ -551,7 +538,6 @@ test_iter_repeating_delim(void)
         ++i;
     }
     CHECK(*cur.s, '\0');
-    /* Do at least one token iteration if we can't find any delims */
     str_view cur2 = sv_begin_tok(ref_view, sv(","));
     for (; !sv_end_tok(ref_view, cur2);
          cur2 = sv_next_tok(ref_view, cur2, sv(",")))
@@ -705,7 +691,6 @@ static enum test_result
 test_iter_delim_larger_than_str(void)
 {
     const char *const reference = "A-B";
-    /* This delimeter is too large so we should just take the whole string */
     const str_view delim = sv("-----");
     str_view constructed = sv_delim(reference, delim.s);
     str_view cur
@@ -729,7 +714,6 @@ test_riter_delim_larger_than_str(void)
 {
     const char *const reference = "A-B";
     const str_view ref_view = sv(reference);
-    /* This delimeter is too large so we should just take the whole string */
     const str_view delim = sv("-----");
     str_view constructed = sv_delim(reference, delim.s);
     str_view cur
