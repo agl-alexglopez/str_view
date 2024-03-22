@@ -236,7 +236,11 @@ bool sv_rend_tok(str_view src, str_view tok);
 /* Advances the token in src to the next token between two delimeters provided
    by delim. Repeating delimiters are skipped until the next token is found.
    If no further tokens can be found an empty str_view is returned with its
-   pointer set to the start of the src string being iterated through. */
+   pointer set to the start of the src string being iterated through. Note
+   that a multicharacter delimiter may yeild different tokens in reverse
+   than in the forward direction when partial matches occur and some portion
+   of the delimeter is in a token. This is because the string is now being
+   read from right to left. */
 str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
 
 /* Returns a str_view of the entirety of the underlying string, starting
