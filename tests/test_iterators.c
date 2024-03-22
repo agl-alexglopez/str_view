@@ -169,8 +169,17 @@ test_riter2(void)
         "A", "B", "C", "D", "E", "G", "H", "I",
         "J", "K", "L", "M", "N", "O", "P",
     };
-    size_t i = size;
+    size_t character = sv_svlen(ref);
+    for (const char *c = sv_rbegin(ref); character && c != sv_rend(ref);
+         c = sv_rnext(c))
+    {
+        --character;
+        CHECK(c, &ref.s[character]);
+        CHECK(*c, ref.s[character]);
+    }
+    CHECK(character, 0);
     /* This version should only give us the letters because delim is ' ' */
+    size_t i = size;
     str_view cur = sv_rbegin_tok(ref, sv(" "));
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, sv(" ")))
     {

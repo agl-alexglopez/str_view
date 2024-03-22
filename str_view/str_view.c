@@ -329,13 +329,13 @@ sv_begin(const str_view sv)
 }
 
 const char *
-sv_end(const str_view sv)
+sv_end(const str_view src)
 {
-    if (!sv.s)
+    if (!src.s || src.s == nil.s)
     {
         return nil.s;
     }
-    return sv.s + sv.sz;
+    return src.s + src.sz;
 }
 
 const char *
@@ -346,6 +346,40 @@ sv_next(const char *c)
         return nil.s;
     }
     return ++c;
+}
+
+const char *
+sv_rbegin(str_view sv)
+{
+    if (!sv.s)
+    {
+        return nil.s;
+    }
+    if (sv.sz == 0)
+    {
+        return sv.s;
+    }
+    return sv.s + sv.sz - 1;
+}
+
+const char *
+sv_rend(str_view sv)
+{
+    if (!sv.s || sv.s == nil.s)
+    {
+        return nil.s;
+    }
+    return sv.s - 1;
+}
+
+const char *
+sv_rnext(const char *c)
+{
+    if (!c)
+    {
+        return nil.s;
+    }
+    return --c;
 }
 
 const char *

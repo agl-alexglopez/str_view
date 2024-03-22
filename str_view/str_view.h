@@ -169,6 +169,12 @@ const char *sv_end(str_view);
    sv_null() is returned. */
 const char *sv_next(const char *);
 
+const char *sv_rbegin(str_view);
+
+const char *sv_rend(str_view);
+
+const char *sv_rnext(const char *);
+
 /* Returns the character pointer at the minimum between the indicated
    position and the end of the string view. If NULL is stored by the
    str_view then sv_null() is returned. */
