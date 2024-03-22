@@ -44,6 +44,8 @@ struct fn_name
     {                                                                          \
         if ((RESULT) != (EXPECTED))                                            \
         {                                                                      \
+            (void)fprintf(stderr, "this check failed on line %d:\n%s == %s\n", \
+                          __LINE__, #RESULT, #EXPECTED);                       \
             return FAIL;                                                       \
         }                                                                      \
     } while (0)

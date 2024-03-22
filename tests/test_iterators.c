@@ -249,42 +249,150 @@ test_riter_multi(void)
 static enum test_result
 test_min_delim(void)
 {
-    const char *const reference = "/0/0";
-    const char *const toks[2] = {"0", "0"};
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view delim = sv("/");
-    const str_view ref_view = sv(reference);
-    size_t i = 0;
-    for (str_view tok = sv_begin_tok(ref_view, delim);
-         i < size && !sv_end_tok(ref_view, tok);
-         tok = sv_next_tok(ref_view, tok, delim))
+    str_view ref = SV("/0");
+    const str_view delim = SV("/");
+    const str_view tok = SV("0");
+    str_view i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_len(tok), sv_strlen(toks[i]));
-        ++i;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
     }
-    CHECK(i, sizeof(toks) / sizeof(toks[0]));
+    ref = SV("0/");
+    i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
+    {
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s + ref.sz);
+    ref = SV("/0/");
+    i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
+    {
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s + ref.sz);
+    ref = SV("0/0");
+    size_t sz = 2;
+    i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s + ref.sz);
+    CHECK(sz, 0);
+    ref = SV("/0/0");
+    sz = 2;
+    i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s + ref.sz);
+    CHECK(sz, 0);
+    ref = SV("0/0/");
+    sz = 2;
+    i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s + ref.sz);
+    CHECK(sz, 0);
+    ref = SV("/0/0/");
+    sz = 2;
+    i = sv_begin_tok(ref, delim);
+    for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s + ref.sz);
+    CHECK(sz, 0);
     return PASS;
 }
 
 static enum test_result
 test_rmin_delim(void)
 {
-    const char *const reference = "/0/0";
-    const char *const toks[2] = {"0", "0"};
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view delim = sv("/");
-    const str_view ref_view = sv(reference);
-    size_t i = size;
-    for (str_view tok = sv_rbegin_tok(ref_view, delim);
-         i && !sv_rend_tok(ref_view, tok);
-         tok = sv_rnext_tok(ref_view, tok, delim))
+    str_view ref = SV("/0");
+    const str_view delim = SV("/");
+    const str_view tok = SV("0");
+    str_view i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        --i;
-        CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_len(tok), sv_strlen(toks[i]));
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
     }
-    CHECK(i, 0);
+    ref = SV("0/");
+    i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
+    {
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s);
+    ref = SV("/0/");
+    i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
+    {
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s);
+    ref = SV("0/0");
+    size_t sz = 2;
+    i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s);
+    CHECK(sz, 0);
+    ref = SV("/0/0");
+    sz = 2;
+    i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s);
+    CHECK(sz, 0);
+    ref = SV("0/0/");
+    sz = 2;
+    i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s);
+    CHECK(sz, 0);
+    ref = SV("/0/0/");
+    sz = 2;
+    i = sv_rbegin_tok(ref, delim);
+    for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
+    {
+        --sz;
+        CHECK(sv_svcmp(i, tok), EQL);
+        CHECK(sv_len(i), sv_len(tok));
+    }
+    CHECK(i.s, ref.s);
+    CHECK(sz, 0);
     return PASS;
 }
 
