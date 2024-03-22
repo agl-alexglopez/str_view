@@ -437,14 +437,15 @@ sv_rbegin_tok(str_view src, str_view delim)
         return (str_view){.s = src.s + src.sz, 0};
     }
     size_t before_delim = sv_before_rfind(src, delim);
+    size_t new_size = before_delim;
     if (before_delim == src.sz - 1)
     {
-        before_delim = src.sz;
+        new_size = src.sz;
     }
-    const size_t found = sv_rfind(src, before_delim - 1, delim);
-    if (found == before_delim)
+    const size_t found = sv_rfind(src, new_size - 1, delim);
+    if (found == new_size)
     {
-        return (str_view){.s = src.s, .sz = before_delim};
+        return (str_view){.s = src.s, .sz = new_size};
     }
     return (str_view){.s = src.s + found + delim.sz,
                       .sz = (before_delim + 1) - (found + delim.sz)};

@@ -9,6 +9,7 @@ static enum test_result test_riter(void);
 static enum test_result test_riter2(void);
 static enum test_result test_riter_multi(void);
 static enum test_result test_min_delim(void);
+static enum test_result test_rmin_delim(void);
 static enum test_result test_simple_delim(void);
 static enum test_result test_tail_delim(void);
 static enum test_result test_iter_repeating_delim(void);
@@ -18,7 +19,7 @@ static enum test_result test_iter_delim_larger_than_str(void);
 static enum test_result test_tokenize_not_terminated(void);
 static enum test_result test_tokenize_three_views(void);
 
-#define NUM_TESTS (size_t)14
+#define NUM_TESTS (size_t)15
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
     {test_iter2, "test_iter2"},
@@ -26,6 +27,7 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_riter_multi, "test_riter_multi"},
     {test_riter2, "test_riter2"},
     {test_min_delim, "test_min_delim"},
+    {test_rmin_delim, "test_rmin_delim"},
     {test_simple_delim, "test_simple_delim"},
     {test_tail_delim, "test_tail_delim"},
     {test_iter_repeating_delim, "test_iter_repeating_delim"},
@@ -237,6 +239,27 @@ test_min_delim(void)
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
+    return PASS;
+}
+
+static enum test_result
+test_rmin_delim(void)
+{
+    const char *const reference = "/0/0";
+    const char *const toks[2] = {"0", "0"};
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
+    const str_view delim = sv("/");
+    const str_view ref_view = sv(reference);
+    size_t i = size;
+    for (str_view tok = sv_rbegin_tok(ref_view, delim);
+         i && !sv_rend_tok(ref_view, tok);
+         tok = sv_rnext_tok(ref_view, tok, delim))
+    {
+        --i;
+        CHECK(sv_strcmp(tok, toks[i]), EQL);
+        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+    }
+    CHECK(i, 0);
     return PASS;
 }
 
