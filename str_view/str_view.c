@@ -496,11 +496,7 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return tok;
     }
-    if (!delim.s || tok.s == src.s)
-    {
-        return (str_view){.s = src.s, .sz = 0};
-    }
-    if (tok.s - delim.sz <= src.s)
+    if (!delim.s || tok.s == src.s || tok.s - delim.sz <= src.s)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
