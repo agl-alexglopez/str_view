@@ -1695,7 +1695,7 @@ sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
        reversed, all 32 bits are available for the comparison meaning
        there is no longer a need for masks and shifting takes care of
        the comparison. */
-    for (; i && hw != nw; hw = ((hw >> 8) | (*--h << 24)), --i)
+    for (; i && hw != nw; hw = (hw >> 8) | (*--h << 24), --i)
     {}
     return i ? i - 1 : sz;
 }
