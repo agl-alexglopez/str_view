@@ -1,8 +1,8 @@
 /* Author: Alexander G. Lopez
-   File: string_view.c
+   File: str_view.c
    ===================
-   This file implements the string_view interface as an approximation of C++
-   string_view type. There are some minor differences and C flavor thrown
+   This file implements the str_view interface as an approximation of C++
+   std::string_view type. There are some minor differences and C flavor thrown
    in. Additionally, there is a provided reimplementation of the Two-Way
    String-Searching algorithm, similar to glibc. */
 #include "str_view.h"
@@ -48,7 +48,7 @@ struct sv_two_way_pack
    by returning this for various edgecases when it makes sense to communicate
    empty, null, invalid, not found etc. Used on cases by case basis.
    It is usually better to justify giving back the user pointer in a
-   string_view even if it sized 0 and pointing to null terminator. */
+   str_view even if it sized 0 and pointing to null terminator. */
 static const str_view nil = SV("");
 
 /* =========================   Prototypes   =============================== */
@@ -210,7 +210,7 @@ sv_at(str_view sv, size_t i)
 {
     if (i >= sv.sz)
     {
-        QUIT("string_view index out of range. size=%zu, index=%zu\n", sv.sz, i);
+        QUIT("str_view index out of range. size=%zu, index=%zu\n", sv.sz, i);
     }
     return sv.s[i];
 }
@@ -577,7 +577,7 @@ sv_substr(str_view sv, size_t pos, size_t count)
 {
     if (pos > sv.sz)
     {
-        QUIT("string_view index out of range. pos=%zu size=%zu", pos, sv.sz);
+        QUIT("str_view index out of range. pos=%zu size=%zu", pos, sv.sz);
     }
     return (str_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
 }
