@@ -18,14 +18,16 @@ static enum test_result test_rtriple_delim(void);
 static enum test_result test_rquad_delim(void);
 static enum test_result test_iter_repeating_delim(void);
 static enum test_result test_iter_multichar_delim(void);
+static enum test_result test_riter_multichar_delim(void);
 static enum test_result test_iter_multichar_delim_short(void);
+static enum test_result test_riter_multichar_delim_short(void);
 static enum test_result test_iter_delim_larger_than_str(void);
 static enum test_result test_riter_delim_larger_than_str(void);
 static enum test_result test_tokenize_not_terminated(void);
 static enum test_result test_tokenize_three_views(void);
 static enum test_result test_rtokenize_three_views(void);
 
-#define NUM_TESTS (size_t)21
+#define NUM_TESTS (size_t)23
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
     {test_iter2, "test_iter2"},
@@ -42,7 +44,9 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_rquad_delim, "test_rquad_delim"},
     {test_iter_repeating_delim, "test_iter_repeating_delim"},
     {test_iter_multichar_delim, "test_iter_multichar_delim"},
+    {test_riter_multichar_delim, "test_riter_multichar_delim"},
     {test_iter_multichar_delim_short, "test_iter_multichar_delim_short"},
+    {test_riter_multichar_delim_short, "test_riter_multichar_delim_short"},
     {test_iter_delim_larger_than_str, "test_iter_delim_larger_than_str"},
     {test_riter_delim_larger_than_str, "test_riter_delim_larger_than_str"},
     {test_tokenize_not_terminated, "test_tokenize_not_terminated"},
@@ -486,6 +490,41 @@ test_iter_multichar_delim(void)
 }
 
 static enum test_result
+test_riter_multichar_delim(void)
+{
+    const char *toks[14] = {
+        "A",     "B", "C", "D",      "E", "F",  "G",
+        "HacbI", "J", "K", "LcbaMN", "O", "Pi", "\\(*.*)/",
+    };
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
+    const char *const reference
+        = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
+          "abcOabcabcPiabcabc\\(*.*)/abc";
+    const str_view delim = sv("abc");
+    const str_view ref_view = sv(reference);
+    str_view cur = sv_rbegin_tok(ref_view, delim);
+    size_t i = size;
+    for (; !sv_rend_tok(ref_view, cur) && i;
+         cur = sv_rnext_tok(ref_view, cur, delim))
+    {
+        --i;
+        CHECK(sv_strcmp(cur, toks[i]), EQL);
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
+    }
+    CHECK(i, 0);
+    CHECK(cur.s, reference);
+    str_view cur2 = sv_rbegin_tok(ref_view, sv(" "));
+    for (; !sv_rend_tok(ref_view, cur2);
+         cur2 = sv_rnext_tok(ref_view, cur2, sv(" ")))
+    {
+        CHECK(sv_strcmp(cur2, reference), EQL);
+        CHECK(sv_len(cur2), sv_strlen(reference));
+    }
+    CHECK(cur2.s, reference);
+    return PASS;
+}
+
+static enum test_result
 test_iter_multichar_delim_short(void)
 {
     const char *toks[14] = {
@@ -516,6 +555,41 @@ test_iter_multichar_delim_short(void)
         CHECK(sv_len(cur2), sv_strlen(reference));
     }
     CHECK(*cur2.s, '\0');
+    return PASS;
+}
+
+static enum test_result
+test_riter_multichar_delim_short(void)
+{
+    const char *toks[14] = {
+        "A",     "B", "C", "D",        "E", "F",  "G",
+        "H---I", "J", "K", "L-M--N--", "O", "Pi", "\\(*.*)/",
+    };
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
+    const char *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
+                                  "---H---I-----J-----K-----L-M--N"
+                                  "-------O-----Pi-----\\(*.*)/-----";
+    size_t i = size;
+    const str_view delim = sv("-----");
+    const str_view ref_view = sv(reference);
+    str_view cur = sv_rbegin_tok(ref_view, delim);
+    for (; !sv_rend_tok(ref_view, cur);
+         cur = sv_rnext_tok(ref_view, cur, delim))
+    {
+        --i;
+        CHECK(sv_strcmp(cur, toks[i]), EQL);
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
+    }
+    CHECK(cur.s, reference);
+    CHECK(i, 0);
+    str_view cur2 = sv_rbegin_tok(ref_view, sv(" "));
+    for (; !sv_rend_tok(ref_view, cur2);
+         cur2 = sv_rnext_tok(ref_view, cur2, sv(" ")))
+    {
+        CHECK(sv_strcmp(cur2, reference), EQL);
+        CHECK(sv_len(cur2), sv_strlen(reference));
+    }
+    CHECK(cur2.s, reference);
     return PASS;
 }
 
