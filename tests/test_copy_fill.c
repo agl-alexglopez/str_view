@@ -38,7 +38,7 @@ test_copy_fill(void)
     char there[sv_strbytes(reference)];
     CHECK(sv_fill(there, sizeof there, this), sizeof there);
     CHECK(strcmp(sv_begin(this), there), 0);
-    CHECK(strlen(there), sv_svlen(this));
+    CHECK(strlen(there), sv_len(this));
     CHECK(there[(sizeof there) - 1], '\0');
     return PASS;
 }

@@ -105,7 +105,7 @@ test_dir_entries(void)
     const str_view without_last_slash
         = sv_substr(root_single_entry_slash, 0,
                     sv_rfind(root_single_entry_slash,
-                             sv_svlen(root_single_entry_slash), dirslash));
+                             sv_len(root_single_entry_slash), dirslash));
     CHECK(sv_svcmp(without_last_slash, root_single_entry), EQL);
     const str_view special_file = {"/this/is/a/very/special/file",
                                    SVLEN("/this/is/a/very/special/file")};
@@ -160,7 +160,7 @@ test_progressive_search(void)
     };
     i = 0;
     for (str_view path = starting_path; !sv_empty(path);
-         path = sv_remove_suffix(path, sv_svlen(path)
+         path = sv_remove_suffix(path, sv_len(path)
                                            - sv_find_last_of(path, dirslash)))
     {
         CHECK(sv_strcmp(path, sub_paths_rev[i]), EQL);

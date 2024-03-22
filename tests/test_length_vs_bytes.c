@@ -41,7 +41,7 @@ test_length_terminated(void)
     const size_t len = strlen(ref);
     const size_t bytes = sizeof ref;
     CHECK(len, sv_strlen(ref));
-    CHECK(len, sv_svlen(sv(ref)));
+    CHECK(len, sv_len(sv(ref)));
     CHECK(bytes, sv_strbytes(ref));
     CHECK(bytes, sv_svbytes(sv(ref)));
     CHECK(len, sv_npos(sv(ref)));
@@ -61,7 +61,7 @@ test_length_unterminated(void)
     const size_t bytes = sizeof snip;
     const str_view snip_view = sv_n(ref + 6, len);
     CHECK(sv_strlen(snip), len);
-    CHECK(sv_svlen(snip_view), len);
+    CHECK(sv_len(snip_view), len);
     CHECK(sv_strbytes(snip), bytes);
     CHECK(sv_svbytes(snip_view), bytes);
     CHECK(len, sv_npos(snip_view));
@@ -82,14 +82,14 @@ test_length_innacurate(void)
     const size_t bytes = len + 1;
     const str_view view = sv_n(ref, 99);
     CHECK(len, sv_strlen(ref));
-    CHECK(len, sv_svlen(view));
+    CHECK(len, sv_len(view));
     CHECK(bytes, sv_strbytes(ref));
     CHECK(bytes, sv_svbytes(view));
     CHECK(len, sv_npos(view));
     CHECK(len, sv_minlen(ref, 99));
     const str_view view2 = sv_n(ref, -1);
     CHECK(len, sv_strlen(ref));
-    CHECK(len, sv_svlen(view2));
+    CHECK(len, sv_len(view2));
     CHECK(bytes, sv_strbytes(ref));
     CHECK(bytes, sv_svbytes(view2));
     CHECK(len, (sv_npos(view2)));

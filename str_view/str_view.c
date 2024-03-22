@@ -64,7 +64,7 @@ static size_t sv_threebyte_strnstrn(const unsigned char *, size_t,
                                     const unsigned char *);
 static size_t sv_fourbyte_strnstrn(const unsigned char *, size_t,
                                    const unsigned char *);
-static size_t sv_len(const char *);
+static size_t sv_lenstr(const char *);
 static size_t sv_nlen(const char *, size_t);
 static size_t sv_strcspn(const char *, size_t, const char *, size_t);
 static size_t sv_strspn(const char *, size_t, const char *, size_t);
@@ -162,7 +162,7 @@ sv_empty(const str_view s)
 }
 
 size_t
-sv_svlen(str_view sv)
+sv_len(str_view sv)
 {
     return sv.sz;
 }
@@ -176,7 +176,7 @@ sv_svbytes(str_view sv)
 size_t
 sv_strlen(const char *const str)
 {
-    return sv_len(str);
+    return sv_lenstr(str);
 }
 
 size_t
@@ -186,7 +186,7 @@ sv_strbytes(const char *const str)
     {
         return 0;
     }
-    return sv_len(str) + 1;
+    return sv_lenstr(str) + 1;
 }
 
 size_t
@@ -369,6 +369,10 @@ sv_rend(str_view sv)
     {
         return nil.s;
     }
+    if (sv.sz == 0)
+    {
+        return sv.s;
+    }
     return sv.s - 1;
 }
 
@@ -450,9 +454,9 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
         = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
     next += after_delim;
     next_sz -= after_delim;
-    if (!*next)
+    if (next >= src.s + src.sz)
     {
-        return (str_view){.s = next, .sz = 0};
+        return (str_view){.s = src.s + src.sz, .sz = 0};
     }
     const size_t found
         = sv_strnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
@@ -515,10 +519,9 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = src.s, .sz = before_delim + 1};
     }
-    next = src.s + before_delim;
-    const size_t found
-        = sv_rstrnstrn(src.s, next - src.s, delim.s, (ssize_t)delim.sz);
-    if (found == (size_t)(next - src.s))
+    const size_t found = sv_rstrnstrn(src.s, (ssize_t)before_delim, delim.s,
+                                      (ssize_t)delim.sz);
+    if (found == before_delim)
     {
         return (str_view){.s = src.s, .sz = before_delim + 1};
     }
@@ -835,7 +838,7 @@ sv_char_cmp(char a, char b)
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strlen.c */
 static size_t
-sv_len(const char *const str)
+sv_lenstr(const char *const str)
 {
     if (!str)
     {

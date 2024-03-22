@@ -111,7 +111,7 @@ test_iter2(void)
     str_view chars = sv(reference);
     size_t i = 0;
     for (const char *cur = sv_begin(chars);
-         cur != sv_end(chars) && i < sv_svlen(chars); cur = sv_next(cur))
+         cur != sv_end(chars) && i < sv_len(chars); cur = sv_next(cur))
     {
         CHECK(*cur, reference[i]);
         ++i;
@@ -123,7 +123,7 @@ test_iter2(void)
          cur = sv_next_tok(chars, cur, sv(" ")))
     {
         CHECK(sv_front(cur), *toks[i]);
-        CHECK(sv_svlen(cur), sv_strlen(toks[i]));
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(*cur.s, '\0');
@@ -173,7 +173,7 @@ test_riter2(void)
         "A", "B", "C", "D", "E", "G", "H", "I",
         "J", "K", "L", "M", "N", "O", "P",
     };
-    size_t character = sv_svlen(ref);
+    size_t character = sv_len(ref);
     for (const char *c = sv_rbegin(ref); character && c != sv_rend(ref);
          c = sv_rnext(c))
     {
@@ -189,7 +189,7 @@ test_riter2(void)
     {
         --i;
         CHECK(sv_front(cur), *toks[i]);
-        CHECK(sv_svlen(cur), sv_strlen(toks[i]));
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
     }
     CHECK(cur.s, ref.s);
     /* Do at least one token iteration if we can't find any delims */
@@ -200,7 +200,7 @@ test_riter2(void)
     {
         --i;
         CHECK(sv_svcmp(cur2, ref), EQL);
-        CHECK(sv_svlen(cur2), sv_svlen(ref));
+        CHECK(sv_len(cur2), sv_len(ref));
     }
     CHECK(cur2.s, ref.s);
     return PASS;
@@ -217,15 +217,15 @@ test_riter_multi(void)
         "J", "K", "L", "M", "N", "O", "P",
     };
     size_t i = size;
-    const size_t last_delim_pos = sv_rfind(ref, sv_svlen(ref), delim);
-    CHECK(last_delim_pos, sv_svlen(ref) - 2);
+    const size_t last_delim_pos = sv_rfind(ref, sv_len(ref), delim);
+    CHECK(last_delim_pos, sv_len(ref) - 2);
     /* This version should only give us the letters because delim is ' ' */
     str_view cur = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, delim))
     {
         --i;
         CHECK(sv_front(cur), *toks[i]);
-        CHECK(sv_svlen(cur), sv_strlen(toks[i]));
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
     }
     CHECK(cur.s, ref.s);
     /* Do at least one token iteration if we can't find any delims */
@@ -236,7 +236,7 @@ test_riter_multi(void)
     {
         --i;
         CHECK(sv_svcmp(cur2, ref), EQL);
-        CHECK(sv_svlen(cur2), sv_svlen(ref));
+        CHECK(sv_len(cur2), sv_len(ref));
     }
     CHECK(cur2.s, ref.s);
     return PASS;
@@ -256,7 +256,7 @@ test_min_delim(void)
          tok = sv_next_tok(ref_view, tok, delim))
     {
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
@@ -278,7 +278,7 @@ test_rmin_delim(void)
     {
         --i;
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
     }
     CHECK(i, 0);
     return PASS;
@@ -299,7 +299,7 @@ test_simple_delim(void)
          tok = sv_next_tok(ref_view, tok, delim))
     {
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
@@ -323,7 +323,7 @@ test_rsimple_delim(void)
     {
         --i;
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
     }
     CHECK(i, 0);
     return PASS;
@@ -343,7 +343,7 @@ test_tail_delim(void)
          !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
     {
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
@@ -366,7 +366,7 @@ test_rtail_delim(void)
     {
         --i;
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
     }
     CHECK(i, 0);
     return PASS;
@@ -388,7 +388,7 @@ test_rtriple_delim(void)
     {
         --i;
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
     }
     CHECK(i, 0);
     return PASS;
@@ -411,7 +411,7 @@ test_rquad_delim(void)
     {
         --i;
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
     }
     CHECK(i, 0);
     return PASS;
@@ -434,7 +434,7 @@ test_iter_repeating_delim(void)
          cur = sv_next_tok(ref_view, cur, sv(" ")))
     {
         CHECK(sv_strcmp(cur, toks[i]), EQL);
-        CHECK(sv_svlen(cur), sv_strlen(toks[i]));
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(*cur.s, '\0');
@@ -444,7 +444,7 @@ test_iter_repeating_delim(void)
          cur2 = sv_next_tok(ref_view, cur2, sv(",")))
     {
         CHECK(sv_strcmp(cur2, reference), EQL);
-        CHECK(sv_svlen(cur2), sv_strlen(reference));
+        CHECK(sv_len(cur2), sv_strlen(reference));
     }
     CHECK(*cur2.s, '\0');
     return PASS;
@@ -469,7 +469,7 @@ test_iter_multichar_delim(void)
          cur = sv_next_tok(ref_view, cur, (str_view){delim, delim_len}))
     {
         CHECK(sv_strcmp(cur, toks[i]), EQL);
-        CHECK(sv_svlen(cur), sv_strlen(toks[i]));
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(*cur.s, '\0');
@@ -478,7 +478,7 @@ test_iter_multichar_delim(void)
          cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
     {
         CHECK(sv_strcmp(cur2, reference), EQL);
-        CHECK(sv_svlen(cur2), sv_strlen(reference));
+        CHECK(sv_len(cur2), sv_strlen(reference));
     }
     CHECK(*cur2.s, '\0');
     return PASS;
@@ -503,7 +503,7 @@ test_iter_multichar_delim_short(void)
          cur = sv_next_tok(ref_view, cur, (str_view){delim, delim_len}))
     {
         CHECK(sv_strcmp(cur, toks[i]), EQL);
-        CHECK(sv_svlen(cur), sv_strlen(toks[i]));
+        CHECK(sv_len(cur), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(*cur.s, '\0');
@@ -512,7 +512,7 @@ test_iter_multichar_delim_short(void)
          cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
     {
         CHECK(sv_strcmp(cur2, reference), EQL);
-        CHECK(sv_svlen(cur2), sv_strlen(reference));
+        CHECK(sv_len(cur2), sv_strlen(reference));
     }
     CHECK(*cur2.s, '\0');
     return PASS;
@@ -535,7 +535,7 @@ test_iter_delim_larger_than_str(void)
          cur = sv_next_tok(sv(reference), cur, delim))
     {
         CHECK(sv_strcmp(cur, reference), EQL);
-        CHECK(sv_svlen(cur), sv_strlen(reference));
+        CHECK(sv_len(cur), sv_strlen(reference));
     }
     CHECK(*cur.s, '\0');
     return PASS;
@@ -559,7 +559,7 @@ test_riter_delim_larger_than_str(void)
          cur = sv_rnext_tok(ref_view, cur, delim))
     {
         CHECK(sv_svcmp(cur, ref_view), EQL);
-        CHECK(sv_svlen(cur), sv_svlen(ref_view));
+        CHECK(sv_len(cur), sv_len(ref_view));
     }
     CHECK(*cur.s, *reference);
     return PASS;
@@ -575,14 +575,14 @@ test_tokenize_not_terminated(void)
     const str_view path = sv(path_str);
     const str_view delim = sv("/");
     const str_view childless_path
-        = sv_remove_suffix(path, sv_svlen(path) - sv_find_last_of(path, delim));
+        = sv_remove_suffix(path, sv_len(path) - sv_find_last_of(path, delim));
     size_t i = 0;
     for (str_view tok = sv_begin_tok(childless_path, delim);
          !sv_end_tok(childless_path, tok);
          tok = sv_next_tok(childless_path, tok, delim))
     {
         CHECK(sv_strcmp(tok, toks[i]), EQL);
-        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+        CHECK(sv_len(tok), sv_strlen(toks[i]));
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
@@ -607,7 +607,7 @@ test_tokenize_three_views(void)
                                           - sv_find(path, 0, sv("/paths/")));
     const str_view third
         = sv_substr(path, sv_find(path, 0, sv("/and/")),
-                    sv_svlen(path) - sv_find(path, 0, sv("/and/")));
+                    sv_len(path) - sv_find(path, 0, sv("/and/")));
     size_t i = 0;
     for (str_view tok1 = sv_begin_tok(first, delim),
                   tok2 = sv_begin_tok(second, delim),
@@ -619,11 +619,11 @@ test_tokenize_three_views(void)
                   tok3 = sv_next_tok(third, tok3, delim))
     {
         CHECK(sv_strcmp(tok1, toks[0][i]), EQL);
-        CHECK(sv_svlen(tok1), sv_strlen(toks[0][i]));
+        CHECK(sv_len(tok1), sv_strlen(toks[0][i]));
         CHECK(sv_strcmp(tok2, toks[1][i]), EQL);
-        CHECK(sv_svlen(tok2), sv_strlen(toks[1][i]));
+        CHECK(sv_len(tok2), sv_strlen(toks[1][i]));
         CHECK(sv_strcmp(tok3, toks[2][i]), EQL);
-        CHECK(sv_svlen(tok3), sv_strlen(toks[2][i]));
+        CHECK(sv_len(tok3), sv_strlen(toks[2][i]));
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
@@ -648,7 +648,7 @@ test_rtokenize_three_views(void)
                                           - sv_find(path, 0, sv("/paths/")));
     const str_view third
         = sv_substr(path, sv_find(path, 0, sv("/and/")),
-                    sv_svlen(path) - sv_find(path, 0, sv("/and/")));
+                    sv_len(path) - sv_find(path, 0, sv("/and/")));
     size_t i = size;
     for (str_view tok1 = sv_rbegin_tok(first, delim),
                   tok2 = sv_rbegin_tok(second, delim),
@@ -661,11 +661,11 @@ test_rtokenize_three_views(void)
     {
         --i;
         CHECK(sv_strcmp(tok1, toks[0][i]), EQL);
-        CHECK(sv_svlen(tok1), sv_strlen(toks[0][i]));
+        CHECK(sv_len(tok1), sv_strlen(toks[0][i]));
         CHECK(sv_strcmp(tok2, toks[1][i]), EQL);
-        CHECK(sv_svlen(tok2), sv_strlen(toks[1][i]));
+        CHECK(sv_len(tok2), sv_strlen(toks[1][i]));
         CHECK(sv_strcmp(tok3, toks[2][i]), EQL);
-        CHECK(sv_svlen(tok3), sv_strlen(toks[2][i]));
+        CHECK(sv_len(tok3), sv_strlen(toks[2][i]));
     }
     CHECK(i, 0);
     return PASS;

@@ -311,7 +311,7 @@ test_substring_off_by_one(void)
         sv_substr(haystack_view, needle_len, ULLONG_MAX), 0, needle_view);
     CHECK(find_pos2, (size_t)(ref2 - (haystack + needle_len)));
     const size_t find_pos2_rev
-        = sv_rfind(haystack_view, sv_svlen(haystack_view), needle_view);
+        = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
     CHECK((size_t)(ref2 - haystack), find_pos2_rev);
     return PASS;
 }

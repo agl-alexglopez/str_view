@@ -38,7 +38,7 @@ test_front_back_terminated(void)
     const char *const reference = "*The front was * the back is!";
     const str_view s = sv(reference);
     const size_t ref_len = strlen(reference);
-    CHECK(ref_len, sv_svlen(s));
+    CHECK(ref_len, sv_len(s));
     CHECK(sv_front(s), '*');
     CHECK(sv_back(s), '!');
     return PASS;
@@ -56,6 +56,6 @@ test_front_back_view(void)
     const str_view s = sv_n(reference + 4, 8);
     CHECK(sv_front(s), '^');
     CHECK(sv_back(s), '@');
-    CHECK(sv_svlen(s), 8);
+    CHECK(sv_len(s), 8);
     return PASS;
 }
