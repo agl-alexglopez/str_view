@@ -1608,10 +1608,10 @@ static inline size_t
 sv_rstrnchr(const char *s, const char c, size_t n)
 {
     const char *x = s + n - 1;
-    ssize_t i = (ssize_t)n - 1;
-    for (; i != -1 && *x != c; x--, i--)
+    size_t i = n;
+    for (; i && *x != c; x--, --i)
     {}
-    return i == -1 ? n : (size_t)i;
+    return i ? i - 1 : n;
 }
 
 static inline size_t
