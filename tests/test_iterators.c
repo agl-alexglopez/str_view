@@ -11,6 +11,7 @@ static enum test_result test_riter_multi(void);
 static enum test_result test_min_delim(void);
 static enum test_result test_rmin_delim(void);
 static enum test_result test_simple_delim(void);
+static enum test_result test_rsimple_delim(void);
 static enum test_result test_tail_delim(void);
 static enum test_result test_iter_repeating_delim(void);
 static enum test_result test_iter_multichar_delim(void);
@@ -19,7 +20,7 @@ static enum test_result test_iter_delim_larger_than_str(void);
 static enum test_result test_tokenize_not_terminated(void);
 static enum test_result test_tokenize_three_views(void);
 
-#define NUM_TESTS (size_t)15
+#define NUM_TESTS (size_t)16
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
     {test_iter2, "test_iter2"},
@@ -29,6 +30,7 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_min_delim, "test_min_delim"},
     {test_rmin_delim, "test_rmin_delim"},
     {test_simple_delim, "test_simple_delim"},
+    {test_rsimple_delim, "test_rsimple_delim"},
     {test_tail_delim, "test_tail_delim"},
     {test_iter_repeating_delim, "test_iter_repeating_delim"},
     {test_iter_multichar_delim, "test_iter_multichar_delim"},
@@ -282,6 +284,29 @@ test_simple_delim(void)
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
+    return PASS;
+}
+
+static enum test_result
+test_rsimple_delim(void)
+{
+    const char *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
+    const char *const toks[11] = {
+        "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
+    };
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
+    const str_view ref_view = sv(reference);
+    const str_view delim = sv("/");
+    size_t i = size;
+    for (str_view tok = sv_rbegin_tok(ref_view, delim);
+         !sv_rend_tok(ref_view, tok) && i;
+         tok = sv_rnext_tok(ref_view, tok, delim))
+    {
+        --i;
+        CHECK(sv_strcmp(tok, toks[i]), EQL);
+        CHECK(sv_svlen(tok), sv_strlen(toks[i]));
+    }
+    CHECK(i, 0);
     return PASS;
 }
 
