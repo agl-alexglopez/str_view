@@ -14,6 +14,7 @@
 
 /* ========================   Type Definitions   =========================== */
 
+/* Return type for the factorization step of two-way search. */
 struct sv_factorization
 {
     /* Position in the needle at which (local period = period). */
@@ -411,10 +412,10 @@ sv_begin_tok(str_view src, str_view delim)
     {
         return (str_view){.s = src.s + src.sz, 0};
     }
-    const size_t sv_not = sv_after_find(src, delim);
     const char *const begin = src.s;
+    const size_t sv_not = sv_after_find(src, delim);
     src.s += sv_not;
-    if (begin + src.sz == src.s || !src.s)
+    if (begin + src.sz == src.s)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
@@ -443,24 +444,23 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = tok.s + tok.sz, .sz = 0};
     }
-    const char *next = tok.s + tok.sz;
-    if (next >= src.s + src.sz)
+    str_view next = {.s = tok.s + tok.sz, .sz = src.sz - tok.sz};
+    if (next.s >= src.s + src.sz)
     {
-        return (str_view){.s = next, .sz = 0};
+        return (str_view){.s = src.s + src.sz, .sz = 0};
     }
-    next += delim.sz;
-    size_t next_sz = src.sz - (next - src.s);
-    const size_t after_delim
-        = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
-    next += after_delim;
-    next_sz -= after_delim;
-    if (next >= src.s + src.sz)
+    next.s += delim.sz;
+    next.sz = src.sz - (next.s - src.s);
+    const size_t after_delim = sv_after_find(next, delim);
+    next.s += after_delim;
+    next.sz -= after_delim;
+    if (next.s >= src.s + src.sz)
     {
         return (str_view){.s = src.s + src.sz, .sz = 0};
     }
     const size_t found
-        = sv_strnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
-    return (str_view){.s = next, .sz = found};
+        = sv_strnstrn(next.s, (ssize_t)next.sz, delim.s, (ssize_t)delim.sz);
+    return (str_view){.s = next.s, .sz = found};
 }
 
 str_view
@@ -475,18 +475,14 @@ sv_rbegin_tok(str_view src, str_view delim)
         return (str_view){.s = src.s + src.sz, 0};
     }
     size_t before_delim = sv_before_rfind(src, delim);
-    size_t new_size = before_delim;
-    if (before_delim == src.sz - 1)
+    src.sz = sv_min(src.sz, before_delim + 1);
+    size_t start = sv_rfind(src, src.sz, delim);
+    if (start == src.sz)
     {
-        new_size = src.sz;
+        return src;
     }
-    const size_t found = sv_rfind(src, new_size - 1, delim);
-    if (found == new_size)
-    {
-        return (str_view){.s = src.s, .sz = new_size};
-    }
-    return (str_view){.s = src.s + found + delim.sz,
-                      .sz = (before_delim + 1) - (found + delim.sz)};
+    start += delim.sz;
+    return (str_view){.s = src.s + start, .sz = before_delim - start + 1};
 }
 
 str_view
@@ -504,25 +500,24 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
-    const char *next = tok.s - delim.sz;
-    if (next <= src.s)
+    if (tok.s - delim.sz <= src.s)
     {
-        return (str_view){.s = next, .sz = 0};
+        return (str_view){.s = src.s, .sz = 0};
     }
-    const str_view shorter = {.s = src.s, .sz = next - src.s};
+    const str_view shorter = {.s = src.s, .sz = (tok.s - delim.sz) - src.s};
     const size_t before_delim = sv_before_rfind(shorter, delim);
     if (before_delim == shorter.sz)
     {
         return shorter;
     }
-    const size_t found = sv_rstrnstrn(shorter.s, (ssize_t)before_delim, delim.s,
-                                      (ssize_t)delim.sz);
-    if (found == before_delim)
+    size_t start = sv_rstrnstrn(shorter.s, (ssize_t)before_delim, delim.s,
+                                (ssize_t)delim.sz);
+    if (start == before_delim)
     {
         return (str_view){.s = shorter.s, .sz = before_delim + 1};
     }
-    next = src.s + found + delim.sz;
-    return (str_view){.s = next, .sz = (before_delim + 1) - (found + delim.sz)};
+    start += delim.sz;
+    return (str_view){.s = src.s + start, .sz = before_delim - start + 1};
 }
 
 bool
@@ -1592,7 +1587,8 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
    modification because string views may not be null terminated. Reverse
    methods are my own additions provided to support a compliant reverse
    search for rfind which most string libraries specify must search right
-   to left. */
+   to left. Also having a reverse tokenizer is convenient and also relies
+   on right to left brute force searches. */
 
 static inline size_t
 sv_strnchr(const char *s, const char c, size_t n)
