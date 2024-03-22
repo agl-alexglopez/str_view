@@ -509,21 +509,17 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = next, .sz = 0};
     }
-    const size_t before_delim
-        = sv_before_rfind((str_view){.s = src.s, .sz = next - src.s}, delim);
-    if (before_delim == (size_t)(next - src.s))
+    const str_view shorter = {.s = src.s, .sz = next - src.s};
+    const size_t before_delim = sv_before_rfind(shorter, delim);
+    if (before_delim == shorter.sz)
     {
-        return (str_view){.s = src.s, .sz = next - src.s};
+        return shorter;
     }
-    if (before_delim == 0)
-    {
-        return (str_view){.s = src.s, .sz = before_delim + 1};
-    }
-    const size_t found = sv_rstrnstrn(src.s, (ssize_t)before_delim, delim.s,
+    const size_t found = sv_rstrnstrn(shorter.s, (ssize_t)before_delim, delim.s,
                                       (ssize_t)delim.sz);
     if (found == before_delim)
     {
-        return (str_view){.s = src.s, .sz = before_delim + 1};
+        return (str_view){.s = shorter.s, .sz = before_delim + 1};
     }
     next = src.s + found + delim.sz;
     return (str_view){.s = next, .sz = (before_delim + 1) - (found + delim.sz)};
