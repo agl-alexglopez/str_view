@@ -121,7 +121,7 @@ run_test_process(struct path_bin pb)
 static DIR *
 open_test_dir(str_view tests_folder)
 {
-    if (sv_empty(tests_folder) || sv_svlen(tests_folder) > PATH_MAX)
+    if (sv_empty(tests_folder) || sv_len(tests_folder) > PATH_MAX)
     {
         (void)fprintf(stderr, "Invalid input to path to test executables %s\n",
                       sv_begin(tests_folder));
@@ -146,6 +146,6 @@ fill_path(char *path_buf, str_view tests_dir, str_view entry)
         (void)fprintf(stderr, "Relative path exceeds PATH_MAX?\n%s", path_buf);
         return false;
     }
-    (void)sv_fill(path_buf + sv_svlen(tests_dir), PATH_MAX - dir_bytes, entry);
+    (void)sv_fill(path_buf + sv_len(tests_dir), PATH_MAX - dir_bytes, entry);
     return true;
 }

@@ -44,6 +44,7 @@ static const str_view nil = SV("");
 /* =========================   Prototypes   =============================== */
 
 static size_t sv_after_find(str_view, str_view);
+static size_t sv_before_rfind(str_view, str_view);
 static size_t sv_min(size_t, size_t);
 static size_t sv_two_way(const char *, ssize_t, const char *, ssize_t);
 static size_t sv_rtwo_way(const char *, ssize_t, const char *, ssize_t);
@@ -63,7 +64,7 @@ static size_t sv_threebyte_strnstrn(const unsigned char *, size_t,
                                     const unsigned char *);
 static size_t sv_fourbyte_strnstrn(const unsigned char *, size_t,
                                    const unsigned char *);
-static size_t sv_len(const char *);
+static size_t sv_lenstr(const char *);
 static size_t sv_nlen(const char *, size_t);
 static size_t sv_strcspn(const char *, size_t, const char *, size_t);
 static size_t sv_strspn(const char *, size_t, const char *, size_t);
@@ -161,7 +162,7 @@ sv_empty(const str_view s)
 }
 
 size_t
-sv_svlen(str_view sv)
+sv_len(str_view sv)
 {
     return sv.sz;
 }
@@ -175,7 +176,7 @@ sv_svbytes(str_view sv)
 size_t
 sv_strlen(const char *const str)
 {
-    return sv_len(str);
+    return sv_lenstr(str);
 }
 
 size_t
@@ -185,7 +186,7 @@ sv_strbytes(const char *const str)
     {
         return 0;
     }
-    return sv_len(str) + 1;
+    return sv_lenstr(str) + 1;
 }
 
 size_t
@@ -328,13 +329,13 @@ sv_begin(const str_view sv)
 }
 
 const char *
-sv_end(const str_view sv)
+sv_end(const str_view src)
 {
-    if (!sv.s)
+    if (!src.s || src.s == nil.s)
     {
         return nil.s;
     }
-    return sv.s + sv.sz;
+    return src.s + src.sz;
 }
 
 const char *
@@ -345,6 +346,44 @@ sv_next(const char *c)
         return nil.s;
     }
     return ++c;
+}
+
+const char *
+sv_rbegin(str_view sv)
+{
+    if (!sv.s)
+    {
+        return nil.s;
+    }
+    if (sv.sz == 0)
+    {
+        return sv.s;
+    }
+    return sv.s + sv.sz - 1;
+}
+
+const char *
+sv_rend(str_view sv)
+{
+    if (!sv.s || sv.s == nil.s)
+    {
+        return nil.s;
+    }
+    if (sv.sz == 0)
+    {
+        return sv.s;
+    }
+    return sv.s - 1;
+}
+
+const char *
+sv_rnext(const char *c)
+{
+    if (!c)
+    {
+        return nil.s;
+    }
+    return --c;
 }
 
 const char *
@@ -373,12 +412,13 @@ sv_begin_tok(str_view src, str_view delim)
         return (str_view){.s = src.s + src.sz, 0};
     }
     const size_t sv_not = sv_after_find(src, delim);
+    const char *const begin = src.s;
     src.s += sv_not;
-    src.sz -= sv_not;
-    if (*src.s == '\0')
+    if (begin + src.sz == src.s || !src.s)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
+    src.sz -= sv_not;
     return sv_substr(src, 0, sv_find(src, 0, delim));
 }
 
@@ -409,18 +449,86 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
         return (str_view){.s = next, .sz = 0};
     }
     next += delim.sz;
-    size_t next_sz = sv_strlen(next);
+    size_t next_sz = src.sz - (next - src.s);
     const size_t after_delim
         = sv_after_find((str_view){.s = next, .sz = next_sz}, delim);
     next += after_delim;
     next_sz -= after_delim;
-    if (*next == '\0')
+    if (next >= src.s + src.sz)
     {
-        return (str_view){.s = next, .sz = 0};
+        return (str_view){.s = src.s + src.sz, .sz = 0};
     }
     const size_t found
         = sv_strnstrn(next, (ssize_t)next_sz, delim.s, (ssize_t)delim.sz);
     return (str_view){.s = next, .sz = found};
+}
+
+str_view
+sv_rbegin_tok(str_view src, str_view delim)
+{
+    if (!src.s)
+    {
+        return nil;
+    }
+    if (!delim.s)
+    {
+        return (str_view){.s = src.s + src.sz, 0};
+    }
+    size_t before_delim = sv_before_rfind(src, delim);
+    size_t new_size = before_delim;
+    if (before_delim == src.sz - 1)
+    {
+        new_size = src.sz;
+    }
+    const size_t found = sv_rfind(src, new_size - 1, delim);
+    if (found == new_size)
+    {
+        return (str_view){.s = src.s, .sz = new_size};
+    }
+    return (str_view){.s = src.s + found + delim.sz,
+                      .sz = (before_delim + 1) - (found + delim.sz)};
+}
+
+str_view
+sv_rnext_tok(const str_view src, str_view tok, str_view delim)
+{
+    if (!tok.s)
+    {
+        return nil;
+    }
+    if (!tok.sz)
+    {
+        return tok;
+    }
+    if (!delim.s || tok.s == src.s)
+    {
+        return (str_view){.s = src.s, .sz = 0};
+    }
+    const char *next = tok.s - delim.sz;
+    if (next <= src.s)
+    {
+        return (str_view){.s = next, .sz = 0};
+    }
+    const str_view shorter = {.s = src.s, .sz = next - src.s};
+    const size_t before_delim = sv_before_rfind(shorter, delim);
+    if (before_delim == shorter.sz)
+    {
+        return shorter;
+    }
+    const size_t found = sv_rstrnstrn(shorter.s, (ssize_t)before_delim, delim.s,
+                                      (ssize_t)delim.sz);
+    if (found == before_delim)
+    {
+        return (str_view){.s = shorter.s, .sz = before_delim + 1};
+    }
+    next = src.s + found + delim.sz;
+    return (str_view){.s = next, .sz = (before_delim + 1) - (found + delim.sz)};
+}
+
+bool
+sv_rend_tok(const str_view src, const str_view tok)
+{
+    return tok.sz == 0 && tok.s == src.s;
 }
 
 str_view
@@ -672,6 +780,28 @@ sv_after_find(str_view hay, str_view needle)
     return i - delim_i;
 }
 
+static size_t
+sv_before_rfind(str_view hay, str_view needle)
+{
+    if (needle.sz > hay.sz || !needle.sz || !hay.sz)
+    {
+        return hay.sz;
+    }
+    size_t delim_i = 0;
+    size_t i = 0;
+    for (; i < hay.sz
+           && needle.s[needle.sz - delim_i - 1] == hay.s[hay.sz - i - 1];
+         ++i)
+    {
+        delim_i = (delim_i + 1) % needle.sz;
+    }
+    /* Ugly logic to account for the reverse nature of this modulo search.
+       the position needs to account for any part of the delim that may
+       have starting to match but then mismatched. The 1 is because
+       this in an index being returned not a length. */
+    return i == hay.sz ? hay.sz : hay.sz - i + delim_i - 1;
+}
+
 static inline size_t
 sv_min(size_t a, size_t b)
 {
@@ -692,9 +822,9 @@ sv_char_cmp(char a, char b)
 
 /* ======================   Static Utilities    =========================== */
 
-/* This is section is modeled after the musl string.h library. However, using
-   str_view that may not be null terminated requires modifications. Also
-   it is important to not use string.h functionality which would force
+/* This is section is modeled after the musl string.h library. However,
+   using str_view that may not be null terminated requires modifications.
+   Also it is important to not use string.h functionality which would force
    the user to include string.h in addition to custom implementations here.
    Save code bloat though compilers/linkers may help with that. */
 
@@ -705,7 +835,7 @@ sv_char_cmp(char a, char b)
 /* Modeled after musl
    http://git.musl-libc.org/cgit/musl/tree/src/string/strlen.c */
 static size_t
-sv_len(const char *const str)
+sv_lenstr(const char *const str)
 {
     if (!str)
     {
@@ -864,8 +994,8 @@ sv_nlen(const char *const str, size_t n)
    http://git.musl-libc.org/cgit/musl/tree/src/string/strcspn.c
    A custom implemenatation is necessary because C standard library impls
    have no concept of a string view and will continue searching beyond the
-   end of a view until null is found. This way, string searches are efficient
-   and only within the range specified. */
+   end of a view until null is found. This way, string searches are
+   efficient and only within the range specified. */
 static size_t
 sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 {
@@ -896,8 +1026,8 @@ sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
    https://git.musl-libc.org/cgit/musl/tree/src/string/strspn.c
    A custom implemenatation is necessary because C standard library impls
    have no concept of a string view and will continue searching beyond the
-   end of a view until null is found. This way, string searches are efficient
-   and only within the range specified. */
+   end of a view until null is found. This way, string searches are
+   efficient and only within the range specified. */
 static size_t
 sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 {
@@ -923,9 +1053,9 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
     return a - str;
 }
 
-/* Providing strnstrn rather than strstr at the lowest level works better for
-   string views where the string may not be null terminated. There needs to
-   always be the additional constraint that a search cannot exceed the
+/* Providing strnstrn rather than strstr at the lowest level works better
+   for string views where the string may not be null terminated. There needs
+   to always be the additional constraint that a search cannot exceed the
    hay length. */
 static size_t
 sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
@@ -989,7 +1119,8 @@ sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
     return sv_rtwo_way(hay, hay_sz, needle, needle_sz);
 }
 
-/* ==============   Post-Precomputation Two-Way Search    ================== */
+/* ==============   Post-Precomputation Two-Way Search    ==================
+ */
 
 /* Definitions for Two-Way String-Matching taken from original authors:
 
@@ -1033,7 +1164,8 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    /* Determine if memoization is be available due to found border/overlap. */
+    /* Determine if memoization is be available due to found border/overlap.
+     */
     if (sv_memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
@@ -1132,7 +1264,8 @@ sv_two_way_normal(struct sv_two_way_pack p)
     return p.hay_sz;
 }
 
-/* ================   Suffix and Critical Factorization    ================= */
+/* ================   Suffix and Critical Factorization    =================
+ */
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
@@ -1215,7 +1348,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
-/*=======================  Right to Left Search  ============================*/
+/*=======================  Right to Left Search  ===========================*/
 
 /* Two way algorithm is easy to reverse. Instead of trying to reverse all
    logic in the factorizations and two way searches, leave the algorithms
@@ -1238,15 +1371,17 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
     while (last_rest + rest < needle_sz)
     {
         switch (sv_char_cmp(
-        needle[needle_sz - (last_rest + rest) - 1 + negation_sz + negate_one],
-        needle[needle_sz - (suff_pos + rest) - 1 + negation_sz + negate_one]))
+        needle[needle_sz - (last_rest + rest) - 1 + negation_sz +
+   negate_one], needle[needle_sz - (suff_pos + rest) - 1 + negation_sz +
+   negate_one]))
         {
         ...
 
-    That would save the code repitition across all of the following functions
-    but probably would make the code even harder to read and maintain. These
-    algorithms are dense enough already so I think repetion is fine. Leaving
-    this here if that changes or an even better way comes along. */
+    That would save the code repitition across all of the following
+   functions but probably would make the code even harder to read and
+   maintain. These algorithms are dense enough already so I think repetion
+   is fine. Leaving this here if that changes or an even better way comes
+   along. */
 
 /* Searches a string from right to left with a two-way algorithm. Returns
    the position of the start of the strig if found and string size if not. */
@@ -1449,7 +1584,8 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
-/* ======================   Brute Force Search    ========================== */
+/* ======================   Brute Force Search    ==========================
+ */
 
 /* All brute force searches adapted from musl C library.
    http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c
@@ -1498,9 +1634,12 @@ sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
     ssize_t i = (ssize_t)sz - 2;
-    for (h--; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
+    /* The search is right to left therefore the Most Significant Byte will
+       be the leading character of the string and the previous leading
+       character is shifted to the right. */
+    for (; i != -1 && hw != nw; hw = (hw >> 8) | (*--h << 8), --i)
     {}
-    return i == -1 ? sz : (size_t)(i - 1);
+    return i == -1 ? sz : (size_t)i;
 }
 
 static inline size_t
@@ -1519,11 +1658,15 @@ static inline size_t
 sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
                        const unsigned char *const n)
 {
-    h = h + sz - 2;
+    h = h + sz - 3;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
-    ssize_t i = (ssize_t)sz - 2;
-    for (h -= 2, i -= 2; i != -1 && hw != nw; hw = (hw | *--h) << 8, --i)
+    ssize_t i = (ssize_t)sz - 3;
+    /* The right to left search means we don't benefit from a left shift as
+       in the forward three byte search. The leading character occupies the
+       Most Significant position of these bytes so as the other two character
+       bytes shift right the Least Significant Byte must be zeroed out. */
+    for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)) & ~0xff, --i)
     {}
     return i == -1 ? sz : (size_t)i;
 }
@@ -1544,11 +1687,15 @@ static inline size_t
 sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
                       const unsigned char *const n)
 {
-    h = h + sz - 3;
+    h = h + sz - 4;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    ssize_t i = (ssize_t)sz;
-    for (h -= 3, i -= 3; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
+    ssize_t i = (ssize_t)sz - 4;
+    /* Even though the interpretation of the shifting has now been
+       reversed, all 32 bits are available for the comparison meaning
+       there is no longer a need for masks and shifting takes care of
+       the comparison. */
+    for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)), --i)
     {}
-    return i == -1 ? sz : (size_t)(i - 3);
+    return i == -1 ? sz : (size_t)i;
 }
