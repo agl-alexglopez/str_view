@@ -375,9 +375,10 @@ test_rtail_delim(void)
 static enum test_result
 test_rtriple_delim(void)
 {
-    const char *const reference = "0/1!!!2!!!2!!!3!3!!!!!!3!!!4!!!4!!4!!!4578";
+    const char *const reference
+        = "!!0/1!!!2!!!2!!!3!3!!!!!!3!!!4!!!4!!4!!!4578";
     const char *const toks[8] = {
-        "0/1", "2", "2", "3!3", "3", "4", "4!!4", "4578",
+        "!!0/1", "2", "2", "3!3", "3", "4", "4!!4", "4578",
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view ref_view = sv(reference);
@@ -398,9 +399,9 @@ static enum test_result
 test_rquad_delim(void)
 {
     const char *const reference
-        = "0/1!!!!2!!!!2!!!!3!!3!!!!!!!!3!!!!4!!!!4!!4!!!!4578";
+        = "!!!0/1!!!!2!!!!2!!!!3!!3!!!!!!!!3!!!!4!!!!4!!4!!!!4578";
     const char *const toks[8] = {
-        "0/1", "2", "2", "3!!3", "3", "4", "4!!4", "4578",
+        "!!!0/1", "2", "2", "3!!3", "3", "4", "4!!4", "4578",
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view ref_view = sv(reference);
