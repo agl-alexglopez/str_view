@@ -795,9 +795,10 @@ sv_before_rfind(str_view hay, str_view needle)
     {
         delim_i = (delim_i + 1) % needle.sz;
     }
-    /* Also reset to the last mismatch found. If some of the delimeter matched
-       but then the string changed into a mismatch go back to get characters
-       that are partially in the delimeter. */
+    /* Ugly logic to account for the reverse nature of this modulo search.
+       the position needs to account for any part of the delim that may
+       have starting to match but then mismatched. The 1 is because
+       this in an index being returned not a length. */
     return i == hay.sz ? hay.sz : hay.sz - i + delim_i - 1;
 }
 
@@ -821,9 +822,9 @@ sv_char_cmp(char a, char b)
 
 /* ======================   Static Utilities    =========================== */
 
-/* This is section is modeled after the musl string.h library. However, using
-   str_view that may not be null terminated requires modifications. Also
-   it is important to not use string.h functionality which would force
+/* This is section is modeled after the musl string.h library. However,
+   using str_view that may not be null terminated requires modifications.
+   Also it is important to not use string.h functionality which would force
    the user to include string.h in addition to custom implementations here.
    Save code bloat though compilers/linkers may help with that. */
 
@@ -993,8 +994,8 @@ sv_nlen(const char *const str, size_t n)
    http://git.musl-libc.org/cgit/musl/tree/src/string/strcspn.c
    A custom implemenatation is necessary because C standard library impls
    have no concept of a string view and will continue searching beyond the
-   end of a view until null is found. This way, string searches are efficient
-   and only within the range specified. */
+   end of a view until null is found. This way, string searches are
+   efficient and only within the range specified. */
 static size_t
 sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 {
@@ -1025,8 +1026,8 @@ sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
    https://git.musl-libc.org/cgit/musl/tree/src/string/strspn.c
    A custom implemenatation is necessary because C standard library impls
    have no concept of a string view and will continue searching beyond the
-   end of a view until null is found. This way, string searches are efficient
-   and only within the range specified. */
+   end of a view until null is found. This way, string searches are
+   efficient and only within the range specified. */
 static size_t
 sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 {
@@ -1052,9 +1053,9 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
     return a - str;
 }
 
-/* Providing strnstrn rather than strstr at the lowest level works better for
-   string views where the string may not be null terminated. There needs to
-   always be the additional constraint that a search cannot exceed the
+/* Providing strnstrn rather than strstr at the lowest level works better
+   for string views where the string may not be null terminated. There needs
+   to always be the additional constraint that a search cannot exceed the
    hay length. */
 static size_t
 sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
@@ -1118,7 +1119,8 @@ sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
     return sv_rtwo_way(hay, hay_sz, needle, needle_sz);
 }
 
-/* ==============   Post-Precomputation Two-Way Search    ================== */
+/* ==============   Post-Precomputation Two-Way Search    ==================
+ */
 
 /* Definitions for Two-Way String-Matching taken from original authors:
 
@@ -1162,7 +1164,8 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    /* Determine if memoization is be available due to found border/overlap. */
+    /* Determine if memoization is be available due to found border/overlap.
+     */
     if (sv_memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
@@ -1261,7 +1264,8 @@ sv_two_way_normal(struct sv_two_way_pack p)
     return p.hay_sz;
 }
 
-/* ================   Suffix and Critical Factorization    ================= */
+/* ================   Suffix and Critical Factorization    =================
+ */
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
@@ -1344,7 +1348,8 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
-/*=======================  Right to Left Search  ============================*/
+/*=======================  Right to Left Search
+ * ============================*/
 
 /* Two way algorithm is easy to reverse. Instead of trying to reverse all
    logic in the factorizations and two way searches, leave the algorithms
@@ -1367,18 +1372,21 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
     while (last_rest + rest < needle_sz)
     {
         switch (sv_char_cmp(
-        needle[needle_sz - (last_rest + rest) - 1 + negation_sz + negate_one],
-        needle[needle_sz - (suff_pos + rest) - 1 + negation_sz + negate_one]))
+        needle[needle_sz - (last_rest + rest) - 1 + negation_sz +
+   negate_one], needle[needle_sz - (suff_pos + rest) - 1 + negation_sz +
+   negate_one]))
         {
         ...
 
-    That would save the code repitition across all of the following functions
-    but probably would make the code even harder to read and maintain. These
-    algorithms are dense enough already so I think repetion is fine. Leaving
-    this here if that changes or an even better way comes along. */
+    That would save the code repitition across all of the following
+   functions but probably would make the code even harder to read and
+   maintain. These algorithms are dense enough already so I think repetion
+   is fine. Leaving this here if that changes or an even better way comes
+   along. */
 
 /* Searches a string from right to left with a two-way algorithm. Returns
-   the position of the start of the strig if found and string size if not. */
+   the position of the start of the strig if found and string size if not.
+ */
 static inline size_t
 sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
@@ -1578,7 +1586,8 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
-/* ======================   Brute Force Search    ========================== */
+/* ======================   Brute Force Search    ==========================
+ */
 
 /* All brute force searches adapted from musl C library.
    http://git.musl-libc.org/cgit/musl/tree/src/string/strstr.c
