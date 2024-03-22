@@ -12,6 +12,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define QUIT(format, ...)                                                      \
+    do                                                                         \
+    {                                                                          \
+        (void)fprintf(stderr, (format)__VA_OPT__(, ) __VA_ARGS__);             \
+        (void)fprintf(stderr, "File: %s, Line: %d, Function: %s\n", __FILE__,  \
+                      __LINE__, __func__);                                     \
+        exit(1);                                                               \
+    } while (0)
+
 /* ========================   Type Definitions   =========================== */
 
 /* Return type for the factorization step of two-way search. */
@@ -201,10 +210,7 @@ sv_at(str_view sv, size_t i)
 {
     if (i >= sv.sz)
     {
-        (void)fprintf(stderr,
-                      "string_view index out of range. size=%zu, index=%zu\n",
-                      sv.sz, i);
-        exit(1);
+        QUIT("string_view index out of range. size=%zu, index=%zu\n", sv.sz, i);
     }
     return sv.s[i];
 }
@@ -234,8 +240,7 @@ sv_svcmp(str_view sv1, str_view sv2)
 {
     if (!sv1.s || !sv2.s)
     {
-        (void)fprintf(stderr, "sv_svcmp cannot compare NULL.\n");
-        exit(1);
+        QUIT("sv_svcmp cannot compare NULL.\n");
     }
     const size_t sz = sv_min(sv1.sz, sv2.sz);
     size_t i = 0;
@@ -257,8 +262,7 @@ sv_strcmp(str_view sv, const char *str)
 {
     if (!sv.s || !str)
     {
-        (void)fprintf(stderr, "sv_strcmp cannot compare NULL.\n");
-        exit(1);
+        QUIT("sv_strcmp cannot compare NULL.\n");
     }
     const size_t sz = sv.sz;
     size_t i = 0;
@@ -280,8 +284,7 @@ sv_strncmp(str_view sv, const char *str, const size_t n)
 {
     if (!sv.s || !str)
     {
-        (void)fprintf(stderr, "sv_strncmp cannot compare NULL.\n");
-        exit(1);
+        QUIT("sv_strncmp cannot compare NULL.\n");
     }
     const size_t sz = sv_min(sv.sz, n);
     size_t i = 0;
@@ -574,8 +577,7 @@ sv_substr(str_view sv, size_t pos, size_t count)
 {
     if (pos > sv.sz)
     {
-        printf("string_view index out of range. pos=%zu size=%zu", pos, sv.sz);
-        exit(1);
+        QUIT("string_view index out of range. pos=%zu size=%zu", pos, sv.sz);
     }
     return (str_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
 }
