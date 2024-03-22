@@ -2,6 +2,7 @@
 #include "test.h"
 
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 static const str_view dirslash = {.s = "/", .sz = SVLEN("/")};

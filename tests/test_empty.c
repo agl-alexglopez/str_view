@@ -1,6 +1,8 @@
 #include "str_view.h"
 #include "test.h"
 
+#include <stdbool.h>
+
 int
 main()
 {
