@@ -1,8 +1,16 @@
 #include "str_view.h"
 #include "test.h"
 
-#include <dirent.h>
+#ifdef __linux__
 #include <linux/limits.h>
+#define FILESYS_MAX_PATH PATH_MAX
+#endif
+#ifdef __APPLE__
+#include <sys/syslimits.h>
+#define FILESYS_MAX_PATH NAME_MAX
+#endif
+
+#include <dirent.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -49,7 +57,7 @@ run(const str_view tests_dir)
     {
         return 1;
     }
-    char absolute_path[PATH_MAX];
+    char absolute_path[FILESYS_MAX_PATH];
     size_t tests = 0;
     size_t passed = 0;
     const struct dirent *d;
@@ -121,7 +129,7 @@ run_test_process(struct path_bin pb)
 static DIR *
 open_test_dir(str_view tests_folder)
 {
-    if (sv_empty(tests_folder) || sv_len(tests_folder) > PATH_MAX)
+    if (sv_empty(tests_folder) || sv_len(tests_folder) > FILESYS_MAX_PATH)
     {
         (void)fprintf(stderr, "Invalid input to path to test executables %s\n",
                       sv_begin(tests_folder));
@@ -140,12 +148,12 @@ open_test_dir(str_view tests_folder)
 static bool
 fill_path(char *path_buf, str_view tests_dir, str_view entry)
 {
-    const size_t dir_bytes = sv_fill(path_buf, PATH_MAX, tests_dir);
-    if (PATH_MAX - dir_bytes < sv_svbytes(entry))
+    const size_t dir_bytes = sv_fill(path_buf, FILESYS_MAX_PATH, tests_dir);
+    if (FILESYS_MAX_PATH - dir_bytes < sv_svbytes(entry))
     {
-        (void)fprintf(stderr, "Relative path exceeds PATH_MAX?\n%s", path_buf);
+        (void)fprintf(stderr, "Relative path exceeds FILESYS_MAX_PATH?\n%s", path_buf);
         return false;
     }
-    (void)sv_fill(path_buf + sv_len(tests_dir), PATH_MAX - dir_bytes, entry);
+    (void)sv_fill(path_buf + sv_len(tests_dir), FILESYS_MAX_PATH - dir_bytes, entry);
     return true;
 }
