@@ -16,8 +16,9 @@ static enum test_result test_find_rfind_memoization(void);
 static enum test_result test_substring_off_by_one(void);
 static enum test_result test_substring_search(void);
 static enum test_result test_rsubstring_search(void);
+static enum test_result test_long_substring(void);
 
-#define NUM_TESTS (size_t)10
+#define NUM_TESTS (size_t)11
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_small_find, "test_small_find"},
     {test_small_rfind, "test_small_rfind"},
@@ -29,6 +30,7 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_substring_off_by_one, "test_substring_off_by_one"},
     {test_substring_search, "test_substring_search"},
     {test_rsubstring_search, "test_rsubstring_search"},
+    {test_long_substring, "test_long_substring"},
 };
 
 int
@@ -416,5 +418,32 @@ test_rsubstring_search(void)
     CHECK(sv_svcmp(begin_needle, needle_view), EQL);
     CHECK(begin_needle.s, begin);
     CHECK(begin_pos, (size_t)(begin - haystack));
+    return PASS;
+}
+
+static enum test_result
+test_long_substring(void)
+{
+    const char *needle = "This needle will make up most of the string such "
+                         "that the two-way string searching algorithm has to "
+                         "continue for many iterations during a match.";
+    const char *const haystack
+        = "Here is the string containing the longer needle. This needle will "
+          "make up most of the string such that the two-way string searching "
+          "algorithm has to continue for many iterations during a match. There "
+          "went the needle.";
+    const str_view haystack_view = sv(haystack);
+    const str_view needle_view = sv(needle);
+    const char *strstr_needle = strstr(haystack, needle);
+    const str_view svsv_needle = sv_svsv(haystack_view, needle_view);
+    const size_t find_pos = sv_find(haystack_view, 0, needle_view);
+    const str_view rsvsv_needle = sv_rsvsv(haystack_view, needle_view);
+    const size_t rfind_pos
+        = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
+    CHECK(sv_begin(svsv_needle), strstr_needle);
+    CHECK(sv_begin(rsvsv_needle), strstr_needle);
+    CHECK(find_pos, (size_t)(strstr_needle - haystack));
+    CHECK(rfind_pos, (size_t)(strstr_needle - haystack));
+    CHECK(sv_svcmp(svsv_needle, rsvsv_needle), EQL);
     return PASS;
 }
