@@ -20,10 +20,12 @@ static enum test_result test_iter_repeating_delim(void);
 static enum test_result test_iter_multichar_delim(void);
 static enum test_result test_iter_multichar_delim_short(void);
 static enum test_result test_iter_delim_larger_than_str(void);
+static enum test_result test_riter_delim_larger_than_str(void);
 static enum test_result test_tokenize_not_terminated(void);
 static enum test_result test_tokenize_three_views(void);
+static enum test_result test_rtokenize_three_views(void);
 
-#define NUM_TESTS (size_t)19
+#define NUM_TESTS (size_t)21
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter, "test_iter"},
     {test_iter2, "test_iter2"},
@@ -42,8 +44,10 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_iter_multichar_delim, "test_iter_multichar_delim"},
     {test_iter_multichar_delim_short, "test_iter_multichar_delim_short"},
     {test_iter_delim_larger_than_str, "test_iter_delim_larger_than_str"},
+    {test_riter_delim_larger_than_str, "test_riter_delim_larger_than_str"},
     {test_tokenize_not_terminated, "test_tokenize_not_terminated"},
     {test_tokenize_three_views, "test_tokenize_three_view"},
+    {test_rtokenize_three_views, "test_rtokenize_three_view"},
 };
 
 int
@@ -538,6 +542,30 @@ test_iter_delim_larger_than_str(void)
 }
 
 static enum test_result
+test_riter_delim_larger_than_str(void)
+{
+    const char *const reference = "A-B";
+    const str_view ref_view = sv(reference);
+    /* This delimeter is too large so we should just take the whole string */
+    const str_view delim = sv("-----");
+    str_view constructed = sv_delim(reference, delim.s);
+    str_view cur
+        = sv_rbegin_tok((str_view){reference, sv_strlen(reference)}, delim);
+    CHECK(sv_svcmp(constructed, cur), EQL);
+    CHECK(sv_strcmp(constructed, reference), EQL);
+    CHECK(sv_strcmp(cur, reference), EQL);
+
+    for (; !sv_rend_tok(ref_view, cur);
+         cur = sv_rnext_tok(ref_view, cur, delim))
+    {
+        CHECK(sv_svcmp(cur, ref_view), EQL);
+        CHECK(sv_svlen(cur), sv_svlen(ref_view));
+    }
+    CHECK(*cur.s, *reference);
+    return PASS;
+}
+
+static enum test_result
 test_tokenize_not_terminated(void)
 {
     const char *const path_str = "this/path/will/be/missing/its/child";
@@ -599,5 +627,46 @@ test_tokenize_three_views(void)
         ++i;
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]));
+    return PASS;
+}
+
+static enum test_result
+test_rtokenize_three_views(void)
+{
+    const char *const path_str = "all/of/these/paths/are/unique/and/split/up";
+    const char *const toks[3][3] = {
+        {"all", "of", "these"},
+        {"paths", "are", "unique"},
+        {"and", "split", "up"},
+    };
+    const size_t size = sizeof(toks) / sizeof(toks[0]);
+    const str_view path = sv(path_str);
+    const str_view delim = sv("/");
+    const str_view first = sv_substr(path, 0, sv_find(path, 0, sv("/paths/")));
+    const str_view second = sv_substr(path, sv_find(path, 0, sv("/paths/")),
+                                      sv_find(path, 0, sv("/and/"))
+                                          - sv_find(path, 0, sv("/paths/")));
+    const str_view third
+        = sv_substr(path, sv_find(path, 0, sv("/and/")),
+                    sv_svlen(path) - sv_find(path, 0, sv("/and/")));
+    size_t i = size;
+    for (str_view tok1 = sv_rbegin_tok(first, delim),
+                  tok2 = sv_rbegin_tok(second, delim),
+                  tok3 = sv_rbegin_tok(third, delim);
+         !sv_rend_tok(first, tok1) && !sv_rend_tok(second, tok2)
+         && !sv_rend_tok(third, tok3) && i;
+         tok1 = sv_rnext_tok(first, tok1, delim),
+                  tok2 = sv_rnext_tok(second, tok2, delim),
+                  tok3 = sv_rnext_tok(third, tok3, delim))
+    {
+        --i;
+        CHECK(sv_strcmp(tok1, toks[0][i]), EQL);
+        CHECK(sv_svlen(tok1), sv_strlen(toks[0][i]));
+        CHECK(sv_strcmp(tok2, toks[1][i]), EQL);
+        CHECK(sv_svlen(tok2), sv_strlen(toks[1][i]));
+        CHECK(sv_strcmp(tok3, toks[2][i]), EQL);
+        CHECK(sv_svlen(tok3), sv_strlen(toks[2][i]));
+    }
+    CHECK(i, 0);
     return PASS;
 }
