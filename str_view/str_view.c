@@ -1348,8 +1348,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
-/*=======================  Right to Left Search
- * ============================*/
+/*=======================  Right to Left Search  ===========================*/
 
 /* Two way algorithm is easy to reverse. Instead of trying to reverse all
    logic in the factorizations and two way searches, leave the algorithms
@@ -1385,8 +1384,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
    along. */
 
 /* Searches a string from right to left with a two-way algorithm. Returns
-   the position of the start of the strig if found and string size if not.
- */
+   the position of the start of the strig if found and string size if not. */
 static inline size_t
 sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
@@ -1636,6 +1634,9 @@ sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
     ssize_t i = (ssize_t)sz - 2;
+    /* The search is right to left therefore the Most Significant Byte will
+       be the leading character of the string and the previous leading
+       character is shifted to the right. */
     for (; i != -1 && hw != nw; hw = (hw >> 8) | (*--h << 8), --i)
     {}
     return i == -1 ? sz : (size_t)i;
@@ -1661,6 +1662,10 @@ sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
     ssize_t i = (ssize_t)sz - 3;
+    /* The right to left search means we don't benefit from a left shift as
+       in the forward three byte search. The leading character occupies the
+       Most Significant position of these bytes so as the other two character
+       bytes shift right the Least Significant Byte must be zeroed out. */
     for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)) & ~0xff, --i)
     {}
     return i == -1 ? sz : (size_t)i;
@@ -1686,6 +1691,10 @@ sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
     ssize_t i = (ssize_t)sz - 4;
+    /* Even though the interpretation of the shifting has now been
+       reversed, all 32 bits are available for the comparison meaning
+       there is no longer a need for masks and shifting takes care of
+       the comparison. */
     for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)), --i)
     {}
     return i == -1 ? sz : (size_t)i;
