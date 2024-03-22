@@ -1,4 +1,4 @@
-.PHONY: default build rel deb test-deb test-rel clean
+.PHONY: default build grel gdeb crel cdeb test-deb test-rel clean
 
 MAKE := $(MAKE)
 MAKEFLAGS += --no-print-directory
@@ -8,12 +8,20 @@ BUILD_DIR := build/
 
 default: build
 
-rel:
-	cmake --preset=rel
+grel:
+	cmake --preset=grel
 	cmake --build $(BUILD_DIR) $(JOBS)
 
-deb:
-	cmake --preset=deb
+gdeb:
+	cmake --preset=gdeb
+	cmake --build $(BUILD_DIR) $(JOBS)
+
+crel:
+	cmake --preset=crel
+	cmake --build $(BUILD_DIR) $(JOBS)
+
+cdeb:
+	cmake --preset=cdeb
 	cmake --build $(BUILD_DIR) $(JOBS)
 
 build:
