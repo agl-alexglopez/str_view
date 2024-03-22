@@ -441,7 +441,7 @@ sv_rbegin_tok(str_view src, str_view delim)
     {
         before_delim = src.sz;
     }
-    const size_t found = sv_rfind(src, before_delim, delim);
+    const size_t found = sv_rfind(src, before_delim - 1, delim);
     if (found == before_delim)
     {
         return (str_view){.s = src.s, .sz = before_delim};
@@ -465,7 +465,7 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
-    const char *next = tok.s - 1;
+    const char *next = tok.s - delim.sz;
     if (next <= src.s)
     {
         return (str_view){.s = next, .sz = 0};
