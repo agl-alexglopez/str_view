@@ -473,9 +473,9 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     }
     const size_t before_delim
         = sv_before_rfind((str_view){.s = src.s, .sz = next - src.s}, delim);
-    if (before_delim == src.sz)
+    if (before_delim == (size_t)(next - src.s))
     {
-        return (str_view){.s = src.s, .sz = 0};
+        return (str_view){.s = src.s, .sz = next - src.s};
     }
     if (before_delim == 0)
     {
@@ -484,6 +484,10 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     next = src.s + before_delim;
     const size_t found
         = sv_rstrnstrn(src.s, next - src.s, delim.s, (ssize_t)delim.sz);
+    if (found == (size_t)(next - src.s))
+    {
+        return (str_view){.s = src.s, .sz = before_delim + 1};
+    }
     next = src.s + found + delim.sz;
     return (str_view){.s = next, .sz = (before_delim + 1) - (found + delim.sz)};
 }
@@ -746,11 +750,7 @@ sv_after_find(str_view hay, str_view needle)
 static size_t
 sv_before_rfind(str_view hay, str_view needle)
 {
-    if (needle.sz > hay.sz)
-    {
-        return 0;
-    }
-    if (!needle.sz || !hay.sz)
+    if (needle.sz > hay.sz || !needle.sz || !hay.sz)
     {
         return hay.sz;
     }
@@ -765,7 +765,7 @@ sv_before_rfind(str_view hay, str_view needle)
     /* Also reset to the last mismatch found. If some of the delimeter matched
        but then the string changed into a mismatch go back to get characters
        that are partially in the delimeter. */
-    return i == hay.sz ? hay.sz : hay.sz - (i + delim_i + 1);
+    return i == hay.sz ? hay.sz : hay.sz - i + delim_i - 1;
 }
 
 static inline size_t
@@ -1594,7 +1594,7 @@ sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
     ssize_t i = (ssize_t)sz - 2;
-    for (; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
+    for (; i != -1 && hw != nw; hw = (hw >> 8) | (*--h << 8), --i)
     {}
     return i == -1 ? sz : (size_t)i;
 }
@@ -1619,7 +1619,7 @@ sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
     ssize_t i = (ssize_t)sz - 3;
-    for (; i != -1 && hw != nw; hw = (hw | *--h) << 8, --i)
+    for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)) & ~0xff, --i)
     {}
     return i == -1 ? sz : (size_t)i;
 }
@@ -1644,7 +1644,7 @@ sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
     ssize_t i = (ssize_t)sz - 4;
-    for (; i != -1 && hw != nw; hw = (hw << 8) | *--h, --i)
+    for (; i != -1 && hw != nw; hw = ((hw >> 8) | (*--h << 24)), --i)
     {}
     return i == -1 ? sz : (size_t)i;
 }
