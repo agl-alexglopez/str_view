@@ -28,6 +28,8 @@ typedef struct
     size_t sz;
 } str_view;
 
+/* Standard three way comparison type in C. See the comparison
+   functions for how to interpret the sv comparison results. */
 typedef enum
 {
     LES = -1,
@@ -124,7 +126,7 @@ sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
 bool sv_empty(str_view);
 
 /* Returns the size of the string view O(1). */
-size_t sv_svlen(str_view);
+size_t sv_len(str_view);
 
 /* Returns the bytes of str_view including null terminator. Note that
    string views may not actually be null terminated but the position at
@@ -180,6 +182,24 @@ const char *sv_end(str_view);
    sv_null() is returned. */
 const char *sv_next(const char *);
 
+/* Returns the reverse iterator beginning, the last character of the
+   current view. If the view is null sv_null() is returned. If the
+   view is sized zero with a valid pointer that pointer in the
+   view is returned. */
+const char *sv_rbegin(str_view);
+
+/* The ending position of a reverse iteration. It is undefined
+   behavior to access or use rend. It is undefined behavior to
+   pass in any str_view not being iterated through as started
+   with rbegin. */
+const char *sv_rend(str_view);
+
+/* Advances the iterator to the next character in the str_view
+   being iterated through in reverse. It is undefined behavior
+   to change the str_view one is iterating through during
+   iteration. If the char pointer is null, sv_null() is returned. */
+const char *sv_rnext(const char *);
+
 /* Returns the character pointer at the minimum between the indicated
    position and the end of the string view. If NULL is stored by the
    str_view then sv_null() is returned. */
@@ -213,11 +233,33 @@ bool sv_end_tok(str_view src, str_view tok);
    is returned which may or may not be the null terminator. */
 str_view sv_next_tok(str_view src, str_view tok, str_view delim);
 
-/* Returns a str_view of the entirety of the underlying string. This
-   guarantees that the str_view returned ends at the null terminator
-   of the underlying string as all strings used with str_views are
-   assumed to be null terminated. It is undefined behavior to provide
-   non null terminated strings to any str_view code. */
+/* Obtains the last token in a string in preparation for reverse tokenized
+   iteration. Any delimeters that start the string are skipped, as in the
+   forward version. If src is null sv_null is returned. If delim is null
+   the entire src view is returned. */
+str_view sv_rbegin_tok(str_view src, str_view delim);
+
+/* Given the current str_view being iterated through and the current token
+   in the iteration returns true if the ending state of a reverse tokenization
+   has been reached, false otherwise. */
+bool sv_rend_tok(str_view src, str_view tok);
+
+/* Advances the token in src to the next token between two delimeters provided
+   by delim. Repeating delimiters are skipped until the next token is found.
+   If no further tokens can be found an empty str_view is returned with its
+   pointer set to the start of the src string being iterated through. Note
+   that a multicharacter delimiter may yeild different tokens in reverse
+   than in the forward direction when partial matches occur and some portion
+   of the delimeter is in a token. This is because the string is now being
+   read from right to left. */
+str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
+
+/* Returns a str_view of the entirety of the underlying string, starting
+   at the current views pointer position. This guarantees that the str_view
+   returned ends at the null terminator of the underlying string as all
+   strings used with str_views are assumed to be null terminated. It is
+   undefined behavior to provide non null terminated strings to any
+   str_view code. */
 str_view sv_extend(str_view src);
 
 /* Creates the substring from position pos for count length. The count is
