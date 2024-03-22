@@ -432,18 +432,19 @@ test_long_substring(void)
           "make up most of the string such that the two-way string searching "
           "algorithm has to continue for many iterations during a match. There "
           "went the needle.";
+    const char *strstr_needle = strstr(haystack, needle);
     const str_view haystack_view = sv(haystack);
     const str_view needle_view = sv(needle);
-    const char *strstr_needle = strstr(haystack, needle);
     const str_view svsv_needle = sv_svsv(haystack_view, needle_view);
+    CHECK(sv_begin(svsv_needle), strstr_needle);
     const size_t find_pos = sv_find(haystack_view, 0, needle_view);
+    CHECK(find_pos, (size_t)(strstr_needle - haystack));
     const str_view rsvsv_needle = sv_rsvsv(haystack_view, needle_view);
+    CHECK(sv_begin(rsvsv_needle), strstr_needle);
     const size_t rfind_pos
         = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
-    CHECK(sv_begin(svsv_needle), strstr_needle);
-    CHECK(sv_begin(rsvsv_needle), strstr_needle);
-    CHECK(find_pos, (size_t)(strstr_needle - haystack));
     CHECK(rfind_pos, (size_t)(strstr_needle - haystack));
+
     CHECK(sv_svcmp(svsv_needle, rsvsv_needle), EQL);
     return PASS;
 }
