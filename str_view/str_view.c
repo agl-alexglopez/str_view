@@ -1658,14 +1658,14 @@ sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
                        const unsigned char *const n)
 {
     h = h + sz - 3;
-    uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
-    uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
+    uint32_t nw = (uint32_t)n[0] << 16 | n[1] << 8 | n[2];
+    uint32_t hw = (uint32_t)h[0] << 16 | h[1] << 8 | h[2];
     size_t i = sz - 2;
     /* The right to left search means we don't benefit from a left shift as
        in the forward three byte search. The leading character occupies the
        Most Significant position of these bytes so as the other two character
        bytes shift right the Least Significant Byte must be zeroed out. */
-    for (; i && hw != nw; hw = ((hw >> 8) | (*--h << 24)) & ~0xff, --i)
+    for (; i && hw != nw; hw = (hw >> 8) | (*--h << 16), --i)
     {}
     return i ? i - 1 : sz;
 }
