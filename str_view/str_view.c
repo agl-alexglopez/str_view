@@ -604,17 +604,13 @@ sv_contains(str_view hay, str_view needle)
 str_view
 sv_svsv(str_view hay, str_view needle)
 {
-    if (needle.sz > hay.sz)
+    if (!hay.s || !needle.s)
     {
         return nil;
     }
-    if (sv_empty(hay))
+    if (needle.sz > hay.sz || sv_empty(hay) || sv_empty(needle))
     {
-        return hay;
-    }
-    if (sv_empty(needle))
-    {
-        return nil;
+        return (str_view){.s = hay.s + hay.sz, .sz = 0};
     }
     const size_t found
         = sv_strnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
@@ -625,17 +621,13 @@ sv_svsv(str_view hay, str_view needle)
 str_view
 sv_rsvsv(str_view hay, str_view needle)
 {
-    if (needle.sz > hay.sz)
+    if (!hay.s || !needle.s)
     {
         return nil;
     }
-    if (sv_empty(hay))
+    if (sv_empty(hay) || sv_empty(needle))
     {
-        return hay;
-    }
-    if (sv_empty(needle))
-    {
-        return nil;
+        return (str_view){.s = hay.s, .sz = 0};
     }
     const size_t found
         = sv_rstrnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
