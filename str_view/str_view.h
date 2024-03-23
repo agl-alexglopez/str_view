@@ -90,10 +90,16 @@ str_view sv_delim(const char *, const char *delim);
 /* A sentinel empty string. Safely dereferenced to view a null terminator. */
 const char *sv_null(void);
 
-/* The end of a str_view guaranted to be greater than or equal to size */
+/* The end of a str_view guaranted to be greater than or equal to size.
+   May be used for the idiomatic check for most string searching function
+   return values when something is not found. If a size is returned from
+   a searching function it is possible to check it against npos. */
 size_t sv_npos(str_view);
 
-/* Returns true if the provided str_view is empty, false otherwise. */
+/* Returns true if the provided str_view is empty, false otherwise.
+   This is a useful function to check for str_view searches that yeild
+   an empty view at the end of a str_view when an element cannot be
+   found. See sv_svsv or sv_rsvsv as an example. */
 bool sv_empty(str_view);
 
 /* Returns the size of the string view O(1). */
@@ -136,24 +142,24 @@ str_view sv_extend(str_view src);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between two string views.
-   lhs LES(-1) rhs (lhs is less than rhs)
-   lhs EQL(0) rhs (lhs is equal to rhs)
-   lhs GRT(1) rhs (lhs is greater than rhs)*/
+   lhs LES( -1  ) rhs (lhs is less than rhs)
+   lhs EQL(  0  ) rhs (lhs is equal to rhs)
+   lhs GRT(  1  ) rhs (lhs is greater than rhs)*/
 sv_threeway_cmp sv_svcmp(str_view, str_view);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
-   str_view LES(-1) rhs (str_view is less than str)
-   str_view EQL(0) rhs (str_view is equal to str)
-   str_view GRT(1) rhs (str_view is greater than str)*/
+   str_view LES( -1  ) rhs (str_view is less than str)
+   str_view EQL(  0  ) rhs (str_view is equal to str)
+   str_view GRT(  1  ) rhs (str_view is greater than str)*/
 sv_threeway_cmp sv_strcmp(str_view, const char *str);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
    or stops at the null terminator if that is encountered first.
-   str_view LES(-1) rhs (str_view is less than str)
-   str_view EQL(0) rhs (str_view is equal to str)
-   str_view GRT(1) rhs (str_view is greater than str)*/
+   str_view LES( -1  ) rhs (str_view is less than str)
+   str_view EQL(  0  ) rhs (str_view is equal to str)
+   str_view GRT(  1  ) rhs (str_view is greater than str)*/
 sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
 
 /* Returns the minimum between the string size vs n bytes. */
@@ -286,14 +292,16 @@ bool sv_contains(str_view hay, str_view needle);
    position. If the needle cannot be found the empty view at the
    hay length position is returned. This may or may not be null
    terminated at that position. If needle is greater than
-   hay length sv_null is returned. */
+   hay length an empty view at the end of hay is returned. If
+   hay is NULL, sv_null is returned. */
 str_view sv_svsv(str_view hay, str_view needle);
 
 /* Returns a view of the needle found in hay at the last found
    position. If the needle cannot be found the empty view at the
    hay length position is returned. This may or may not be null
    terminated at that position. If needle is greater than
-   hay length sv_null is returned. */
+   hay length an empty view at hay size is returned. If hay is
+   NULL, sv_null is returned. */
 str_view sv_rsvsv(str_view hay, str_view needle);
 
 /* Returns true if a prefix shorter than or equal in length to

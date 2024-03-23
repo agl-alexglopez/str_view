@@ -168,7 +168,7 @@ sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
 bool
 sv_empty(const str_view s)
 {
-    return s.sz == 0;
+    return !s.s || s.sz == 0;
 }
 
 size_t
@@ -439,11 +439,7 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
     {
         return nil;
     }
-    if (!tok.sz)
-    {
-        return tok;
-    }
-    if (!delim.s || tok.s[tok.sz] == '\0')
+    if (!delim.s || !tok.s || tok.s[tok.sz] == '\0')
     {
         return (str_view){.s = tok.s + tok.sz, .sz = 0};
     }
@@ -495,11 +491,7 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return nil;
     }
-    if (!tok.sz)
-    {
-        return tok;
-    }
-    if (!delim.s || tok.s == src.s || tok.s - delim.sz <= src.s)
+    if (!tok.sz | !delim.s || tok.s == src.s || tok.s - delim.sz <= src.s)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
@@ -569,6 +561,10 @@ sv_ends_with(str_view sv, str_view suffix)
 str_view
 sv_remove_suffix(const str_view sv, const size_t n)
 {
+    if (!sv.s)
+    {
+        return nil;
+    }
     return (str_view){.s = sv.s, .sz = sv.sz - sv_min(sv.sz, n)};
 }
 
@@ -621,13 +617,13 @@ sv_svsv(str_view hay, str_view needle)
 str_view
 sv_rsvsv(str_view hay, str_view needle)
 {
-    if (!hay.s || !needle.s)
+    if (!hay.s)
     {
         return nil;
     }
     if (sv_empty(hay) || sv_empty(needle))
     {
-        return (str_view){.s = hay.s, .sz = 0};
+        return (str_view){.s = hay.s + hay.sz, .sz = 0};
     }
     const size_t found
         = sv_rstrnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
@@ -782,7 +778,7 @@ sv_before_rfind(str_view hay, str_view needle)
     }
     /* Ugly logic to account for the reverse nature of this modulo search.
        the position needs to account for any part of the delim that may
-       have starting to match but then mismatched. The 1 is because
+       have started to match but then mismatched. The 1 is because
        this in an index being returned not a length. */
     return i == hay.sz ? hay.sz : hay.sz - i + delim_i - 1;
 }
@@ -1002,7 +998,7 @@ sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
          set++, ++i)
         ;
     for (size_t i = 0;
-         *a && !BITOP(byteset, *(unsigned char *)a, &) && i < str_sz; a++)
+         i < str_sz && *a && !BITOP(byteset, *(unsigned char *)a, &); a++)
         ;
     return a - str;
 }
@@ -1033,7 +1029,7 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
          set++, ++i)
         ;
     for (size_t i = 0;
-         *a && i < str_sz && BITOP(byteset, *(unsigned char *)a, &); a++, ++i)
+         i < str_sz && *a && BITOP(byteset, *(unsigned char *)a, &); a++, ++i)
         ;
     return a - str;
 }
@@ -1073,6 +1069,11 @@ sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
     return sv_two_way(hay, hay_sz, needle, needle_sz);
 }
 
+/* For now reverse logic for backwards searches has been separated into
+   other functions. There is a possible formula to unit the reverse and
+   forward logic into one set of functions, but the code is ugly. See
+   the start of the reverse two-way algorithm for more. May unite if
+   a clean way exists. */
 static size_t
 sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
              ssize_t needle_sz)
@@ -1134,6 +1135,9 @@ static inline size_t
 sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
            ssize_t needle_sz)
 {
+    /* ssize_t is used throughout. Is this the best choice? The two-way
+       algo relies on negative numbers. This fits with size_t capabilities
+       but does not feel right. Plain old signed may be better. */
     ssize_t critical_pos;
     ssize_t period_dist;
     /* Preprocessing to get critical position and period distance. */
@@ -1149,8 +1153,7 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    /* Determine if memoization is be available due to found border/overlap.
-     */
+    /* Determine if memoization is available due to found border/overlap. */
     if (sv_memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
@@ -1364,7 +1367,7 @@ while (last_rest + rest < needle_sz)
    That would save the code repitition across all of the following
    functions but probably would make the code even harder to read and
    maintain. These algorithms are dense enough already so I think repetion
-   is fine. Leaving this here if that changes or an even better way comes
+   is fine. Leaving comment here if that changes or an even better way comes
    along. */
 
 /* Searches a string from right to left with a two-way algorithm. Returns
@@ -1675,10 +1678,9 @@ sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
     size_t i = sz - 3;
-    /* Even though the interpretation of the shifting has now been
-       reversed, all 32 bits are available for the comparison meaning
-       there is no longer a need for masks and shifting takes care of
-       the comparison. */
+    /* Now that all four bytes of the unsigned int are used the shifting
+       becomes more intuitive. The window slides left to right and the
+       next leading character takes the high bit position. */
     for (; i && hw != nw; hw = (hw >> 8) | (*--h << 24), --i)
     {}
     return i ? i - 1 : sz;
