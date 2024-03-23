@@ -37,6 +37,8 @@ typedef enum
     GRT = 1,
 } sv_threeway_cmp;
 
+/*==========================  Construction  ================================*/
+
 /* A macro provided to make str_view constants less error prone at
    compile time. For example, if it is desirable to construct a str_view
    constant the following will obtain the length field for the user.
@@ -69,11 +71,13 @@ typedef enum
    However saving the delimiter in a constant may be more convenient. */
 #define SV(str) ((str_view){(str), SVLEN((str))})
 
-/* Constructs and returns a string view from a NULL TERMINATED string. */
+/* Constructs and returns a string view from a NULL TERMINATED string.
+   It is undefined to construct a str_view from a non terminated string. */
 str_view sv(const char *);
 
 /* Constructs and returns a string view from a sequence of valid n bytes
-   or string length, whichever comes first. */
+   or string length, whichever comes first. The resulting str_view may
+   or may not be null terminated at the index of its size. */
 str_view sv_n(const char *, size_t n);
 
 /* Constructs and returns a string view from a NULL TERMINATED string
@@ -97,32 +101,16 @@ str_view sv_delim(const char *, const char *delim);
 /* A sentinel empty string. Safely dereferenced to view a null terminator. */
 const char *sv_null(void);
 
-/* The end of a str_view guaranted to be greater than or equal to size */
+/* The end of a str_view guaranted to be greater than or equal to size.
+   May be used for the idiomatic check for most string searching function
+   return values when something is not found. If a size is returned from
+   a searching function it is possible to check it against npos. */
 size_t sv_npos(str_view);
 
-/* Returns the standard C threeway comparison between cmp(lhs, rhs)
-   between two string views.
-   lhs LES(-1) rhs (lhs is less than rhs)
-   lhs EQL(0) rhs (lhs is equal to rhs)
-   lhs GRT(1) rhs (lhs is greater than rhs)*/
-sv_threeway_cmp sv_svcmp(str_view, str_view);
-
-/* Returns the standard C threeway comparison between cmp(lhs, rhs)
-   between a str_view and a c-string.
-   str_view LES(-1) rhs (str_view is less than str)
-   str_view EQL(0) rhs (str_view is equal to str)
-   str_view GRT(1) rhs (str_view is greater than str)*/
-sv_threeway_cmp sv_strcmp(str_view, const char *str);
-
-/* Returns the standard C threeway comparison between cmp(lhs, rhs)
-   between a str_view and the first n bytes (inclusive) of str
-   or stops at the null terminator if that is encountered first.
-   str_view LES(-1) rhs (str_view is less than str)
-   str_view EQL(0) rhs (str_view is equal to str)
-   str_view GRT(1) rhs (str_view is greater than str)*/
-sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
-
-/* Returns true if the provided str_view is empty, false otherwise. */
+/* Returns true if the provided str_view is empty, false otherwise.
+   This is a useful function to check for str_view searches that yeild
+   an empty view at the end of a str_view when an element cannot be
+   found. See sv_svsv or sv_rsvsv as an example. */
 bool sv_empty(str_view);
 
 /* Returns the size of the string view O(1). */
@@ -139,21 +127,6 @@ size_t sv_strlen(const char *);
 /* Returns the bytes of the string pointer to, null terminator included. */
 size_t sv_strbytes(const char *);
 
-/* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(const char *, size_t n);
-
-/* The characer in the string at position i with bounds checking.
-   The program will exit if an out of bounds error occurs. */
-char sv_at(str_view, size_t i);
-
-/* The character at the first position of str_view. An empty
-   str_view or NULL pointer is valid and will return '\0'. */
-char sv_front(str_view);
-
-/* The character at the last position of str_view. An empty
-   str_view or NULL pointer is valid and will return '\0'. */
-char sv_back(str_view);
-
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
 void sv_swap(str_view *a, str_view *b);
@@ -167,6 +140,55 @@ str_view sv_copy(const char *src_str, size_t str_sz);
    the string. This may cut off src data if dest_sz < src.sz.
    Returns how many bytes were written to the buffer. */
 size_t sv_fill(char *dest_buf, size_t dest_sz, str_view src);
+
+/* Returns a str_view of the entirety of the underlying string, starting
+   at the current views pointer position. This guarantees that the str_view
+   returned ends at the null terminator of the underlying string as all
+   strings used with str_views are assumed to be null terminated. It is
+   undefined behavior to provide non null terminated strings to any
+   str_view code. */
+str_view sv_extend(str_view src);
+
+/*============================  Comparison  ================================*/
+
+/* Returns the standard C threeway comparison between cmp(lhs, rhs)
+   between two string views.
+   lhs LES( -1  ) rhs (lhs is less than rhs)
+   lhs EQL(  0  ) rhs (lhs is equal to rhs)
+   lhs GRT(  1  ) rhs (lhs is greater than rhs)*/
+sv_threeway_cmp sv_svcmp(str_view, str_view);
+
+/* Returns the standard C threeway comparison between cmp(lhs, rhs)
+   between a str_view and a c-string.
+   str_view LES( -1  ) rhs (str_view is less than str)
+   str_view EQL(  0  ) rhs (str_view is equal to str)
+   str_view GRT(  1  ) rhs (str_view is greater than str)*/
+sv_threeway_cmp sv_strcmp(str_view, const char *str);
+
+/* Returns the standard C threeway comparison between cmp(lhs, rhs)
+   between a str_view and the first n bytes (inclusive) of str
+   or stops at the null terminator if that is encountered first.
+   str_view LES( -1  ) rhs (str_view is less than str)
+   str_view EQL(  0  ) rhs (str_view is equal to str)
+   str_view GRT(  1  ) rhs (str_view is greater than str)*/
+sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
+
+/* Returns the minimum between the string size vs n bytes. */
+size_t sv_minlen(const char *, size_t n);
+
+/*============================  Iteration  ==================================*/
+
+/* The characer in the string at position i with bounds checking.
+   The program will exit if an out of bounds error occurs. */
+char sv_at(str_view, size_t i);
+
+/* The character at the first position of str_view. An empty
+   str_view or NULL pointer is valid and will return '\0'. */
+char sv_front(str_view);
+
+/* The character at the last position of str_view. An empty
+   str_view or NULL pointer is valid and will return '\0'. */
+char sv_back(str_view);
 
 /* Returns a read only pointer to the beginning of the string view,
    the first valid character in the view. If the view stores NULL,
@@ -254,13 +276,7 @@ bool sv_rend_tok(str_view src, str_view tok);
    read from right to left. */
 str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
 
-/* Returns a str_view of the entirety of the underlying string, starting
-   at the current views pointer position. This guarantees that the str_view
-   returned ends at the null terminator of the underlying string as all
-   strings used with str_views are assumed to be null terminated. It is
-   undefined behavior to provide non null terminated strings to any
-   str_view code. */
-str_view sv_extend(str_view src);
+/*============================  Searching  =================================*/
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (str_view.sz - pos). The process
@@ -274,9 +290,10 @@ size_t sv_find(str_view hay, size_t pos, str_view needle);
 
 /* Searches for the last occurence of needle in hay starting from pos
    from right to left. If found the starting position of the string
-   is returned, the same as find. The only difference is the search
-   direction. If needle is larger than hay, hay length is returned.
-   If the position is larger than the hay, the entire hay is searched. */
+   is returned, the same as find. If not found hay size is returned.
+   The only difference from find is the search direction. If needle
+   is larger than hay, hay length is returned. If the position is
+   larger than the hay, the entire hay is searched. */
 size_t sv_rfind(str_view hay, size_t pos, str_view needle);
 
 /* Returns true if the needle is found in the hay, false otherwise. */
@@ -286,27 +303,36 @@ bool sv_contains(str_view hay, str_view needle);
    position. If the needle cannot be found the empty view at the
    hay length position is returned. This may or may not be null
    terminated at that position. If needle is greater than
-   hay length sv_null is returned. */
+   hay length an empty view at the end of hay is returned. If
+   hay is NULL, sv_null is returned. */
 str_view sv_svsv(str_view hay, str_view needle);
 
 /* Returns a view of the needle found in hay at the last found
    position. If the needle cannot be found the empty view at the
    hay length position is returned. This may or may not be null
    terminated at that position. If needle is greater than
-   hay length sv_null is returned. */
+   hay length an empty view at hay size is returned. If hay is
+   NULL, sv_null is returned. */
 str_view sv_rsvsv(str_view hay, str_view needle);
 
-/* Returns true if a prefix <= str_view is present, false otherwise. */
+/* Returns true if a prefix shorter than or equal in length to
+   the str_view is present, false otherwise. */
 bool sv_starts_with(str_view, str_view prefix);
 
-/* Removes the minimum between str_view length and n from the start. */
+/* Removes the minimum between str_view length and n from the start
+   of the str_view. It is safe to provide n larger than str_view
+   size as that will result in a size 0 view to the end of the
+   current view which may or may not be the null terminator. */
 str_view sv_remove_prefix(str_view, size_t n);
 
-/* Returns true if a suffix of length <= str_view is present,
-   false otherwise. */
+/* Returns true if a suffix less or equal in length to str_view is
+   present, false otherwise. */
 bool sv_ends_with(str_view, str_view suffix);
 
-/* Removes the minimum between str_view length and n from the end. */
+/* Removes the minimum between str_view length and n from the end. It
+   is safe to provide n larger than str_view and that will result in
+   a size 0 view to the end of the current view which may or may not
+   be the null terminator. */
 str_view sv_remove_suffix(str_view, size_t n);
 
 /* Finds the first position of an occurence of any character in set.
@@ -323,13 +349,12 @@ size_t sv_find_first_not_of(str_view hay, str_view set);
 
 /* Finds the last position of any character in set in hay. If
    no position is found hay size is returned. An empty set (NULL)
-   is valid and returns hay size. An empty hay returns
-   0. */
+   is valid and returns hay size. An empty hay returns 0. */
 size_t sv_find_last_of(str_view hay, str_view set);
 
 /* Finds the last position at which no character in set can be found.
-   An empty set (NULL) is valid and will return position 0. An empty
-   hay will return 0. */
+   An empty set (NULL) is valid and will return the final character
+   in the str_view. An empty hay will return 0. */
 size_t sv_find_last_not_of(str_view hay, str_view set);
 
 /* Writes all characters in str_view to stdout. */
