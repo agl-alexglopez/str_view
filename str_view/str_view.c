@@ -154,9 +154,9 @@ sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
 }
 
 bool
-sv_empty(const str_view s)
+sv_empty(const str_view sv)
 {
-    return !s.s || s.sz == 0;
+    return !sv.s || sv.sz == 0;
 }
 
 size_t
@@ -224,70 +224,70 @@ sv_swap(str_view *a, str_view *b)
 }
 
 sv_threeway_cmp
-sv_cmp(str_view sv1, str_view sv2)
+sv_cmp(str_view lhs, str_view rhs)
 {
-    if (!sv1.s || !sv2.s)
+    if (!lhs.s || !rhs.s)
     {
         return ERR;
     }
-    const size_t sz = sv_min(sv1.sz, sv2.sz);
+    const size_t sz = sv_min(lhs.sz, rhs.sz);
     size_t i = 0;
-    for (; i < sz && sv1.s[i] == sv2.s[i]; ++i)
+    for (; i < sz && lhs.s[i] == rhs.s[i]; ++i)
     {}
-    if (i == sv1.sz && i == sv2.sz)
+    if (i == lhs.sz && i == rhs.sz)
     {
         return EQL;
     }
-    if (i < sv1.sz && i < sv2.sz)
+    if (i < lhs.sz && i < rhs.sz)
     {
-        return (uint8_t)sv1.s[i] < (uint8_t)sv2.s[i] ? LES : GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? LES : GRT;
     }
-    return (i < sv1.sz) ? GRT : LES;
+    return (i < lhs.sz) ? GRT : LES;
 }
 
 sv_threeway_cmp
-sv_strcmp(str_view sv, const char *str)
+sv_strcmp(str_view lhs, const char *rhs)
 {
-    if (!sv.s || !str)
+    if (!lhs.s || !rhs)
     {
         return ERR;
     }
-    const size_t sz = sv.sz;
+    const size_t sz = lhs.sz;
     size_t i = 0;
-    for (; i < sz && str[i] != '\0' && sv.s[i] == str[i]; ++i)
+    for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == sv.sz && str[i] == '\0')
+    if (i == lhs.sz && rhs[i] == '\0')
     {
         return EQL;
     }
-    if (i < sv.sz && str[i] != '\0')
+    if (i < lhs.sz && rhs[i] != '\0')
     {
-        return (uint8_t)sv.s[i] < (uint8_t)str[i] ? LES : GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? LES : GRT;
     }
-    return (i < sv.sz) ? GRT : LES;
+    return (i < lhs.sz) ? GRT : LES;
 }
 
 sv_threeway_cmp
-sv_strncmp(str_view sv, const char *str, const size_t n)
+sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 {
-    if (!sv.s || !str)
+    if (!lhs.s || !rhs)
     {
         return ERR;
     }
-    const size_t sz = sv_min(sv.sz, n);
+    const size_t sz = sv_min(lhs.sz, n);
     size_t i = 0;
-    for (; i < sz && str[i] != '\0' && sv.s[i] == str[i]; ++i)
+    for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == sv.sz && sz == n)
+    if (i == lhs.sz && sz == n)
     {
         return EQL;
     }
     /* strncmp compares the first at most n bytes inclusive */
-    if (i < sv.sz && sz <= n)
+    if (i < lhs.sz && sz <= n)
     {
-        return (uint8_t)sv.s[i] < (uint8_t)str[i] ? LES : GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? LES : GRT;
     }
-    return (i < sv.sz) ? GRT : LES;
+    return (i < lhs.sz) ? GRT : LES;
 }
 
 char
@@ -321,13 +321,13 @@ sv_begin(const str_view sv)
 }
 
 const char *
-sv_end(const str_view src)
+sv_end(const str_view sv)
 {
-    if (!src.s || src.s == nil.s)
+    if (!sv.s || sv.s == nil.s)
     {
         return nil.s;
     }
-    return src.s + src.sz;
+    return sv.s + sv.sz;
 }
 
 const char *
@@ -511,17 +511,17 @@ sv_rend_tok(const str_view src, const str_view tok)
 }
 
 str_view
-sv_extend(str_view src)
+sv_extend(str_view sv)
 {
-    if (!src.s)
+    if (!sv.s)
     {
         return nil;
     }
-    const char *i = src.s;
+    const char *i = sv.s;
     while (*i++)
     {}
-    src.sz = i - src.s - 1;
-    return src;
+    sv.sz = i - sv.s - 1;
+    return sv;
 }
 
 bool

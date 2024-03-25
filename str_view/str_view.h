@@ -57,12 +57,12 @@ typedef enum
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
-str_view sv(const char *);
+str_view sv(const char *str);
 
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-str_view sv_n(const char *, size_t n);
+str_view sv_n(const char *str, size_t n);
 
 /* Constructs and returns a string view from a NULL TERMINATED string
    broken on the first ocurrence of delimeter if found or null
@@ -80,12 +80,12 @@ str_view sv_n(const char *, size_t n);
      <<< ""
 
    This is similar to the tokenizing function in the iterator section. */
-str_view sv_delim(const char *, const char *delim);
+str_view sv_delim(const char *str, const char *delim);
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (str_view.sz - pos). The process
    will exit if position is greater than str_view size. */
-str_view sv_substr(str_view, size_t pos, size_t count);
+str_view sv_substr(str_view sv, size_t pos, size_t count);
 
 /* A sentinel empty string. Safely dereferenced to view a null terminator.
    This may be returned from various functions when bad input is given
@@ -96,28 +96,28 @@ const char *sv_null(void);
    May be used for the idiomatic check for most string searching function
    return values when something is not found. If a size is returned from
    a searching function it is possible to check it against npos. */
-size_t sv_npos(str_view);
+size_t sv_npos(str_view sv);
 
 /* Returns true if the provided str_view is empty, false otherwise.
    This is a useful function to check for str_view searches that yeild
    an empty view at the end of a str_view when an element cannot be
    found. See sv_svsv or sv_rsvsv as an example. */
-bool sv_empty(str_view);
+bool sv_empty(str_view sv);
 
 /* Returns the length of the str_view in O(1) time. */
-size_t sv_len(str_view);
+size_t sv_len(str_view sv);
 
 /* Returns the bytes of str_view including null terminator. Note that
    string views may not actually be null terminated but the position at
    str_view[str_view.sz] is interpreted as the null terminator and thus
    counts towards the byte count. */
-size_t sv_bytes(str_view);
+size_t sv_bytes(str_view sv);
 
 /* Returns the size of the null terminated string O(n) */
-size_t sv_strlen(const char *);
+size_t sv_strlen(const char *str);
 
 /* Returns the bytes of the string pointer to, null terminator included. */
-size_t sv_strbytes(const char *);
+size_t sv_strbytes(const char *str);
 
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
@@ -139,7 +139,7 @@ size_t sv_fill(char *dest_buf, size_t dest_sz, str_view src);
    strings used with str_views are assumed to be null terminated. It is
    undefined behavior to provide non null terminated strings to any
    str_view code. */
-str_view sv_extend(str_view);
+str_view sv_extend(str_view sv);
 
 /*============================  Comparison  ================================*/
 
@@ -151,7 +151,7 @@ str_view sv_extend(str_view);
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_cmp(str_view, str_view);
+sv_threeway_cmp sv_cmp(str_view lhs, str_view rhs);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
@@ -161,7 +161,7 @@ sv_threeway_cmp sv_cmp(str_view, str_view);
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strcmp(str_view, const char *);
+sv_threeway_cmp sv_strcmp(str_view lhs, const char *rhs);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
@@ -172,10 +172,10 @@ sv_threeway_cmp sv_strcmp(str_view, const char *);
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strncmp(str_view, const char *, size_t n);
+sv_threeway_cmp sv_strncmp(str_view lhs, const char *rhs, size_t n);
 
 /* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(const char *, size_t n);
+size_t sv_minlen(const char *str, size_t n);
 
 /*============================  Iteration  ==================================*/
 
@@ -256,52 +256,52 @@ str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
 /* Returns a read only pointer to the beginning of the string view,
    the first valid character in the view. If the view stores NULL,
    the placeholder sv_null() is returned. */
-const char *sv_begin(str_view);
+const char *sv_begin(str_view sv);
 
 /* Returns a read only pointer to the end of the string view. This
    may or may not be a null terminated character depending on the
    view. If the view stores NULL, the placeholder sv_null() is returned. */
-const char *sv_end(str_view);
+const char *sv_end(str_view sv);
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-const char *sv_next(const char *);
+const char *sv_next(const char *c);
 
 /* Returns the reverse iterator beginning, the last character of the
    current view. If the view is null sv_null() is returned. If the
    view is sized zero with a valid pointer that pointer in the
    view is returned. */
-const char *sv_rbegin(str_view);
+const char *sv_rbegin(str_view sv);
 
 /* The ending position of a reverse iteration. It is undefined
    behavior to access or use rend. It is undefined behavior to
    pass in any str_view not being iterated through as started
    with rbegin. */
-const char *sv_rend(str_view);
+const char *sv_rend(str_view sv);
 
 /* Advances the iterator to the next character in the str_view
    being iterated through in reverse. It is undefined behavior
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
-const char *sv_rnext(const char *);
+const char *sv_rnext(const char *c);
 
 /* Returns the character pointer at the minimum between the indicated
    position and the end of the string view. If NULL is stored by the
    str_view then sv_null() is returned. */
-const char *sv_pos(str_view, size_t i);
+const char *sv_pos(str_view sv, size_t i);
 
 /* The characer in the string at position i with bounds checking.
    If i is greater than or equal to the size of str_view the null
    terminator character is returned. */
-char sv_at(str_view, size_t i);
+char sv_at(str_view sv, size_t i);
 
 /* The character at the first position of str_view. An empty
    str_view or NULL pointer is valid and will return '\0'. */
-char sv_front(str_view);
+char sv_front(str_view sv);
 
 /* The character at the last position of str_view. An empty
    str_view or NULL pointer is valid and will return '\0'. */
-char sv_back(str_view);
+char sv_back(str_view sv);
 
 /*============================  Searching  =================================*/
 
@@ -339,23 +339,23 @@ str_view sv_rsvsv(str_view hay, str_view needle);
 
 /* Returns true if a prefix shorter than or equal in length to
    the str_view is present, false otherwise. */
-bool sv_starts_with(str_view, str_view prefix);
+bool sv_starts_with(str_view sv, str_view prefix);
 
 /* Removes the minimum between str_view length and n from the start
    of the str_view. It is safe to provide n larger than str_view
    size as that will result in a size 0 view to the end of the
    current view which may or may not be the null terminator. */
-str_view sv_remove_prefix(str_view, size_t n);
+str_view sv_remove_prefix(str_view sv, size_t n);
 
 /* Returns true if a suffix less or equal in length to str_view is
    present, false otherwise. */
-bool sv_ends_with(str_view, str_view suffix);
+bool sv_ends_with(str_view sv, str_view suffix);
 
 /* Removes the minimum between str_view length and n from the end. It
    is safe to provide n larger than str_view and that will result in
    a size 0 view to the end of the current view which may or may not
    be the null terminator. */
-str_view sv_remove_suffix(str_view, size_t n);
+str_view sv_remove_suffix(str_view sv, size_t n);
 
 /* Finds the first position of an occurence of any character in set.
    If no occurence is found hay size is returned. An empty set (NULL)
@@ -382,6 +382,6 @@ size_t sv_find_last_not_of(str_view hay, str_view set);
 /*============================  Printing  ==================================*/
 
 /* Writes all characters in str_view to specified file such as stdout. */
-void sv_print(FILE *, str_view);
+void sv_print(FILE *f, str_view sv);
 
 #endif /* STR_VIEW */
