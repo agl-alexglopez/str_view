@@ -6,6 +6,19 @@ A `str_view` is a 16-byte struct and, due to this size, is treated throughout th
 
 There are still improvements to be made to this library as time allows for packaging, sample programs, and further experimentation.
 
+## Build Instructions
+
+If you wish to build the code in this repository and run the tests or sample programs as they become available, follow these steps.
+
+1. Clone the repository.
+2. Review the provided `CMakePresets.json` and `CMakeUserPresets.json` to tailor the compile flags to your liking. Currently, there is a provided configuration for `gcc-12` and `clang` that should work on many platforms.
+   - Build with either presets `cmake --preset=grel` for gcc, `cmake --preset=crel` for clang, or the provided convenience makefile (`make grel` for gcc, `make crel` for clang). 
+3. Run the tests with `make test-rel`.
+4. Any sample programs can be found and run in the `build/rel/` folder.
+5. Repeat the above steps, replacing any occurence of `rel` with `deb` to build in debug mode and run programs in the `deb/` folder.
+
+The CMake configuration is minimal so change the presets and flags to your liking to build the code.
+
 ## Interface
 
 ```c
