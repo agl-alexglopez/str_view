@@ -31,7 +31,7 @@ typedef enum
 /*==========================  Construction  ================================*/
 
 /* A macro provided to obtain the length of string literals. Best used with
-   the next macro but perhaps has uses on its own.
+   the macro below, but perhaps has uses on its own.
 
       static const str_view prefix = {.s = "test_", .sz = SVLEN("test_")};
 
@@ -39,7 +39,7 @@ typedef enum
 #define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
 
 /* A macro to reduce the chance for errors in repeating oneself when
-   constructing inline or const str_views. The input must be a string
+   constructing an inline or const str_view. The input must be a string
    literal. For example, the above example becomes:
 
       static const str_view prefix = SV("test_");
@@ -67,24 +67,15 @@ str_view sv_n(const char *str, size_t n);
 /* Constructs and returns a string view from a NULL TERMINATED string
    broken on the first ocurrence of delimeter if found or null
    terminator if delim cannot be found. This constructor will also
-   skip the delimeter if that delimeter starts the string. For example:
-
-     const char *const str = "  Hello world!";
-     sv_print(sv_delim(str, " "));
-     <<< "Hello"
-
-   Or the string may be empty if it is made of delims.
-
-     const char *const str = "------";
-     sv_print(sv_delim(str, "-"));
-     <<< ""
-
-   This is similar to the tokenizing function in the iterator section. */
+   skip the delimeter if that delimeter starts the string. This is similar
+   to the tokenizing function in the iteration section. */
 str_view sv_delim(const char *str, const char *delim);
 
 /* Creates the substring from position pos for count length. The count is
-   the minimum value between count and (str_view.sz - pos). The process
-   will exit if position is greater than str_view size. */
+   the minimum value between count and (str_view.sz - pos). If an invalid
+   position is given greater than str_view length an empty view is returned
+   positioned at the end of str_view. This position may or may not hold the
+   null terminator. */
 str_view sv_substr(str_view sv, size_t pos, size_t count);
 
 /* A sentinel empty string. Safely dereferenced to view a null terminator.
