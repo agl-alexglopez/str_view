@@ -15,7 +15,7 @@ If you wish to build the code in this repository and run the tests or sample pro
    - Build with either presets `cmake --preset=grel` for gcc, `cmake --preset=crel` for clang, or the provided convenience makefile (`make grel` for gcc, `make crel` for clang). 
 3. Run the tests with `make test-rel`.
 4. Any sample programs can be found and run in the `build/rel/` folder.
-5. Repeat the above steps, replacing any occurence of `rel` with `deb` to build in debug mode and run programs in the `deb/` folder.
+5. Repeat the above steps, replacing any occurence of `rel` with `deb` to build in debug mode and run programs in the `build/deb/` folder.
 
 The CMake configuration is minimal so change the presets and flags to your liking to build the code.
 
