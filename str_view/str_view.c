@@ -10,16 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-
-#define QUIT(format, ...)                                                      \
-    do                                                                         \
-    {                                                                          \
-        (void)fprintf(stderr, (format)__VA_OPT__(, ) __VA_ARGS__);             \
-        (void)fprintf(stderr, "File: %s, Line: %d, Function: %s\n", __FILE__,  \
-                      __LINE__, __func__);                                     \
-        exit(1);                                                               \
-    } while (0)
+#include <string.h>
 
 /* ========================   Type Definitions   =========================== */
 
@@ -74,12 +65,9 @@ static size_t sv_threebyte_strnstrn(const unsigned char *, size_t,
                                     const unsigned char *);
 static size_t sv_fourbyte_strnstrn(const unsigned char *, size_t,
                                    const unsigned char *);
-static size_t sv_lenstr(const char *);
-static size_t sv_nlen(const char *, size_t);
 static size_t sv_strcspn(const char *, size_t, const char *, size_t);
 static size_t sv_strspn(const char *, size_t, const char *, size_t);
 static size_t sv_strnstrn(const char *, ssize_t, const char *, ssize_t);
-static void *sv_memmove(void *, const void *, size_t);
 static size_t sv_strnchr(const char *, char, size_t);
 static size_t sv_rstrnchr(const char *, char, size_t);
 static size_t sv_rstrnstrn(const char *, ssize_t, const char *, ssize_t);
@@ -109,7 +97,7 @@ sv_n(const char *const str, size_t n)
     {
         return nil;
     }
-    return (str_view){.s = str, .sz = sv_nlen(str, n)};
+    return (str_view){.s = str, .sz = strnlen(str, n)};
 }
 
 str_view
@@ -135,15 +123,15 @@ sv_delim(const char *const str, const char *const delim)
 }
 
 void
-sv_print(FILE *f, str_view s)
+sv_print(FILE *f, str_view sv)
 {
-    if (!s.s || nil.s == s.s || 0 == s.sz || !f)
+    if (!sv.s || nil.s == sv.s || 0 == sv.sz || !f)
     {
         return;
     }
     /* printf does not output the null terminator in normal strings so
        as long as we output correct number of characters we do the same */
-    (void)fwrite(s.s, sizeof(char), s.sz, f);
+    (void)fwrite(sv.s, sizeof(char), sv.sz, f);
 }
 
 str_view
@@ -159,16 +147,16 @@ sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
     {
         return 0;
     }
-    const size_t paste = sv_min(dest_sz, sv_svbytes(src));
-    sv_memmove(dest_buf, src.s, paste);
-    dest_buf[paste - 1] = '\0';
-    return paste;
+    const size_t bytes = sv_min(dest_sz, sv_bytes(src));
+    memmove(dest_buf, src.s, bytes);
+    dest_buf[bytes - 1] = '\0';
+    return bytes;
 }
 
 bool
-sv_empty(const str_view s)
+sv_empty(const str_view sv)
 {
-    return !s.s || s.sz == 0;
+    return !sv.s || sv.sz == 0;
 }
 
 size_t
@@ -178,7 +166,7 @@ sv_len(str_view sv)
 }
 
 size_t
-sv_svbytes(str_view sv)
+sv_bytes(str_view sv)
 {
     return sv.sz + 1;
 }
@@ -186,7 +174,7 @@ sv_svbytes(str_view sv)
 size_t
 sv_strlen(const char *const str)
 {
-    return sv_lenstr(str);
+    return strlen(str);
 }
 
 size_t
@@ -196,13 +184,13 @@ sv_strbytes(const char *const str)
     {
         return 0;
     }
-    return sv_lenstr(str) + 1;
+    return strlen(str) + 1;
 }
 
 size_t
 sv_minlen(const char *const str, size_t n)
 {
-    return sv_nlen(str, n);
+    return strnlen(str, n);
 }
 
 char
@@ -210,7 +198,7 @@ sv_at(str_view sv, size_t i)
 {
     if (i >= sv.sz)
     {
-        QUIT("str_view index out of range. size=%zu, index=%zu\n", sv.sz, i);
+        return *nil.s;
     }
     return sv.s[i];
 }
@@ -235,71 +223,71 @@ sv_swap(str_view *a, str_view *b)
     a->sz = tmp_b.sz;
 }
 
-int
-sv_svcmp(str_view sv1, str_view sv2)
+sv_threeway_cmp
+sv_cmp(str_view lhs, str_view rhs)
 {
-    if (!sv1.s || !sv2.s)
+    if (!lhs.s || !rhs.s)
     {
-        QUIT("sv_svcmp cannot compare NULL.\n");
+        return ERR;
     }
-    const size_t sz = sv_min(sv1.sz, sv2.sz);
+    const size_t sz = sv_min(lhs.sz, rhs.sz);
     size_t i = 0;
-    for (; i < sz && sv1.s[i] == sv2.s[i]; ++i)
+    for (; i < sz && lhs.s[i] == rhs.s[i]; ++i)
     {}
-    if (i == sv1.sz && i == sv2.sz)
+    if (i == lhs.sz && i == rhs.sz)
     {
         return EQL;
     }
-    if (i < sv1.sz && i < sv2.sz)
+    if (i < lhs.sz && i < rhs.sz)
     {
-        return ((uint8_t)sv1.s[i] < (uint8_t)sv2.s[i] ? LES : GRT);
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? LES : GRT;
     }
-    return (i < sv1.sz) ? GRT : LES;
+    return (i < lhs.sz) ? GRT : LES;
 }
 
-int
-sv_strcmp(str_view sv, const char *str)
+sv_threeway_cmp
+sv_strcmp(str_view lhs, const char *rhs)
 {
-    if (!sv.s || !str)
+    if (!lhs.s || !rhs)
     {
-        QUIT("sv_strcmp cannot compare NULL.\n");
+        return ERR;
     }
-    const size_t sz = sv.sz;
+    const size_t sz = lhs.sz;
     size_t i = 0;
-    for (; i < sz && str[i] != '\0' && sv.s[i] == str[i]; ++i)
+    for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == sv.sz && str[i] == '\0')
+    if (i == lhs.sz && rhs[i] == '\0')
     {
         return EQL;
     }
-    if (i < sv.sz && str[i] != '\0')
+    if (i < lhs.sz && rhs[i] != '\0')
     {
-        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? LES : GRT);
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? LES : GRT;
     }
-    return (i < sv.sz) ? GRT : LES;
+    return (i < lhs.sz) ? GRT : LES;
 }
 
-int
-sv_strncmp(str_view sv, const char *str, const size_t n)
+sv_threeway_cmp
+sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 {
-    if (!sv.s || !str)
+    if (!lhs.s || !rhs)
     {
-        QUIT("sv_strncmp cannot compare NULL.\n");
+        return ERR;
     }
-    const size_t sz = sv_min(sv.sz, n);
+    const size_t sz = sv_min(lhs.sz, n);
     size_t i = 0;
-    for (; i < sz && str[i] != '\0' && sv.s[i] == str[i]; ++i)
+    for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == sv.sz && sz == n)
+    if (i == lhs.sz && sz == n)
     {
         return EQL;
     }
     /* strncmp compares the first at most n bytes inclusive */
-    if (i < sv.sz && sz <= n)
+    if (i < lhs.sz && sz <= n)
     {
-        return ((uint8_t)sv.s[i] < (uint8_t)str[i] ? LES : GRT);
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? LES : GRT;
     }
-    return (i < sv.sz) ? GRT : LES;
+    return (i < lhs.sz) ? GRT : LES;
 }
 
 char
@@ -333,13 +321,13 @@ sv_begin(const str_view sv)
 }
 
 const char *
-sv_end(const str_view src)
+sv_end(const str_view sv)
 {
-    if (!src.s || src.s == nil.s)
+    if (!sv.s || sv.s == nil.s)
     {
         return nil.s;
     }
-    return src.s + src.sz;
+    return sv.s + sv.sz;
 }
 
 const char *
@@ -423,7 +411,7 @@ sv_begin_tok(str_view src, str_view delim)
         return (str_view){.s = src.s, .sz = 0};
     }
     src.sz -= sv_not;
-    return sv_substr(src, 0, sv_find(src, 0, delim));
+    return (str_view){.s = src.s, .sz = sv_find(src, 0, delim)};
 }
 
 bool
@@ -450,6 +438,8 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
     }
     next.s += delim.sz;
     next.sz = src.sz - (next.s - src.s);
+    /* There is a cheap easy way to skip repeating delimiters before the
+       next search that should be faster than string comparison. */
     const size_t after_delim = sv_after_find(next, delim);
     next.s += after_delim;
     next.sz -= after_delim;
@@ -496,6 +486,9 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
         return (str_view){.s = src.s, .sz = 0};
     }
     const str_view shorter = {.s = src.s, .sz = (tok.s - delim.sz) - src.s};
+    /* Same as in the forward version, this method is a quick way to skip
+       any number of repeating delimiters before starting the next search
+       for a delimiter before a token. */
     const size_t before_delim = sv_before_rfind(shorter, delim);
     if (before_delim == shorter.sz)
     {
@@ -518,17 +511,17 @@ sv_rend_tok(const str_view src, const str_view tok)
 }
 
 str_view
-sv_extend(str_view src)
+sv_extend(str_view sv)
 {
-    if (!src.s)
+    if (!sv.s)
     {
         return nil;
     }
-    const char *i = src.s;
+    const char *i = sv.s;
     while (*i++)
     {}
-    src.sz = i - src.s - 1;
-    return src;
+    sv.sz = i - sv.s - 1;
+    return sv;
 }
 
 bool
@@ -538,7 +531,7 @@ sv_starts_with(str_view sv, str_view prefix)
     {
         return false;
     }
-    return sv_svcmp(sv_substr(sv, 0, prefix.sz), prefix) == EQL;
+    return sv_cmp(sv_substr(sv, 0, prefix.sz), prefix) == EQL;
 }
 
 str_view
@@ -555,7 +548,7 @@ sv_ends_with(str_view sv, str_view suffix)
     {
         return false;
     }
-    return sv_svcmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == EQL;
+    return sv_cmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == EQL;
 }
 
 str_view
@@ -573,7 +566,7 @@ sv_substr(str_view sv, size_t pos, size_t count)
 {
     if (pos > sv.sz)
     {
-        QUIT("str_view index out of range. pos=%zu size=%zu", pos, sv.sz);
+        return (str_view){.s = sv.s + sv.sz, .sz = 0};
     }
     return (str_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
 }
@@ -804,41 +797,11 @@ sv_char_cmp(char a, char b)
 /* ======================   Static Utilities    =========================== */
 
 /* This is section is modeled after the musl string.h library. However,
-   using str_view that may not be null terminated requires modifications.
-   Also it is important to not use string.h functionality which would force
-   the user to include string.h in addition to custom implementations here.
-   Save code bloat though compilers/linkers may help with that. */
+   using str_view that may not be null terminated requires modifications. */
 
 #define BITOP(a, b, op)                                                        \
     ((a)[(size_t)(b) / (8 * sizeof *(a))] op(size_t) 1                         \
      << ((size_t)(b) % (8 * sizeof *(a))))
-
-/* Modeled after musl
-   http://git.musl-libc.org/cgit/musl/tree/src/string/strlen.c */
-static size_t
-sv_lenstr(const char *const str)
-{
-    if (!str)
-    {
-        return 0;
-    }
-    const char *i = str;
-    for (; *i; ++i)
-    {}
-    return i - str;
-}
-
-/* Modeled after musl
-   http://git.musl-libc.org/cgit/musl/tree/src/string/memcmp.c */
-static int
-sv_memcmp(const void *const vl, const void *const vr, size_t n)
-{
-    const unsigned char *l = vl;
-    const unsigned char *r = vr;
-    for (; n && *l == *r; n--, l++, r++)
-    {}
-    return n ? *l - *r : 0;
-}
 
 /* This is dangerous. Do not use this under normal circumstances.
    This is an internal helper for the backwards two way string
@@ -854,121 +817,6 @@ sv_rmemcmp(const void *const vl, const void *const vr, size_t n)
     for (; n && *l == *r; n--, l--, r--)
     {}
     return n ? *l - *r : 0;
-}
-
-/* Modeled after musl
-   http://git.musl-libc.org/cgit/musl/tree/src/string/memcpy.c */
-static void *
-sv_memcpy(void *restrict dest, const void *const restrict src, size_t n)
-{
-    unsigned char *d = dest;
-    const unsigned char *s = src;
-    for (; n; n--)
-    {
-        *d++ = *s++;
-    }
-    return dest;
-}
-
-/* Modeled after musl
-   http://git.musl-libc.org/cgit/musl/tree/src/string/memmove.c */
-static void *
-sv_memmove(void *dest, const void *const src, size_t n)
-{
-    char *d = dest;
-    const char *s = src;
-    if (d == s)
-    {
-        return d;
-    }
-    if ((uintptr_t)s - (uintptr_t)d - n <= -2 * n)
-    {
-        return sv_memcpy(d, s, n);
-    }
-    if (d < s)
-    {
-        for (; n; n--)
-        {
-            *d++ = *s++;
-        }
-    }
-    else
-    {
-        while (n)
-        {
-            n--;
-            d[n] = s[n];
-        }
-    }
-    return dest;
-}
-
-/* Modeled after musl implementation
-   https://git.musl-libc.org/cgit/musl/tree/src/string/memset.c */
-static void *
-sv_memset(void *dest, int c, size_t n)
-{
-    if (!dest)
-    {
-        return NULL;
-    }
-    unsigned char *s = dest;
-    size_t k;
-    /* Fill head and tail with minimal branching. Each
-       conditional ensures that all the subsequently used
-       offsets are well-defined and in the dest region. */
-    if (!n)
-    {
-        return dest;
-    }
-    s[0] = c;
-    s[n - 1] = c;
-    if (n <= 2)
-    {
-        return dest;
-    }
-    s[1] = c;
-    s[2] = c;
-    s[n - 2] = c;
-    s[n - 3] = c;
-    if (n <= 6)
-    {
-        return dest;
-    }
-    s[3] = c;
-    s[n - 4] = c;
-    if (n <= 8)
-    {
-        return dest;
-    }
-    /* Advance pointer to align it at a 4-byte boundary,
-       and truncate n to a multiple of 4. The previous code
-       already took care of any head/tail that get cut off
-       by the alignment. */
-    k = -(uintptr_t)s & 3;
-    s += k;
-    n -= k;
-    n &= -4;
-    for (; n; n--, s++)
-    {
-        *s = c;
-    }
-    return dest;
-}
-
-/* Modeled after musl
-   http://git.musl-libc.org/cgit/musl/tree/src/string/strnlen.c */
-static size_t
-sv_nlen(const char *const str, size_t n)
-{
-    if (!str)
-    {
-        return 0;
-    }
-    const char *i = str;
-    for (; n && *i; n--, ++i)
-    {}
-    return i - str;
 }
 
 /* strspn is based on musl C-standard library implementation
@@ -992,7 +840,7 @@ sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
             ;
         return a - str;
     }
-    sv_memset(byteset, 0, sizeof byteset);
+    memset(byteset, 0, sizeof byteset);
     for (size_t i = 0;
          i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
          set++, ++i)
@@ -1154,7 +1002,7 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         period_dist = r.period_dist;
     }
     /* Determine if memoization is available due to found border/overlap. */
-    if (sv_memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
+    if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
             .hay = hay,
@@ -1289,6 +1137,8 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
             last_rest = suff_pos + 1;
             rest = period = 1;
             break;
+        default:
+            break;
         }
     }
     return (struct sv_factorization){.start_critical_pos = suff_pos,
@@ -1329,6 +1179,8 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
+            break;
+        default:
             break;
         }
     }
@@ -1526,6 +1378,8 @@ sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
             last_rest = suff_pos + 1;
             rest = period = 1;
             break;
+        default:
+            break;
         }
     }
     return (struct sv_factorization){.start_critical_pos = suff_pos,
@@ -1564,6 +1418,8 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
+            break;
+        default:
             break;
         }
     }

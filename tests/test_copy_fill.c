@@ -55,8 +55,8 @@ test_copy_section(void)
     const char *const expected_snip = "snip!";
     const str_view ref_view = sv(ref);
     const str_view snip = sv_substr(ref_view, 5, 5);
-    char snip_buf[sv_svbytes(snip)];
-    CHECK(sv_fill(snip_buf, sizeof snip_buf, snip), sv_svbytes(snip));
+    char snip_buf[sv_bytes(snip)];
+    CHECK(sv_fill(snip_buf, sizeof snip_buf, snip), sv_bytes(snip));
     CHECK(strcmp(expected_snip, snip_buf), 0);
     CHECK(snip_buf[(sizeof snip_buf) - 1], '\0');
     return PASS;

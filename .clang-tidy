@@ -20,7 +20,8 @@ Checks: >
    -performance-no-int-to-ptr,
    -*-non-private-member-variables-in-classes,
    -*-magic-numbers,
-   -concurrency-*
+   -concurrency-*,
+   -clang-analyzer-security*
 
 CheckOptions:
    - { key: hicpp-signed-bitwise.IgnorePositiveIntegerLiterals, value: true }

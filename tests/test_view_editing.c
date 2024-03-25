@@ -107,7 +107,7 @@ test_dir_entries(void)
         = sv_substr(root_single_entry_slash, 0,
                     sv_rfind(root_single_entry_slash,
                              sv_len(root_single_entry_slash), dirslash));
-    CHECK(sv_svcmp(without_last_slash, root_single_entry), EQL);
+    CHECK(sv_cmp(without_last_slash, root_single_entry), EQL);
     const str_view special_file = {"/this/is/a/very/special/file",
                                    SVLEN("/this/is/a/very/special/file")};
     const char *const toks[6] = {"this", "is", "a", "very", "special", "file"};
