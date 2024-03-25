@@ -139,7 +139,7 @@ size_t sv_fill(char *dest_buf, size_t dest_sz, str_view src);
    strings used with str_views are assumed to be null terminated. It is
    undefined behavior to provide non null terminated strings to any
    str_view code. */
-str_view sv_extend(str_view src);
+str_view sv_extend(str_view);
 
 /*============================  Comparison  ================================*/
 
@@ -161,7 +161,7 @@ sv_threeway_cmp sv_cmp(str_view, str_view);
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strcmp(str_view, const char *str);
+sv_threeway_cmp sv_strcmp(str_view, const char *);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
@@ -172,7 +172,7 @@ sv_threeway_cmp sv_strcmp(str_view, const char *str);
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
+sv_threeway_cmp sv_strncmp(str_view, const char *, size_t n);
 
 /* Returns the minimum between the string size vs n bytes. */
 size_t sv_minlen(const char *, size_t n);
