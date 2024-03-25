@@ -5,12 +5,12 @@
 #include <stddef.h>
 #include <stdio.h>
 
-/* Read-only view of string data. Prefer the provided functions for
-   string manipulations rather than using the provided fields. This
-   interface is modeled after std::string_view in C++ with elements
-   of C mixed in. The str_view type is 16 bytes meaning it is cheap
-   to copy and flexible to work with in the provided functions. No
-   functions accept str_view by reference, except for swap. */
+/* A str_view is a read-only view of string data in C. It is modeled after
+   the C++ std::string_view. It consists of a pointer to const char data
+   and a size_t field. Therefore, the exact size of this type may be platform
+   dependent but it is small enough that one should prefer to use the provided
+   functions when manupulating views. Try to avoid accessing struct fields.
+   A str_view is a cheap, copyable type in all functions but swap. */
 typedef struct
 {
     const char *s;
@@ -18,46 +18,41 @@ typedef struct
 } str_view;
 
 /* Standard three way comparison type in C. See the comparison
-   functions for how to interpret the sv comparison results. */
+   functions for how to interpret the comparison results. ERR
+   is returned if bad input is provided to any comparison. */
 typedef enum
 {
     LES = -1,
     EQL = 0,
     GRT = 1,
+    ERR,
 } sv_threeway_cmp;
 
 /*==========================  Construction  ================================*/
 
-/* A macro provided to make str_view constants less error prone at
-   compile time. For example, if it is desirable to construct a str_view
-   constant the following will obtain the length field for the user.
-   Simply copy and paste the same string twice for best results.
+/* A macro provided to obtain the length of string literals. Best used with
+   the next macro but perhaps has uses on its own.
 
       static const str_view prefix = {.s = "test_", .sz = SVLEN("test_")};
-      int main()
-      {
-         ...
-      }
 
    At runtime, prefer the provided functions for all other str_view needs. */
 #define SVLEN(str) ((sizeof((str)) / sizeof((str)[0])) - sizeof((str)[0]))
 
-/* A macro to further reduce the chance for errors in repeating oneself
-   when constructing inline or const str_views. The input must be a string
+/* A macro to reduce the chance for errors in repeating oneself when
+   constructing inline or const str_views. The input must be a string
    literal. For example, the above example becomes:
 
       static const str_view prefix = SV("test_");
 
-   But more importantly this allows for inline constructors that are
-   easier to read than struct declarations and don't risk mistakes in
-   counting characters. For example:
+   One can even use this in code when string literals are used rather than
+   saved constants to avoid errors in str_view constructions.
 
        for (str_view cur = sv_begin_tok(ref, SV(" "));
             !sv_end_tok(ref_view, cur);
             cur = sv_next_tok(ref_view, cur, SV(" "))
        {}
 
-   However saving the delimiter in a constant may be more convenient. */
+   However saving the str_view in a constant may be more convenient. */
 #define SV(str) ((str_view){(str), SVLEN((str))})
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
@@ -87,7 +82,14 @@ str_view sv_n(const char *, size_t n);
    This is similar to the tokenizing function in the iterator section. */
 str_view sv_delim(const char *, const char *delim);
 
-/* A sentinel empty string. Safely dereferenced to view a null terminator. */
+/* Creates the substring from position pos for count length. The count is
+   the minimum value between count and (str_view.sz - pos). The process
+   will exit if position is greater than str_view size. */
+str_view sv_substr(str_view, size_t pos, size_t count);
+
+/* A sentinel empty string. Safely dereferenced to view a null terminator.
+   This may be returned from various functions when bad input is given
+   such as NULL as the underlying str_view string pointer. */
 const char *sv_null(void);
 
 /* The end of a str_view guaranted to be greater than or equal to size.
@@ -102,13 +104,14 @@ size_t sv_npos(str_view);
    found. See sv_svsv or sv_rsvsv as an example. */
 bool sv_empty(str_view);
 
-/* Returns the size of the string view O(1). */
+/* Returns the length of the str_view in O(1) time. */
 size_t sv_len(str_view);
 
 /* Returns the bytes of str_view including null terminator. Note that
    string views may not actually be null terminated but the position at
-   str_view[str_view.sz] is interpreted as the null terminator. */
-size_t sv_svbytes(str_view);
+   str_view[str_view.sz] is interpreted as the null terminator and thus
+   counts towards the byte count. */
+size_t sv_bytes(str_view);
 
 /* Returns the size of the null terminated string O(n) */
 size_t sv_strlen(const char *);
@@ -131,7 +134,7 @@ str_view sv_copy(const char *src_str, size_t str_sz);
 size_t sv_fill(char *dest_buf, size_t dest_sz, str_view src);
 
 /* Returns a str_view of the entirety of the underlying string, starting
-   at the current views pointer position. This guarantees that the str_view
+   at the current view pointer position. This guarantees that the str_view
    returned ends at the null terminator of the underlying string as all
    strings used with str_views are assumed to be null terminated. It is
    undefined behavior to provide non null terminated strings to any
@@ -144,14 +147,20 @@ str_view sv_extend(str_view src);
    between two string views.
    lhs LES( -1  ) rhs (lhs is less than rhs)
    lhs EQL(  0  ) rhs (lhs is equal to rhs)
-   lhs GRT(  1  ) rhs (lhs is greater than rhs)*/
-sv_threeway_cmp sv_svcmp(str_view, str_view);
+   lhs GRT(  1  ) rhs (lhs is greater than rhs).
+   Comparison is bounded by the shorter str_view length. ERR is
+   returned if bad input is provided such as a str_view with a
+   NULL pointer field. */
+sv_threeway_cmp sv_cmp(str_view, str_view);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
    str_view LES( -1  ) rhs (str_view is less than str)
    str_view EQL(  0  ) rhs (str_view is equal to str)
-   str_view GRT(  1  ) rhs (str_view is greater than str)*/
+   str_view GRT(  1  ) rhs (str_view is greater than str)
+   Comparison is bounded by the shorter str_view length. ERR is
+   returned if bad input is provided such as a str_view with a
+   NULL pointer field. */
 sv_threeway_cmp sv_strcmp(str_view, const char *str);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
@@ -159,7 +168,10 @@ sv_threeway_cmp sv_strcmp(str_view, const char *str);
    or stops at the null terminator if that is encountered first.
    str_view LES( -1  ) rhs (str_view is less than str)
    str_view EQL(  0  ) rhs (str_view is equal to str)
-   str_view GRT(  1  ) rhs (str_view is greater than str)*/
+   str_view GRT(  1  ) rhs (str_view is greater than str)
+   Comparison is bounded by the shorter str_view length. ERR is
+   returned if bad input is provided such as a str_view with a
+   NULL pointer field. */
 sv_threeway_cmp sv_strncmp(str_view, const char *str, size_t n);
 
 /* Returns the minimum between the string size vs n bytes. */
@@ -167,17 +179,79 @@ size_t sv_minlen(const char *, size_t n);
 
 /*============================  Iteration  ==================================*/
 
-/* The characer in the string at position i with bounds checking.
-   The program will exit if an out of bounds error occurs. */
-char sv_at(str_view, size_t i);
+/* For the forward and reverse tokenization use the idiomatic for loop
+   to acheive the desired tokenization.
 
-/* The character at the first position of str_view. An empty
-   str_view or NULL pointer is valid and will return '\0'. */
-char sv_front(str_view);
+      for (str_view tok = sv_begin_tok(src, delim);
+           !sv_end_tok(src, tok),
+           tok = sv_next_tok(src, tok, delim))
+      {}
 
-/* The character at the last position of str_view. An empty
-   str_view or NULL pointer is valid and will return '\0'. */
-char sv_back(str_view);
+      for (str_view tok = sv_rbegin_tok(src, delim);
+           !sv_rend_tok(src, tok),
+           tok = sv_rnext_tok(src, tok, delim))
+      {}
+
+   Other patterns are possible but this is recommended for tokenization.
+   The same applies to character iteration.
+
+      for (const char *i = sv_begin(src); i != sv_end(src); i = sv_next(i))
+      {}
+
+      for (const char *i = sv_rbegin(src); i != sv_rend(src); i = sv_rnext(i))
+      {}
+
+   For character iteration, it is undefined behavior to change the str_view
+   being iterated through before the loop terminates. */
+
+/* Finds the first tokenized position in the string view given any length
+   delim str_view. Skips leading delimeters in construction. If the
+   str_view to be searched stores NULL than the sv_null() is returned. If
+   delim stores NULL, that is interpreted as a search for the null terminating
+   character or empty string and the size zero substring at the final position
+   in the str_view is returned wich may or may not be the null termiator. If no
+   delim is found the entire str_view is returned. */
+str_view sv_begin_tok(str_view src, str_view delim);
+
+/* Returns true if no further tokes are found and position is at the end
+   position, meaning a call to sv_next_tok has yielded a size 0 str_view
+   that points at the end of the src str_view which may or may not be null
+   terminated. */
+bool sv_end_tok(str_view src, str_view tok);
+
+/* Advances to the next token in the remaining view seperated by the delim.
+   Repeating delimter patterns will be skipped until the next token or end
+   of string is found. If str_view stores NULL the sv_null() placeholder
+   is returned. If delim stores NULL the end position of the str_view
+   is returned which may or may not be the null terminator. The tok is
+   bounded by the length of the view between two delimeters or the length
+   from a delimeter to the end of src, whichever comes first. */
+str_view sv_next_tok(str_view src, str_view tok, str_view delim);
+
+/* Obtains the last token in a string in preparation for reverse tokenized
+   iteration. Any delimeters that end the string are skipped, as in the
+   forward version. If src is NULL sv_null is returned. If delim is null
+   the entire src view is returned. Though the str_view is tokenized in
+   reverse, the token view will start at the first character and be the
+   length of the token found. */
+str_view sv_rbegin_tok(str_view src, str_view delim);
+
+/* Given the current str_view being iterated through and the current token
+   in the iteration returns true if the ending state of a reverse tokenization
+   has been reached, false otherwise. */
+bool sv_rend_tok(str_view src, str_view tok);
+
+/* Advances the token in src to the next token between two delimeters provided
+   by delim. Repeating delimiters are skipped until the next token is found.
+   If no further tokens can be found an empty str_view is returned with its
+   pointer set to the start of the src string being iterated through. Note
+   that a multicharacter delimiter may yeild different tokens in reverse
+   than in the forward direction when partial matches occur and some portion
+   of the delimeter is in a token. This is because the string is now being
+   parsed from right to left. However, the token returned starts at the first
+   character and is read from left to right between two delimeters as is
+   in the forward tokenization.  */
+str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
 
 /* Returns a read only pointer to the beginning of the string view,
    the first valid character in the view. If the view stores NULL,
@@ -216,61 +290,20 @@ const char *sv_rnext(const char *);
    str_view then sv_null() is returned. */
 const char *sv_pos(str_view, size_t i);
 
-/* Finds the first tokenized position in the string view given the any
-   sized delimeter str_view. This means that if the string begins
-   with a delimeter, that delimeter is skipped until a string token
-   is found. For example:
+/* The characer in the string at position i with bounds checking.
+   If i is greater than or equal to the size of str_view the null
+   terminator character is returned. */
+char sv_at(str_view, size_t i);
 
-     const char *const str = "  Hello world!";
-     sv_print(sv_delim(str, " "));
-     <<< "Hello"
+/* The character at the first position of str_view. An empty
+   str_view or NULL pointer is valid and will return '\0'. */
+char sv_front(str_view);
 
-   This is similar to the sv_delim constructor. If the str_view
-   to be searched stores NULL than the sv_null() is returned. If
-   delim stores NULL, that is interpreted as a search for the null
-   terminating character or empty string and the size zero substring
-   at the final position in the str_view is returned wich may or
-   may not be the null termiator. */
-str_view sv_begin_tok(str_view src, str_view delim);
-
-/* Returns true if no further tokes are found and position is at the end
-   position, meaning a call to sv_next_tok has yielded a size 0 str_view */
-bool sv_end_tok(str_view src, str_view tok);
-
-/* Advances to the next token in the remaining view seperated by the delim.
-   Repeating delimter patterns will be skipped until the next token or end
-   of string is found. If str_view stores NULL the sv_null() placeholder
-   is returned. If delim stores NULL the end position of the str_view
-   is returned which may or may not be the null terminator. */
-str_view sv_next_tok(str_view src, str_view tok, str_view delim);
-
-/* Obtains the last token in a string in preparation for reverse tokenized
-   iteration. Any delimeters that start the string are skipped, as in the
-   forward version. If src is null sv_null is returned. If delim is null
-   the entire src view is returned. */
-str_view sv_rbegin_tok(str_view src, str_view delim);
-
-/* Given the current str_view being iterated through and the current token
-   in the iteration returns true if the ending state of a reverse tokenization
-   has been reached, false otherwise. */
-bool sv_rend_tok(str_view src, str_view tok);
-
-/* Advances the token in src to the next token between two delimeters provided
-   by delim. Repeating delimiters are skipped until the next token is found.
-   If no further tokens can be found an empty str_view is returned with its
-   pointer set to the start of the src string being iterated through. Note
-   that a multicharacter delimiter may yeild different tokens in reverse
-   than in the forward direction when partial matches occur and some portion
-   of the delimeter is in a token. This is because the string is now being
-   read from right to left. */
-str_view sv_rnext_tok(str_view src, str_view tok, str_view delim);
+/* The character at the last position of str_view. An empty
+   str_view or NULL pointer is valid and will return '\0'. */
+char sv_back(str_view);
 
 /*============================  Searching  =================================*/
-
-/* Creates the substring from position pos for count length. The count is
-   the minimum value between count and (str_view.sz - pos). The process
-   will exit if position is greater than str_view size. */
-str_view sv_substr(str_view, size_t pos, size_t count);
 
 /* Searches for needle in hay starting from pos. If the needle
    is larger than the hay, or position is greater than hay length,
@@ -293,7 +326,7 @@ bool sv_contains(str_view hay, str_view needle);
    hay length position is returned. This may or may not be null
    terminated at that position. If needle is greater than
    hay length an empty view at the end of hay is returned. If
-   hay is NULL, sv_null is returned. */
+   hay is NULL, sv_null is returned (modeled after strstr). */
 str_view sv_svsv(str_view hay, str_view needle);
 
 /* Returns a view of the needle found in hay at the last found
@@ -301,7 +334,7 @@ str_view sv_svsv(str_view hay, str_view needle);
    hay length position is returned. This may or may not be null
    terminated at that position. If needle is greater than
    hay length an empty view at hay size is returned. If hay is
-   NULL, sv_null is returned. */
+   NULL, sv_null is returned (modeled after strstr). */
 str_view sv_rsvsv(str_view hay, str_view needle);
 
 /* Returns true if a prefix shorter than or equal in length to
@@ -346,7 +379,9 @@ size_t sv_find_last_of(str_view hay, str_view set);
    in the str_view. An empty hay will return 0. */
 size_t sv_find_last_not_of(str_view hay, str_view set);
 
-/* Writes all characters in str_view to stdout. */
+/*============================  Printing  ==================================*/
+
+/* Writes all characters in str_view to specified file such as stdout. */
 void sv_print(FILE *, str_view);
 
 #endif /* STR_VIEW */

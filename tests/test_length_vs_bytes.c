@@ -43,7 +43,7 @@ test_length_terminated(void)
     CHECK(len, sv_strlen(ref));
     CHECK(len, sv_len(sv(ref)));
     CHECK(bytes, sv_strbytes(ref));
-    CHECK(bytes, sv_svbytes(sv(ref)));
+    CHECK(bytes, sv_bytes(sv(ref)));
     CHECK(len, sv_npos(sv(ref)));
     CHECK(len, sv_minlen(ref, -1));
     return PASS;
@@ -63,7 +63,7 @@ test_length_unterminated(void)
     CHECK(sv_strlen(snip), len);
     CHECK(sv_len(snip_view), len);
     CHECK(sv_strbytes(snip), bytes);
-    CHECK(sv_svbytes(snip_view), bytes);
+    CHECK(sv_bytes(snip_view), bytes);
     CHECK(len, sv_npos(snip_view));
     CHECK(len, sv_minlen(snip, 99));
     return PASS;
@@ -83,14 +83,14 @@ test_length_innacurate(void)
     CHECK(len, sv_strlen(ref));
     CHECK(len, sv_len(view));
     CHECK(bytes, sv_strbytes(ref));
-    CHECK(bytes, sv_svbytes(view));
+    CHECK(bytes, sv_bytes(view));
     CHECK(len, sv_npos(view));
     CHECK(len, sv_minlen(ref, 99));
     const str_view view2 = sv_n(ref, -1);
     CHECK(len, sv_strlen(ref));
     CHECK(len, sv_len(view2));
     CHECK(bytes, sv_strbytes(ref));
-    CHECK(bytes, sv_svbytes(view2));
+    CHECK(bytes, sv_bytes(view2));
     CHECK(len, (sv_npos(view2)));
     CHECK(len, sv_minlen(ref, 99));
     return PASS;

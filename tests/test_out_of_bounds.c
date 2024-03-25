@@ -1,34 +1,15 @@
 #include "str_view.h"
 #include "test.h"
 
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
 int
 main()
 {
-    const str_view s = sv("");
-    const pid_t exiting_child = fork();
-    if (exiting_child == 0)
-    {
-        /* Silence the str_view message that is about to output at exit. */
-        int silence = open("/dev/null", O_WRONLY);
-        dup2(silence, STDERR_FILENO);
-        (void)sv_at(s, 1);
-        /* We should not make it here */
-        exit(ERROR);
-    }
-    int status = 0;
-    if (waitpid(exiting_child, &status, 0) < 0)
-    {
-        printf("Error waiting for failing child.\n");
-        exit(1);
-    }
-    /* We expect to have exited with a status of 1 */
-    CHECK(WIFEXITED(status) && WEXITSTATUS(status) == 1, true);
+    const str_view s = sv("a");
+    const str_view empty = (str_view){s.s + 1, 0};
+    CHECK(sv_at(s, 9), '\0');
+    CHECK(sv_pos(s, 9), s.s + 1);
+    const str_view sub_s = sv_substr(s, 9, 9);
+    CHECK(sub_s.s, empty.s);
+    CHECK(sub_s.sz, empty.sz);
     return PASS;
 }

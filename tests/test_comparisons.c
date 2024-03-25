@@ -58,9 +58,9 @@ test_compare_single(void)
     const int cmp_res = strcmp(e1, e2);
     const int cmp_res2 = strcmp(e2, e1);
     CHECK(cmp_res < 0, sv_strcmp(e1_view, e2) < 0);
-    CHECK(cmp_res < 0, sv_svcmp(e1_view, e2_view) < 0);
+    CHECK(cmp_res < 0, sv_cmp(e1_view, e2_view) < 0);
     CHECK(cmp_res2 > 0, sv_strcmp(e2_view, e1) > 0);
-    CHECK(cmp_res2 > 0, sv_svcmp(e2_view, e1_view) > 0);
+    CHECK(cmp_res2 > 0, sv_cmp(e2_view, e1_view) > 0);
     return PASS;
 }
 
@@ -78,9 +78,9 @@ test_compare_equal(void)
     const int cmp_res = strcmp(e1, e2);
     const int cmp_res2 = strcmp(e2, e1);
     CHECK(cmp_res, sv_strcmp(e1_view, e2));
-    CHECK(cmp_res, sv_svcmp(e1_view, e2_view));
+    CHECK(cmp_res, sv_cmp(e1_view, e2_view));
     CHECK(cmp_res2, sv_strcmp(e2_view, e1));
-    CHECK(cmp_res2, sv_svcmp(e2_view, e1_view));
+    CHECK(cmp_res2, sv_cmp(e2_view, e1_view));
     return PASS;
 }
 
@@ -97,9 +97,9 @@ test_compare_equal_view(void)
     const str_view e1_view = sv(e1);
     const str_view e2_view = sv_n(e2, sv_strlen(e1));
     const int cmp_res = strcmp(e1, e1);
-    CHECK(cmp_res, sv_svcmp(e1_view, e2_view));
+    CHECK(cmp_res, sv_cmp(e1_view, e2_view));
     CHECK(cmp_res, sv_strcmp(e2_view, e1));
-    CHECK(cmp_res, sv_svcmp(e2_view, e1_view));
+    CHECK(cmp_res, sv_cmp(e2_view, e1_view));
     return PASS;
 }
 
@@ -117,9 +117,9 @@ test_compare_terminated(void)
     const int cmp_res = strcmp(lesser, greater);
     const int cmp_res2 = strcmp(greater, lesser);
     CHECK(cmp_res < 0, sv_strcmp(lesser_view, greater) < 0);
-    CHECK(cmp_res < 0, sv_svcmp(lesser_view, greater_view) < 0);
+    CHECK(cmp_res < 0, sv_cmp(lesser_view, greater_view) < 0);
     CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0);
-    CHECK(cmp_res2 > 0, sv_svcmp(greater_view, lesser_view) > 0);
+    CHECK(cmp_res2 > 0, sv_cmp(greater_view, lesser_view) > 0);
     return PASS;
 }
 
@@ -134,9 +134,9 @@ test_compare_different_lengths_terminated(void)
     const int cmp_res = strcmp(lesser, greater);
     const int cmp_res2 = strcmp(greater, lesser);
     CHECK(cmp_res < 0, sv_strcmp(less_view, greater) < 0);
-    CHECK(cmp_res < 0, sv_svcmp(less_view, greater_view) < 0);
+    CHECK(cmp_res < 0, sv_cmp(less_view, greater_view) < 0);
     CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0);
-    CHECK(cmp_res2 > 0, sv_svcmp(greater_view, less_view) > 0);
+    CHECK(cmp_res2 > 0, sv_cmp(greater_view, less_view) > 0);
     return PASS;
 }
 
@@ -160,24 +160,24 @@ test_compare_different_lengths_views(void)
     const str_view lesser_view = sv(lesser);
     CHECK(str_cmp2 > 0, sv_strcmp(greater_view, lesser) > 0);
     CHECK(str_cmp < 0, sv_strcmp(lesser_view, greater_str) < 0);
-    CHECK(str_cmp < 0, sv_svcmp(lesser_view, greater_view) < 0);
-    CHECK(str_cmp2 > 0, sv_svcmp(greater_view, lesser_view) > 0);
+    CHECK(str_cmp < 0, sv_cmp(lesser_view, greater_view) < 0);
+    CHECK(str_cmp2 > 0, sv_cmp(greater_view, lesser_view) > 0);
     return PASS;
 }
 
 static enum test_result
 test_compare_misc(void)
 {
-    CHECK(sv_svcmp(sv(""), sv("")), EQL);
+    CHECK(sv_cmp(sv(""), sv("")), EQL);
     CHECK(sv_strcmp(sv(""), ""), EQL);
-    CHECK(sv_svcmp(sv("same"), sv("same")), EQL);
-    CHECK(sv_svcmp(sv("samz"), sv("same")), GRT);
-    CHECK(sv_svcmp(sv("same"), sv("samz")), LES);
+    CHECK(sv_cmp(sv("same"), sv("same")), EQL);
+    CHECK(sv_cmp(sv("samz"), sv("same")), GRT);
+    CHECK(sv_cmp(sv("same"), sv("samz")), LES);
     /* The comparison function should treat the end of a string view as
        null terminating character even if it points to a delimeter */
-    CHECK(sv_svcmp(sv("same"), sv_delim("same same", " ")), EQL);
-    CHECK(sv_svcmp(sv("same"), sv_delim("samz same", " ")), LES);
-    CHECK(sv_svcmp(sv_delim("sameez same", " "), sv("same")), GRT);
+    CHECK(sv_cmp(sv("same"), sv_delim("same same", " ")), EQL);
+    CHECK(sv_cmp(sv("same"), sv_delim("samz same", " ")), LES);
+    CHECK(sv_cmp(sv_delim("sameez same", " "), sv("same")), GRT);
     const char *const str = "same";
     CHECK(sv_strcmp(sv(str), str), EQL);
     CHECK(sv_strcmp(sv_delim("same same", " "), str), EQL);

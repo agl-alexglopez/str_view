@@ -344,7 +344,7 @@ test_substring_search(void)
     str_view b = sv_n(a, needle_len);
     str_view c = sv_svsv(haystack_view, needle_view);
 
-    CHECK(sv_svcmp(b, c), EQL);
+    CHECK(sv_cmp(b, c), EQL);
     CHECK(c.s, a);
     a += needle_len;
     a = strstr(a, needle);
@@ -356,7 +356,7 @@ test_substring_search(void)
     const str_view new_haystack_view = sv(a);
     b = sv_n(a, needle_len);
     c = sv_svsv(new_haystack_view, needle_view);
-    CHECK(sv_svcmp(b, c), EQL);
+    CHECK(sv_cmp(b, c), EQL);
     CHECK(c.s, a);
     const str_view first_chunk
         = sv_substr(haystack_view, 0, sv_find(haystack_view, 0, needle_view));
@@ -372,11 +372,11 @@ test_substring_search(void)
     {
         if (i == 0)
         {
-            CHECK(sv_svcmp(v, first_chunk), EQL);
+            CHECK(sv_cmp(v, first_chunk), EQL);
         }
         else
         {
-            CHECK(sv_svcmp(v, second_chunk), EQL);
+            CHECK(sv_cmp(v, second_chunk), EQL);
         }
         ++i;
     }
@@ -408,14 +408,14 @@ test_rsubstring_search(void)
     const str_view middle_needle = sv_rsvsv(haystack_view, needle_view);
     const size_t middle_pos
         = sv_rfind(haystack_view, haystack_view.sz, needle_view);
-    CHECK(sv_svcmp(middle_needle, needle_view), EQL);
+    CHECK(sv_cmp(middle_needle, needle_view), EQL);
     CHECK(middle_needle.s, middle);
     CHECK(middle_pos, (size_t)(middle - haystack));
     const str_view first_chunk_view = sv_n(haystack, middle_pos);
     const str_view begin_needle = sv_rsvsv(first_chunk_view, needle_view);
     const size_t begin_pos
         = sv_rfind(first_chunk_view, first_chunk_view.sz, needle_view);
-    CHECK(sv_svcmp(begin_needle, needle_view), EQL);
+    CHECK(sv_cmp(begin_needle, needle_view), EQL);
     CHECK(begin_needle.s, begin);
     CHECK(begin_pos, (size_t)(begin - haystack));
     return PASS;
@@ -445,6 +445,6 @@ test_long_substring(void)
         = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
     CHECK(rfind_pos, (size_t)(strstr_needle - haystack));
 
-    CHECK(sv_svcmp(svsv_needle, rsvsv_needle), EQL);
+    CHECK(sv_cmp(svsv_needle, rsvsv_needle), EQL);
     return PASS;
 }
