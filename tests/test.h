@@ -32,7 +32,7 @@ struct fn_name
 
 /* The CHECK macro evaluates a result against an expecation as one
    may be familiar with in many testing frameworks. However, it is
-   expected to execute in a function wheere a test_result is returned.
+   expected to execute in a function where a test_result is returned.
    Provide the resulting operation against the expected outcome. The
    types must be comparable with ==/!=. Finally, provide the format
    specifier for the types being compared which also must be the same
@@ -45,7 +45,7 @@ struct fn_name
         if ((RESULT) != (EXPECTED))                                            \
         {                                                                      \
             (void)fprintf(stderr,                                              \
-                          "this check failed on line %d:\nEXPECTED: "          \
+                          "the following check failed on line %d:\nEXPECTED: " \
                           "RESULT( %s ) == EXPECTED( %s )\n",                  \
                           __LINE__, #RESULT, #EXPECTED);                       \
             (void)fprintf(stderr, "ACTUALLY: RESULT( ");                       \
