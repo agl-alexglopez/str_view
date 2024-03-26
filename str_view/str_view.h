@@ -96,7 +96,9 @@ typedef enum
    found. See sv_svsv or sv_rsvsv as an example. */
 [[gnu::pure]] bool sv_empty(str_view sv);
 
-/* Returns the length of the str_view in O(1) time. */
+/* Returns the length of the str_view in O(1) time. The position at
+   str_view size is interpreted as the null terminator and not
+   counted toward length of a str_view. */
 [[gnu::pure]] size_t sv_len(str_view sv);
 
 /* Returns the bytes of str_view including null terminator. Note that
