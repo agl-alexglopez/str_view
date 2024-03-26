@@ -7,7 +7,8 @@
    as str_view points to const char * data which cannot promise to remain
    unchanged even if str_view is a read only type. The str_view only promises
    that it will not alter data not that the program will not alter the string
-   data to which a str_view points. */
+   data to which a str_view points. Uses C2x/C23 but if this is not present
+   the code should be compliant with C11. */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202000L                   \
     && (defined(__GNUC__) || defined(__clang__)                                \
         || defined(__INTEL_LLVM_COMPILER))
