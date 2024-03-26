@@ -110,7 +110,7 @@ typedef enum
 
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
-[[gnu::nonnull(1, 2)]] void sv_swap(str_view *a, str_view *b);
+void sv_swap(str_view *a, str_view *b);
 
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
@@ -373,6 +373,6 @@ size_t sv_fill(size_t dest_sz, char dest_buf[static dest_sz], str_view src);
 /*============================  Printing  ==================================*/
 
 /* Writes all characters in str_view to specified file such as stdout. */
-[[gnu::nonnull(1)]] void sv_print(FILE *f, str_view sv);
+void sv_print(FILE *f, str_view sv);
 
 #endif /* STR_VIEW */

@@ -93,7 +93,7 @@ sv(const char str[static 1])
 str_view
 sv_n(size_t n, const char str[static n])
 {
-    if (!str || n == 0)
+    if (!str || !n)
     {
         return nil;
     }
@@ -125,7 +125,7 @@ sv_delim(const char str[static 1], const char delim[static 1])
 void
 sv_print(FILE *f, str_view sv)
 {
-    if (!sv.s || nil.s == sv.s || 0 == sv.sz)
+    if (!sv.s || nil.s == sv.s || !sv.sz || !f)
     {
         return;
     }
@@ -143,7 +143,7 @@ sv_copy(const size_t str_sz, const char src_str[static str_sz])
 size_t
 sv_fill(size_t dest_sz, char dest_buf[static dest_sz], str_view src)
 {
-    if (!dest_buf || 0 == dest_sz || !src.s || 0 == src.sz)
+    if (!dest_buf || !dest_sz || !src.s || !src.sz)
     {
         return 0;
     }
@@ -156,7 +156,7 @@ sv_fill(size_t dest_sz, char dest_buf[static dest_sz], str_view src)
 bool
 sv_empty(const str_view sv)
 {
-    return !sv.s || sv.sz == 0;
+    return !sv.s || !sv.sz;
 }
 
 size_t
@@ -206,7 +206,7 @@ sv_null(void)
 void
 sv_swap(str_view *a, str_view *b)
 {
-    if (a == b)
+    if (a == b || !a || !b)
     {
         return;
     }
@@ -287,7 +287,7 @@ sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 char
 sv_front(str_view sv)
 {
-    if (!sv.s || 0 == sv.sz)
+    if (!sv.s || !sv.sz)
     {
         return *nil.s;
     }
@@ -297,7 +297,7 @@ sv_front(str_view sv)
 char
 sv_back(str_view sv)
 {
-    if (!sv.s || 0 == sv.sz)
+    if (!sv.s || !sv.sz)
     {
         return *nil.s;
     }
@@ -341,7 +341,7 @@ sv_rbegin(str_view sv)
     {
         return nil.s;
     }
-    if (sv.sz == 0)
+    if (!sv.sz)
     {
         return sv.s;
     }
@@ -355,7 +355,7 @@ sv_rend(str_view sv)
     {
         return nil.s;
     }
-    if (sv.sz == 0)
+    if (!sv.sz)
     {
         return sv.s;
     }
@@ -411,7 +411,7 @@ sv_begin_tok(str_view src, str_view delim)
 bool
 sv_end_tok(const str_view src, const str_view tok)
 {
-    return 0 == tok.sz || tok.s >= (src.s + src.sz);
+    return !tok.sz || tok.s >= (src.s + src.sz);
 }
 
 str_view
@@ -501,7 +501,7 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
 bool
 sv_rend_tok(const str_view src, const str_view tok)
 {
-    return tok.sz == 0 && tok.s == src.s;
+    return !tok.sz && tok.s == src.s;
 }
 
 str_view
@@ -648,11 +648,11 @@ sv_rfind(str_view h, size_t pos, str_view n)
 size_t
 sv_find_first_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return hay.sz;
     }
@@ -662,11 +662,11 @@ sv_find_first_of(str_view hay, str_view set)
 size_t
 sv_find_last_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return hay.sz;
     }
@@ -686,11 +686,11 @@ sv_find_last_of(str_view hay, str_view set)
 size_t
 sv_find_first_not_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return 0;
     }
@@ -700,11 +700,11 @@ sv_find_first_not_of(str_view hay, str_view set)
 size_t
 sv_find_last_not_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return hay.sz - 1;
     }
@@ -884,8 +884,7 @@ static size_t
 sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
 {
-    if (!hay || !needle || needle_sz == 0 || *needle == '\0'
-        || needle_sz > hay_sz)
+    if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
     {
         return hay_sz;
     }
@@ -920,8 +919,7 @@ static size_t
 sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
              ssize_t needle_sz)
 {
-    if (!hay || !needle || needle_sz == 0 || *needle == '\0'
-        || needle_sz > hay_sz)
+    if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
     {
         return hay_sz;
     }
@@ -996,7 +994,7 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         period_dist = r.period_dist;
     }
     /* Determine if memoization is available due to found border/overlap. */
-    if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
+    if (!memcmp(needle, needle + period_dist, critical_pos + 1))
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
             .hay = hay,
@@ -1236,9 +1234,8 @@ sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    if (sv_rmemcmp(needle + needle_sz - 1, needle + needle_sz - period_dist - 1,
-                   critical_pos + 1)
-        == 0)
+    if (!sv_rmemcmp(needle + needle_sz - 1,
+                    needle + needle_sz - period_dist - 1, critical_pos + 1))
     {
         return sv_rtwo_way_memoization((struct sv_two_way_pack){
             .hay = hay,
