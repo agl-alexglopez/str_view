@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 static const str_view dirslash = SV("/");
 
@@ -48,18 +49,18 @@ test_prefix_suffix(void)
     size_t i = 0;
     for (const char *c = sv_begin(prefix); c != sv_end(prefix); c = sv_next(c))
     {
-        CHECK(*c, ref_prefix[i]);
+        CHECK(*c, ref_prefix[i], "%c");
         ++i;
     }
     i = 0;
     const str_view suffix = sv_remove_prefix(entire_string, 19);
     for (const char *c = sv_begin(suffix); c != sv_end(suffix); c = sv_next(c))
     {
-        CHECK(*c, ref_suffix[i]);
+        CHECK(*c, ref_suffix[i], "%c");
         ++i;
     }
-    CHECK(sv_empty(sv_remove_prefix(entire_string, ULLONG_MAX)), true);
-    CHECK(sv_empty(sv_remove_suffix(entire_string, ULLONG_MAX)), true);
+    CHECK(sv_empty(sv_remove_prefix(entire_string, ULLONG_MAX)), true, "%b");
+    CHECK(sv_empty(sv_remove_suffix(entire_string, ULLONG_MAX)), true, "%b");
     return PASS;
 }
 
@@ -77,22 +78,21 @@ test_substr(void)
     const char *const substr2 = "Have another!";
     const str_view substr1_view = sv(substr1);
     const str_view substr2_view = sv(substr2);
-    CHECK(sv_strcmp(sv_substr(sv(ref), 0, sv_strlen(substr1)), substr1), EQL);
-    CHECK(sv_strcmp(
-              sv_substr(sv(ref), sv_strlen(substr1) + 1, sv_strlen(substr2)),
-              substr2),
-          EQL);
-    CHECK(sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref), EQL);
+    CHECK(sv_strcmp(sv_substr(sv(ref), 0, strlen(substr1)), substr1), EQL,
+          "%d");
+    CHECK(sv_strcmp(sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)),
+                    substr2),
+          EQL, "%d");
+    CHECK(sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref), EQL, "%d");
     /* Make sure the fill function adds null terminator */
     char dump_substr1[27] = {[13] = '@'};
-    (void)sv_fill(dump_substr1, 27, sv_substr(sv(ref), 0, sv_strlen(substr1)));
-    CHECK(sv_strcmp(substr1_view, dump_substr1), EQL);
+    (void)sv_fill(27, dump_substr1, sv_substr(sv(ref), 0, strlen(substr1)));
+    CHECK(sv_strcmp(substr1_view, dump_substr1), EQL, "%d");
     /* Make sure the fill function adds null terminator */
     char dump_substr2[27] = {[14] = '@'};
-    (void)sv_fill(
-        dump_substr2, 27,
-        sv_substr(sv(ref), sv_strlen(substr1) + 1, sv_strlen(substr2)));
-    CHECK(sv_strcmp(substr2_view, dump_substr2), EQL);
+    (void)sv_fill(27, dump_substr2,
+                  sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)));
+    CHECK(sv_strcmp(substr2_view, dump_substr2), EQL, "%d");
     return PASS;
 }
 
@@ -100,14 +100,14 @@ static enum test_result
 test_dir_entries(void)
 {
     CHECK(sv_empty(sv_substr(dirslash, 0, sv_rfind(dirslash, 0, dirslash))),
-          true);
+          true, "%b");
     const str_view root_single_entry = SV("/usr");
     const str_view root_single_entry_slash = SV("/usr/");
     const str_view without_last_slash
         = sv_substr(root_single_entry_slash, 0,
                     sv_rfind(root_single_entry_slash,
                              sv_len(root_single_entry_slash), dirslash));
-    CHECK(sv_cmp(without_last_slash, root_single_entry), EQL);
+    CHECK(sv_cmp(without_last_slash, root_single_entry), EQL, "%d");
     const str_view special_file = {"/this/is/a/very/special/file",
                                    SVLEN("/this/is/a/very/special/file")};
     const char *const toks[6] = {"this", "is", "a", "very", "special", "file"};
@@ -116,9 +116,9 @@ test_dir_entries(void)
          !sv_end_tok(special_file, tok);
          tok = sv_next_tok(special_file, tok, dirslash), ++i)
     {
-        CHECK(sv_strcmp(tok, toks[i]), EQL);
+        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
     }
-    CHECK(i, sizeof(toks) / sizeof(toks[0]));
+    CHECK(i, sizeof(toks) / sizeof(toks[0]), "%zu");
     return PASS;
 }
 
@@ -144,10 +144,10 @@ test_progressive_search(void)
     for (str_view path = starting_path; !sv_empty(path);
          path = sv_remove_prefix(path, sv_find_first_of(path, dirslash) + 1))
     {
-        CHECK(sv_strcmp(path, sub_paths[i]), EQL);
+        CHECK(sv_strcmp(path, sub_paths[i]), EQL, "%d");
         ++i;
     }
-    CHECK(i, sizeof(sub_paths) / sizeof(sub_paths[0]));
+    CHECK(i, sizeof(sub_paths) / sizeof(sub_paths[0]), "%zu");
     const char *const sub_paths_rev[9] = {
         "/this/is/not/the/file/you/are/looking/for",
         "/this/is/not/the/file/you/are/looking",
@@ -164,9 +164,9 @@ test_progressive_search(void)
          path = sv_remove_suffix(path, sv_len(path)
                                            - sv_find_last_of(path, dirslash)))
     {
-        CHECK(sv_strcmp(path, sub_paths_rev[i]), EQL);
+        CHECK(sv_strcmp(path, sub_paths_rev[i]), EQL, "%d");
         ++i;
     }
-    CHECK(i, sizeof(sub_paths_rev) / sizeof(sub_paths_rev[0]));
+    CHECK(i, sizeof(sub_paths_rev) / sizeof(sub_paths_rev[0]), "%zu");
     return PASS;
 }

@@ -7,7 +7,7 @@ int
 main()
 {
     enum test_result res = PASS;
-    CHECK(sv_empty(sv("")), true);
-    CHECK(*sv_null(), '\0');
+    CHECK(sv_empty(sv("")), true, "%b");
+    CHECK(*sv_null(), '\0', "%c");
     return res;
 }

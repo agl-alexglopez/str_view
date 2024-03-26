@@ -81,17 +81,17 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 /* ===================   Interface Implementation   ====================== */
 
 str_view
-sv(const char *const str)
+sv(const char str[static 1])
 {
     if (!str)
     {
         return nil;
     }
-    return (str_view){.s = str, .sz = sv_strlen(str)};
+    return (str_view){.s = str, .sz = strlen(str)};
 }
 
 str_view
-sv_n(const char *const str, size_t n)
+sv_n(size_t n, const char str[static n])
 {
     if (!str || n == 0)
     {
@@ -101,7 +101,7 @@ sv_n(const char *const str, size_t n)
 }
 
 str_view
-sv_delim(const char *const str, const char *const delim)
+sv_delim(const char str[static 1], const char delim[static 1])
 {
     if (!str)
     {
@@ -109,23 +109,23 @@ sv_delim(const char *const str, const char *const delim)
     }
     if (!delim)
     {
-        return (str_view){.s = str, .sz = sv_strlen(str)};
+        return (str_view){.s = str, .sz = strlen(str)};
     }
     return sv_begin_tok(
         (str_view){
             .s = str,
-            .sz = sv_strlen(str),
+            .sz = strlen(str),
         },
         (str_view){
             .s = delim,
-            .sz = sv_strlen(delim),
+            .sz = strlen(delim),
         });
 }
 
 void
 sv_print(FILE *f, str_view sv)
 {
-    if (!sv.s || nil.s == sv.s || 0 == sv.sz || !f)
+    if (!sv.s || nil.s == sv.s || 0 == sv.sz)
     {
         return;
     }
@@ -135,19 +135,19 @@ sv_print(FILE *f, str_view sv)
 }
 
 str_view
-sv_copy(const char *const src_str, const size_t str_sz)
+sv_copy(const size_t str_sz, const char src_str[static str_sz])
 {
-    return sv_n(src_str, str_sz);
+    return sv_n(str_sz, src_str);
 }
 
 size_t
-sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
+sv_fill(size_t dest_sz, char dest_buf[static dest_sz], str_view src)
 {
     if (!dest_buf || 0 == dest_sz || !src.s || 0 == src.sz)
     {
         return 0;
     }
-    const size_t bytes = sv_min(dest_sz, sv_bytes(src));
+    const size_t bytes = sv_min(dest_sz, sv_size(src));
     memmove(dest_buf, src.s, bytes);
     dest_buf[bytes - 1] = '\0';
     return bytes;
@@ -166,19 +166,13 @@ sv_len(str_view sv)
 }
 
 size_t
-sv_bytes(str_view sv)
+sv_size(str_view sv)
 {
     return sv.sz + 1;
 }
 
 size_t
-sv_strlen(const char *const str)
-{
-    return strlen(str);
-}
-
-size_t
-sv_strbytes(const char *const str)
+sv_strsize(const char str[static 1])
 {
     if (!str)
     {
@@ -212,7 +206,7 @@ sv_null(void)
 void
 sv_swap(str_view *a, str_view *b)
 {
-    if (a == b || !a || !b)
+    if (a == b)
     {
         return;
     }
@@ -591,7 +585,7 @@ sv_contains(str_view hay, str_view needle)
 }
 
 str_view
-sv_svsv(str_view hay, str_view needle)
+sv_match(str_view hay, str_view needle)
 {
     if (!hay.s || !needle.s)
     {
@@ -608,7 +602,7 @@ sv_svsv(str_view hay, str_view needle)
 }
 
 str_view
-sv_rsvsv(str_view hay, str_view needle)
+sv_rmatch(str_view hay, str_view needle)
 {
     if (!hay.s)
     {

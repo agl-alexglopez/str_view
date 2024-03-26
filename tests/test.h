@@ -30,22 +30,29 @@ struct fn_name
         (void)raise(SIGTRAP);                                                  \
     } while (0)
 
-/* The CHECK macro evaluates a result and compares it to an
-   expectation of what should happen. This is a standard
-   idiom like an assert or any check a framework like google
-   test provides. However, this is simply meant to be called
-   in the test files where PASS or FAIL is expected to return.
-   If the check fails FAIL is returned. If the check passes,
-   nothing happens. This makes it easy to see where execution
-   haltes in the function if stepped through in gdb. RESULT
-   and EXPECTED must be comparable with ==/!=. */
-#define CHECK(RESULT, EXPECTED)                                                \
+/* The CHECK macro evaluates a result against an expecation as one
+   may be familiar with in many testing frameworks. However, it is
+   expected to execute in a function wheere a test_result is returned.
+   Provide the resulting operation against the expected outcome. The
+   types must be comparable with ==/!=. Finally, provide the format
+   specifier for the types being compared which also must be the same
+   for both RESULT and EXPECTED (e.g. "%d", "%zu", "%b"). Note that
+   if either RESULT or EXPECTED are function calls, they must not
+   have side effects. */
+#define CHECK(RESULT, EXPECTED, TYPE_FORMAT_SPECIFIER)                         \
     do                                                                         \
     {                                                                          \
         if ((RESULT) != (EXPECTED))                                            \
         {                                                                      \
-            (void)fprintf(stderr, "this check failed on line %d:\n%s == %s\n", \
+            (void)fprintf(stderr,                                              \
+                          "this check failed on line %d:\nEXPECTED: "          \
+                          "RESULT( %s ) == EXPECTED( %s )\n",                  \
                           __LINE__, #RESULT, #EXPECTED);                       \
+            (void)fprintf(stderr, "ACTUALLY: RESULT( ");                       \
+            (void)fprintf(stderr, TYPE_FORMAT_SPECIFIER, RESULT);              \
+            (void)fprintf(stderr, " ) != EXPECTED( ");                         \
+            (void)fprintf(stderr, TYPE_FORMAT_SPECIFIER, EXPECTED);            \
+            (void)fprintf(stderr, " )\n");                                     \
             return FAIL;                                                       \
         }                                                                      \
     } while (0)
