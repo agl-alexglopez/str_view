@@ -38,7 +38,7 @@ struct fn_name
    specifier for the types being compared which also must be the same
    for both RESULT and EXPECTED (e.g. "%d", "%zu", "%b"). Note that
    if either RESULT or EXPECTED are function calls, they must not
-   have side effects. */
+   have side effects because they may be called more than once. */
 #define CHECK(RESULT, EXPECTED, TYPE_FORMAT_SPECIFIER)                         \
     do                                                                         \
     {                                                                          \
