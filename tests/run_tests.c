@@ -2,12 +2,12 @@
 #include "test.h"
 
 #ifdef __linux__
-#include <linux/limits.h>
-#define FILESYS_MAX_PATH PATH_MAX
+#    include <linux/limits.h>
+#    define FILESYS_MAX_PATH PATH_MAX
 #endif
 #ifdef __APPLE__
-#include <sys/syslimits.h>
-#define FILESYS_MAX_PATH NAME_MAX
+#    include <sys/syslimits.h>
+#    define FILESYS_MAX_PATH NAME_MAX
 #endif
 
 #include <dirent.h>
