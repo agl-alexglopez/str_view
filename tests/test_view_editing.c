@@ -108,8 +108,7 @@ test_dir_entries(void)
                     sv_rfind(root_single_entry_slash,
                              sv_len(root_single_entry_slash), dirslash));
     CHECK(sv_cmp(without_last_slash, root_single_entry), EQL, "%d");
-    const str_view special_file = {"/this/is/a/very/special/file",
-                                   SVLEN("/this/is/a/very/special/file")};
+    const str_view special_file = SV("/this/is/a/very/special/file");
     const char *const toks[6] = {"this", "is", "a", "very", "special", "file"};
     size_t i = 0;
     for (str_view tok = sv_begin_tok(special_file, dirslash);
@@ -126,8 +125,7 @@ static enum test_result
 test_progressive_search(void)
 {
     const str_view starting_path
-        = {"/this/is/not/the/file/you/are/looking/for",
-           SVLEN("/this/is/not/the/file/you/are/looking/for")};
+        = SV("/this/is/not/the/file/you/are/looking/for");
     const char *const sub_paths[10] = {
         "/this/is/not/the/file/you/are/looking/for",
         "this/is/not/the/file/you/are/looking/for",
