@@ -28,6 +28,7 @@ struct path_bin
 static const str_view test_prefix = SV("test_");
 const char *const pass_msg = "⬤";
 const char *const fail_msg = "X";
+const char *const err_msg = "Test process failed abnormally:";
 const char *const red = "\033[38;5;9m";
 const char *const green = "\033[38;5;10m";
 const char *const cyan = "\033[38;5;14m";
@@ -79,14 +80,13 @@ run(const str_view tests_dir)
         switch (res)
         {
         case ERROR:
-            (void)fprintf(stderr, "Test process failed abnormally: %s\n",
-                          sv_begin(entry));
+            (void)fprintf(stderr, "%s %s\n", err_msg, sv_begin(entry));
             break;
         case PASS:
-            printf("%s%s%s)%s\n", green, pass_msg, cyan, none);
+            (void)fprintf(stdout, "%s%s%s)%s\n", green, pass_msg, cyan, none);
             break;
         case FAIL:
-            printf("%s%s%s)%s\n", red, fail_msg, cyan, none);
+            (void)fprintf(stdout, "%s%s%s)%s\n", red, fail_msg, cyan, none);
             break;
         }
         passed += 1 - res;
