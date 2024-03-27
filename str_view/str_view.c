@@ -81,19 +81,19 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 /* ===================   Interface Implementation   ====================== */
 
 str_view
-sv(const char *const str)
+sv(const char str[const static 1])
 {
     if (!str)
     {
         return nil;
     }
-    return (str_view){.s = str, .sz = sv_strlen(str)};
+    return (str_view){.s = str, .sz = strlen(str)};
 }
 
 str_view
-sv_n(const char *const str, size_t n)
+sv_n(size_t n, const char str[const static 1])
 {
-    if (!str || n == 0)
+    if (!str || !n)
     {
         return nil;
     }
@@ -101,7 +101,7 @@ sv_n(const char *const str, size_t n)
 }
 
 str_view
-sv_delim(const char *const str, const char *const delim)
+sv_delim(const char str[const static 1], const char delim[const static 1])
 {
     if (!str)
     {
@@ -109,23 +109,23 @@ sv_delim(const char *const str, const char *const delim)
     }
     if (!delim)
     {
-        return (str_view){.s = str, .sz = sv_strlen(str)};
+        return (str_view){.s = str, .sz = strlen(str)};
     }
     return sv_begin_tok(
         (str_view){
             .s = str,
-            .sz = sv_strlen(str),
+            .sz = strlen(str),
         },
         (str_view){
             .s = delim,
-            .sz = sv_strlen(delim),
+            .sz = strlen(delim),
         });
 }
 
 void
 sv_print(FILE *f, str_view sv)
 {
-    if (!sv.s || nil.s == sv.s || 0 == sv.sz || !f)
+    if (!sv.s || nil.s == sv.s || !sv.sz || !f)
     {
         return;
     }
@@ -135,19 +135,19 @@ sv_print(FILE *f, str_view sv)
 }
 
 str_view
-sv_copy(const char *const src_str, const size_t str_sz)
+sv_copy(const size_t str_sz, const char src_str[const static 1])
 {
-    return sv_n(src_str, str_sz);
+    return sv_n(str_sz, src_str);
 }
 
 size_t
-sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
+sv_fill(size_t dest_sz, char dest_buf[const static dest_sz], str_view src)
 {
-    if (!dest_buf || 0 == dest_sz || !src.s || 0 == src.sz)
+    if (!dest_buf || !dest_sz || !src.s || !src.sz)
     {
         return 0;
     }
-    const size_t bytes = sv_min(dest_sz, sv_bytes(src));
+    const size_t bytes = sv_min(dest_sz, sv_size(src));
     memmove(dest_buf, src.s, bytes);
     dest_buf[bytes - 1] = '\0';
     return bytes;
@@ -156,7 +156,7 @@ sv_fill(char *dest_buf, size_t dest_sz, const str_view src)
 bool
 sv_empty(const str_view sv)
 {
-    return !sv.s || sv.sz == 0;
+    return !sv.s || !sv.sz;
 }
 
 size_t
@@ -166,19 +166,13 @@ sv_len(str_view sv)
 }
 
 size_t
-sv_bytes(str_view sv)
+sv_size(str_view sv)
 {
     return sv.sz + 1;
 }
 
 size_t
-sv_strlen(const char *const str)
-{
-    return strlen(str);
-}
-
-size_t
-sv_strbytes(const char *const str)
+sv_strsize(const char str[const static 1])
 {
     if (!str)
     {
@@ -188,8 +182,12 @@ sv_strbytes(const char *const str)
 }
 
 size_t
-sv_minlen(const char *const str, size_t n)
+sv_minlen(const char str[const static 1], size_t n)
 {
+    if (!str)
+    {
+        return 0;
+    }
     return strnlen(str, n);
 }
 
@@ -246,7 +244,7 @@ sv_cmp(str_view lhs, str_view rhs)
 }
 
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char *rhs)
+sv_strcmp(str_view lhs, const char rhs[const static 1])
 {
     if (!lhs.s || !rhs)
     {
@@ -268,7 +266,7 @@ sv_strcmp(str_view lhs, const char *rhs)
 }
 
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char *rhs, const size_t n)
+sv_strncmp(str_view lhs, const char rhs[const static 1], const size_t n)
 {
     if (!lhs.s || !rhs)
     {
@@ -293,7 +291,7 @@ sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 char
 sv_front(str_view sv)
 {
-    if (!sv.s || 0 == sv.sz)
+    if (!sv.s || !sv.sz)
     {
         return *nil.s;
     }
@@ -303,7 +301,7 @@ sv_front(str_view sv)
 char
 sv_back(str_view sv)
 {
-    if (!sv.s || 0 == sv.sz)
+    if (!sv.s || !sv.sz)
     {
         return *nil.s;
     }
@@ -331,7 +329,7 @@ sv_end(const str_view sv)
 }
 
 const char *
-sv_next(const char *c)
+sv_next(const char c[static 1])
 {
     if (!c)
     {
@@ -347,7 +345,7 @@ sv_rbegin(str_view sv)
     {
         return nil.s;
     }
-    if (sv.sz == 0)
+    if (!sv.sz)
     {
         return sv.s;
     }
@@ -361,7 +359,7 @@ sv_rend(str_view sv)
     {
         return nil.s;
     }
-    if (sv.sz == 0)
+    if (!sv.sz)
     {
         return sv.s;
     }
@@ -369,7 +367,7 @@ sv_rend(str_view sv)
 }
 
 const char *
-sv_rnext(const char *c)
+sv_rnext(const char c[static 1])
 {
     if (!c)
     {
@@ -417,7 +415,7 @@ sv_begin_tok(str_view src, str_view delim)
 bool
 sv_end_tok(const str_view src, const str_view tok)
 {
-    return 0 == tok.sz || tok.s >= (src.s + src.sz);
+    return !tok.sz || tok.s >= (src.s + src.sz);
 }
 
 str_view
@@ -507,7 +505,7 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
 bool
 sv_rend_tok(const str_view src, const str_view tok)
 {
-    return tok.sz == 0 && tok.s == src.s;
+    return !tok.sz && tok.s == src.s;
 }
 
 str_view
@@ -591,7 +589,7 @@ sv_contains(str_view hay, str_view needle)
 }
 
 str_view
-sv_svsv(str_view hay, str_view needle)
+sv_match(str_view hay, str_view needle)
 {
     if (!hay.s || !needle.s)
     {
@@ -608,7 +606,7 @@ sv_svsv(str_view hay, str_view needle)
 }
 
 str_view
-sv_rsvsv(str_view hay, str_view needle)
+sv_rmatch(str_view hay, str_view needle)
 {
     if (!hay.s)
     {
@@ -654,11 +652,11 @@ sv_rfind(str_view h, size_t pos, str_view n)
 size_t
 sv_find_first_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return hay.sz;
     }
@@ -668,11 +666,11 @@ sv_find_first_of(str_view hay, str_view set)
 size_t
 sv_find_last_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return hay.sz;
     }
@@ -692,11 +690,11 @@ sv_find_last_of(str_view hay, str_view set)
 size_t
 sv_find_first_not_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return 0;
     }
@@ -706,11 +704,11 @@ sv_find_first_not_of(str_view hay, str_view set)
 size_t
 sv_find_last_not_of(str_view hay, str_view set)
 {
-    if (!hay.s || 0 == hay.sz)
+    if (!hay.s || !hay.sz)
     {
         return 0;
     }
-    if (!set.s || 0 == set.sz)
+    if (!set.s || !set.sz)
     {
         return hay.sz - 1;
     }
@@ -885,13 +883,13 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 /* Providing strnstrn rather than strstr at the lowest level works better
    for string views where the string may not be null terminated. There needs
    to always be the additional constraint that a search cannot exceed the
-   hay length. */
+   hay length. Returns 0 based index position at which needle begins in
+   hay if it can be found, otherwise the hay size is returned. */
 static size_t
 sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
 {
-    if (!hay || !needle || needle_sz == 0 || *needle == '\0'
-        || needle_sz > hay_sz)
+    if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
     {
         return hay_sz;
     }
@@ -926,8 +924,7 @@ static size_t
 sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
              ssize_t needle_sz)
 {
-    if (!hay || !needle || needle_sz == 0 || *needle == '\0'
-        || needle_sz > hay_sz)
+    if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
     {
         return hay_sz;
     }
@@ -986,8 +983,8 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
     /* ssize_t is used throughout. Is this the best choice? The two-way
        algo relies on negative numbers. This fits with size_t capabilities
        but does not feel right. Plain old signed may be better. */
-    ssize_t critical_pos;
-    ssize_t period_dist;
+    ssize_t critical_pos = 0;
+    ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
     const struct sv_factorization s = sv_maximal_suffix(needle, needle_sz);
     const struct sv_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
@@ -1002,7 +999,7 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         period_dist = r.period_dist;
     }
     /* Determine if memoization is available due to found border/overlap. */
-    if (memcmp(needle, needle + period_dist, critical_pos + 1) == 0)
+    if (!memcmp(needle, needle + period_dist, critical_pos + 1))
     {
         return sv_two_way_memoization((struct sv_two_way_pack){
             .hay = hay,
@@ -1228,8 +1225,8 @@ static inline size_t
 sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
 {
-    ssize_t critical_pos;
-    ssize_t period_dist;
+    ssize_t critical_pos = 0;
+    ssize_t period_dist = 0;
     const struct sv_factorization s = sv_rmaximal_suffix(needle, needle_sz);
     const struct sv_factorization r = sv_rmaximal_suffix_rev(needle, needle_sz);
     if (s.start_critical_pos > r.start_critical_pos)
@@ -1242,9 +1239,8 @@ sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
         critical_pos = r.start_critical_pos;
         period_dist = r.period_dist;
     }
-    if (sv_rmemcmp(needle + needle_sz - 1, needle + needle_sz - period_dist - 1,
-                   critical_pos + 1)
-        == 0)
+    if (!sv_rmemcmp(needle + needle_sz - 1,
+                    needle + needle_sz - period_dist - 1, critical_pos + 1))
     {
         return sv_rtwo_way_memoization((struct sv_two_way_pack){
             .hay = hay,

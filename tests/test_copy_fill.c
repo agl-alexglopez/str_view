@@ -34,12 +34,12 @@ static enum test_result
 test_copy_fill(void)
 {
     const char *const reference = "Copy this over there!";
-    str_view this = sv_copy(reference, strlen(reference));
-    char there[sv_strbytes(reference)];
-    CHECK(sv_fill(there, sizeof there, this), sizeof there);
-    CHECK(strcmp(sv_begin(this), there), 0);
-    CHECK(strlen(there), sv_len(this));
-    CHECK(there[(sizeof there) - 1], '\0');
+    str_view this = sv_copy(strlen(reference), reference);
+    char there[sv_strsize(reference)];
+    CHECK(sv_fill(sizeof there, there, this), sizeof there, "%zu");
+    CHECK(strcmp(sv_begin(this), there), 0, "%d");
+    CHECK(strlen(there), sv_len(this), "%zu");
+    CHECK(there[(sizeof there) - 1], '\0', "%c");
     return PASS;
 }
 
@@ -55,9 +55,9 @@ test_copy_section(void)
     const char *const expected_snip = "snip!";
     const str_view ref_view = sv(ref);
     const str_view snip = sv_substr(ref_view, 5, 5);
-    char snip_buf[sv_bytes(snip)];
-    CHECK(sv_fill(snip_buf, sizeof snip_buf, snip), sv_bytes(snip));
-    CHECK(strcmp(expected_snip, snip_buf), 0);
-    CHECK(snip_buf[(sizeof snip_buf) - 1], '\0');
+    char snip_buf[sv_size(snip)];
+    CHECK(sv_fill(sizeof snip_buf, snip_buf, snip), sv_size(snip), "%zu");
+    CHECK(strcmp(expected_snip, snip_buf), 0, "%d");
+    CHECK(snip_buf[(sizeof snip_buf) - 1], '\0', "%c");
     return PASS;
 }

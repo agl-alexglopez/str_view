@@ -148,14 +148,14 @@ open_test_dir(str_view tests_folder)
 static bool
 fill_path(char *path_buf, str_view tests_dir, str_view entry)
 {
-    const size_t dir_bytes = sv_fill(path_buf, FILESYS_MAX_PATH, tests_dir);
-    if (FILESYS_MAX_PATH - dir_bytes < sv_bytes(entry))
+    const size_t dir_bytes = sv_fill(FILESYS_MAX_PATH, path_buf, tests_dir);
+    if (FILESYS_MAX_PATH - dir_bytes < sv_size(entry))
     {
         (void)fprintf(stderr, "Relative path exceeds FILESYS_MAX_PATH?\n%s",
                       path_buf);
         return false;
     }
-    (void)sv_fill(path_buf + sv_len(tests_dir), FILESYS_MAX_PATH - dir_bytes,
+    (void)sv_fill(FILESYS_MAX_PATH - dir_bytes, path_buf + sv_len(tests_dir),
                   entry);
     return true;
 }
