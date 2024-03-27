@@ -81,7 +81,7 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 /* ===================   Interface Implementation   ====================== */
 
 str_view
-sv(const char str[const static 1])
+sv(const char str[static const 1])
 {
     if (!str)
     {
@@ -91,7 +91,7 @@ sv(const char str[const static 1])
 }
 
 str_view
-sv_n(size_t n, const char str[const static 1])
+sv_n(size_t n, const char str[static const 1])
 {
     if (!str || !n)
     {
@@ -101,7 +101,7 @@ sv_n(size_t n, const char str[const static 1])
 }
 
 str_view
-sv_delim(const char str[const static 1], const char delim[const static 1])
+sv_delim(const char str[static const 1], const char delim[static const 1])
 {
     if (!str)
     {
@@ -135,13 +135,13 @@ sv_print(FILE *f, str_view sv)
 }
 
 str_view
-sv_copy(const size_t str_sz, const char src_str[const static 1])
+sv_copy(const size_t str_sz, const char src_str[static const 1])
 {
     return sv_n(str_sz, src_str);
 }
 
 size_t
-sv_fill(size_t dest_sz, char dest_buf[const static dest_sz], str_view src)
+sv_fill(size_t dest_sz, char dest_buf[static const dest_sz], str_view src)
 {
     if (!dest_buf || !dest_sz || !src.s || !src.sz)
     {
@@ -172,7 +172,7 @@ sv_size(str_view sv)
 }
 
 size_t
-sv_strsize(const char str[const static 1])
+sv_strsize(const char str[static const 1])
 {
     if (!str)
     {
@@ -182,7 +182,7 @@ sv_strsize(const char str[const static 1])
 }
 
 size_t
-sv_minlen(const char str[const static 1], size_t n)
+sv_minlen(const char str[static const 1], size_t n)
 {
     if (!str)
     {
@@ -244,7 +244,7 @@ sv_cmp(str_view lhs, str_view rhs)
 }
 
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char rhs[const static 1])
+sv_strcmp(str_view lhs, const char rhs[static const 1])
 {
     if (!lhs.s || !rhs)
     {
@@ -266,7 +266,7 @@ sv_strcmp(str_view lhs, const char rhs[const static 1])
 }
 
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char rhs[const static 1], const size_t n)
+sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
 {
     if (!lhs.s || !rhs)
     {
