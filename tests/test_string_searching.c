@@ -445,7 +445,6 @@ test_long_substring(void)
     const size_t rfind_pos
         = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
     CHECK(rfind_pos, (size_t)(strstr_needle - haystack), "%zu");
-
     CHECK(sv_cmp(svsv_needle, rsvsv_needle), EQL, "%d");
     return PASS;
 }

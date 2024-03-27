@@ -80,8 +80,9 @@ main()
         const enum test_result t_res = all_tests[i].fn();
         if (t_res == FAIL)
         {
-            printf("\n");
-            printf("test_iterators test failed: %s\n", all_tests[i].name);
+            (void)fprintf(stderr,
+                          RED "test_iterators.c test failed: " CYAN "%s\n" NONE,
+                          all_tests[i].name);
             res = FAIL;
         }
     }

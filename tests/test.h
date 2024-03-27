@@ -9,8 +9,8 @@
 enum test_result
 {
     ERROR = -1,
-    PASS = 0,
-    FAIL = 1,
+    PASS,
+    FAIL,
 };
 
 typedef enum test_result (*test_fn)(void);
@@ -43,7 +43,9 @@ struct fn_name
    specifier for the types being compared which also must be the same
    for both RESULT and EXPECTED (e.g. "%d", "%zu", "%b"). Note that
    if either RESULT or EXPECTED are function calls, they must not
-   have side effects because they may be called more than once. */
+   have side effects and be idempotent because they may be called more
+   than once. Saving a result or expectation to a variable is preferable
+   if the function being checked produces side effects or is not idempotent. */
 #define CHECK(RESULT, EXPECTED, TYPE_FORMAT_SPECIFIER)                         \
     do                                                                         \
     {                                                                          \
