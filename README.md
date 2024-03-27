@@ -22,6 +22,19 @@ The CMake configuration is minimal so change the presets and flags to your likin
 ## Interface
 
 ```c
+/* All functions labelled PURE have no side effects and if given the
+   same arguments with the same underlying data, produce the same
+   return value. Importantly, these cannot be marked with the const attribute
+   as str_view points to const char * data which cannot promise to remain
+   unchanged even if str_view is a read only type. The str_view only promises
+   that it will not alter data not that the program will not alter the string
+   data to which a str_view points. */
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
+#define PURE __attribute__((pure))
+#else
+#define PURE /**/
+#endif       /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
+
 /* A str_view is a read-only view of string data in C. It is modeled after
    the C++ std::string_view. It consists of a pointer to const char data
    and a size_t field. Therefore, the exact size of this type may be platform
