@@ -7,16 +7,46 @@
    as str_view points to const char * data which cannot promise to remain
    unchanged even if str_view is a read only type. The str_view only promises
    that it will not alter data not that the program will not alter the string
-   data to which a str_view points. */
+   data to which a str_view points. The ATTRIB_CONST applies only in rare
+   cases where no pointers are accessed or dereferenced. The attributes
+   relating to null terminators provide stronger compiler warnings if
+   supported to ensure that safe string handling occurs on non null and
+   null terminated strings. */
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
-#define ATTRIB_PURE __attribute__((pure))
-#define ATTRIB_CONST __attribute__((const))
-#define ATTRIB_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+#    if defined __has_attribute
+#        if __has_attribute(pure)
+#            define ATTRIB_PURE __attribute__((pure))
+#        else
+#            define ATTRIB_PURE /**/
+#        endif
+#        if __has_attribute(pure)
+#            define ATTRIB_CONST __attribute__((const))
+#        else
+#            define ATTRIB_CONST /**/
+#        endif
+#        if __has_attribute(nonnull)
+#            define ATTRIB_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+#        else
+#            define ATTRIB_NONNULL(...) /**/
+#        endif
+#        if __has_attribute(null_terminated_string_arg)
+#            define ATTRIB_NULLTERM(...)                                       \
+                __attribute__((null_terminated_string_arg(__VA_ARGS__)))
+#        else
+#            define ATTRIB_NULLTERM(...) /**/
+#        endif
+#    else
+#        define ATTRIB_PURE          /**/
+#        define ATTRIB_CONST         /**/
+#        define ATTRIB_NONNULL(...)  /**/
+#        define ATTRIB_NULLTERM(...) /**/
+#    endif
 #else
-#define ATTRIB_PURE         /**/
-#define ATTRIB_CONST        /**/
-#define ATTRIB_NONNULL(...) /**/
-#endif                      /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
+#    define ATTRIB_PURE          /**/
+#    define ATTRIB_CONST         /**/
+#    define ATTRIB_NONNULL(...)  /**/
+#    define ATTRIB_NULLTERM(...) /**/
+#endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -66,13 +96,14 @@ typedef enum
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
-str_view sv(const char str[static const 1]) ATTRIB_NONNULL(1) ATTRIB_PURE;
+str_view sv(const char str[static const 1]) ATTRIB_NONNULL(1)
+    ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-str_view sv_n(size_t n, const char str[static const 1])
-    ATTRIB_NONNULL(2) ATTRIB_PURE;
+str_view sv_n(size_t n, const char str[static const 1]) ATTRIB_NONNULL(2)
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a NULL TERMINATED string
    broken on the first ocurrence of delimeter if found or null
@@ -80,8 +111,8 @@ str_view sv_n(size_t n, const char str[static const 1])
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
 str_view sv_delim(const char str[static const 1],
-                  const char delim[static const 1])
-    ATTRIB_NONNULL(1, 2) ATTRIB_PURE;
+                  const char delim[static const 1]) ATTRIB_NONNULL(1, 2)
+    ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (str_view.sz - pos). If an invalid
@@ -119,7 +150,8 @@ size_t sv_len(str_view sv) ATTRIB_CONST;
 size_t sv_size(str_view sv) ATTRIB_CONST;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
-size_t sv_strsize(const char str[static const 1]) ATTRIB_NONNULL(1) ATTRIB_PURE;
+size_t sv_strsize(const char str[static const 1]) ATTRIB_NONNULL(1)
+    ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
@@ -128,7 +160,7 @@ void sv_swap(str_view *a, str_view *b) ATTRIB_NONNULL(1, 2);
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
 str_view sv_copy(size_t str_sz, const char src_str[static const 1])
-    ATTRIB_NONNULL(2) ATTRIB_PURE;
+    ATTRIB_NONNULL(2) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
@@ -166,7 +198,7 @@ sv_threeway_cmp sv_cmp(str_view lhs, str_view rhs) ATTRIB_PURE;
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
 sv_threeway_cmp sv_strcmp(str_view lhs, const char rhs[static const 1])
-    ATTRIB_NONNULL(2) ATTRIB_PURE;
+    ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
@@ -178,11 +210,12 @@ sv_threeway_cmp sv_strcmp(str_view lhs, const char rhs[static const 1])
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
 sv_threeway_cmp sv_strncmp(str_view lhs, const char rhs[static const 1],
-                           size_t n) ATTRIB_NONNULL(2) ATTRIB_PURE;
+                           size_t n) ATTRIB_NONNULL(2)
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(const char str[static const 1], size_t n)
-    ATTRIB_NONNULL(1) ATTRIB_PURE;
+size_t sv_minlen(const char str[static const 1], size_t n) ATTRIB_NONNULL(1)
+    ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /*============================  Iteration  ==================================*/
 
@@ -272,7 +305,8 @@ const char *sv_end(str_view sv) ATTRIB_PURE;
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-const char *sv_next(const char c[static 1]) ATTRIB_NONNULL(1) ATTRIB_PURE;
+const char *sv_next(const char c[static 1]) ATTRIB_NONNULL(1)
+    ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Returns the reverse iterator beginning, the last character of the
    current view. If the view is null sv_null() is returned. If the
