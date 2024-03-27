@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(c-string-view VERSION 1.0 LANGUAGES C)
+project(c-str-view VERSION 1.0 LANGUAGES C)
 
 include(etc/scanners.cmake)
 
