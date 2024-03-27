@@ -92,7 +92,7 @@ typedef enum
        {}
 
    However saving the str_view in a constant may be more convenient. */
-#define SV(str) ((str_view){(str), (sizeof("" str "") - 1)})
+#define SV(str) ((str_view){"" str "", sizeof(str) - 1})
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
