@@ -80,7 +80,8 @@ run(const str_view tests_dir)
         switch (res)
         {
         case ERROR:
-            (void)fprintf(stderr, "%s %s\n", err_msg, sv_begin(entry));
+            (void)fprintf(stderr, "%s%s%s %s%s\n", red, err_msg, cyan,
+                          sv_begin(entry), none);
             break;
         case PASS:
             (void)fprintf(stdout, "%s%s%s)%s\n", green, pass_msg, cyan, none);
