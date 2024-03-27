@@ -21,7 +21,8 @@ Checks: >
    -*-non-private-member-variables-in-classes,
    -*-magic-numbers,
    -concurrency-*,
-   -clang-analyzer-security*
+   -clang-analyzer-security*,
+   -Wpointer-bool-conversion
 
 CheckOptions:
    - { key: hicpp-signed-bitwise.IgnorePositiveIntegerLiterals, value: true }
