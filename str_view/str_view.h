@@ -7,16 +7,12 @@
    as str_view points to const char * data which cannot promise to remain
    unchanged even if str_view is a read only type. The str_view only promises
    that it will not alter data not that the program will not alter the string
-   data to which a str_view points. Uses C2x/C23 but if this is not present
-   the code should be compliant with C11. */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202000L                   \
-    && (defined(__GNUC__) || defined(__clang__)                                \
-        || defined(__INTEL_LLVM_COMPILER))
+   data to which a str_view points. */
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
 #define PURE __attribute__((pure))
 #else
 #define PURE /**/
-#endif /* __STDC_VERSION__ && __STDC_VERSION__ >= 202000L && (__GNUC__ ||      \
-          __clang__ || __INTEL_LLVM_COMPILER) */
+#endif       /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -168,7 +164,7 @@ sv_threeway_cmp sv_cmp(str_view lhs, str_view rhs) PURE;
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strcmp(str_view lhs, const char *rhs) PURE;
+sv_threeway_cmp sv_strcmp(str_view lhs, const char rhs[static 1]) PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
@@ -179,10 +175,11 @@ sv_threeway_cmp sv_strcmp(str_view lhs, const char *rhs) PURE;
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strncmp(str_view lhs, const char *rhs, size_t n) PURE;
+sv_threeway_cmp sv_strncmp(str_view lhs, const char rhs[static 1],
+                           size_t n) PURE;
 
 /* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(const char *str, size_t n) PURE;
+size_t sv_minlen(const char str[static 1], size_t n) PURE;
 
 /*============================  Iteration  ==================================*/
 
@@ -272,7 +269,7 @@ const char *sv_end(str_view sv) PURE;
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-const char *sv_next(const char *c) PURE;
+const char *sv_next(const char c[static 1]) PURE;
 
 /* Returns the reverse iterator beginning, the last character of the
    current view. If the view is null sv_null() is returned. If the
@@ -290,7 +287,7 @@ const char *sv_rend(str_view sv) PURE;
    being iterated through in reverse. It is undefined behavior
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
-const char *sv_rnext(const char *c) PURE;
+const char *sv_rnext(const char c[static 1]) PURE;
 
 /* Returns the character pointer at the minimum between the indicated
    position and the end of the string view. If NULL is stored by the
