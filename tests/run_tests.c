@@ -61,7 +61,7 @@ run(const str_view tests_dir)
     size_t tests = 0;
     size_t passed = 0;
     const struct dirent *d;
-    while ((d = readdir(dir_ptr)) != NULL)
+    while ((d = readdir(dir_ptr)))
     {
         const str_view entry = sv(d->d_name);
         if (!sv_starts_with(entry, test_prefix))
