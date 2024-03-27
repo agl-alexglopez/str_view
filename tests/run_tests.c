@@ -29,10 +29,6 @@ static const str_view test_prefix = SV("test_");
 const char *const pass_msg = "⬤";
 const char *const fail_msg = "X";
 const char *const err_msg = "Test process failed abnormally:";
-const char *const red = "\033[38;5;9m";
-const char *const green = "\033[38;5;10m";
-const char *const cyan = "\033[38;5;14m";
-const char *const none = "\033[0m";
 
 static int run(str_view);
 enum test_result run_test_process(struct path_bin);
@@ -73,29 +69,29 @@ run(const str_view tests_dir)
         {
             return 1;
         }
-        printf("%s(%s%s\n", cyan, sv_begin(entry), none);
+        printf("%s(%s%s\n", CYAN, sv_begin(entry), NONE);
         (void)fflush(stdout);
         const enum test_result res
             = run_test_process((struct path_bin){sv(absolute_path), entry});
         switch (res)
         {
         case ERROR:
-            (void)fprintf(stderr, "%s%s%s %s%s\n", red, err_msg, cyan,
-                          sv_begin(entry), none);
+            (void)fprintf(stderr, "%s%s%s %s%s\n", RED, err_msg, CYAN,
+                          sv_begin(entry), NONE);
             break;
         case PASS:
-            (void)fprintf(stdout, "%s%s%s)%s\n", green, pass_msg, cyan, none);
+            (void)fprintf(stdout, "%s%s%s)%s\n", GREEN, pass_msg, CYAN, NONE);
             break;
         case FAIL:
-            (void)fprintf(stdout, "%s%s%s)%s\n", red, fail_msg, cyan, none);
+            (void)fprintf(stdout, "%s%s%s)%s\n", RED, fail_msg, CYAN, NONE);
             break;
         }
         passed += 1 - res;
         ++tests;
     }
     passed == tests
-        ? printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", green, passed, tests, none)
-        : printf("%sPASSED %zu/%zu T_T%s\n\n", red, passed, tests, none);
+        ? printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", GREEN, passed, tests, NONE)
+        : printf("%sPASSED %zu/%zu T_T%s\n\n", RED, passed, tests, NONE);
     return 0;
 }
 

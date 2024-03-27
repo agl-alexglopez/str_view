@@ -1,6 +1,11 @@
 #ifndef TEST
 #define TEST
 
+#define RED "\033[38;5;9m"
+#define GREEN "\033[38;5;10m"
+#define CYAN "\033[38;5;14m"
+#define NONE "\033[0m"
+
 enum test_result
 {
     ERROR = -1,
@@ -45,14 +50,15 @@ struct fn_name
         if ((RESULT) != (EXPECTED))                                            \
         {                                                                      \
             (void)fprintf(stderr,                                              \
-                          "the following check failed on line %d:\nEXPECTED: " \
-                          "RESULT( %s ) == EXPECTED( %s )\n",                  \
-                          __LINE__, #RESULT, #EXPECTED);                       \
-            (void)fprintf(stderr, "ACTUALLY: RESULT( ");                       \
-            (void)fprintf(stderr, TYPE_FORMAT_SPECIFIER, RESULT);              \
+                          CYAN "--\n" GREEN "CHECK: "                          \
+                               "RESULT( %s ) == EXPECTED( %s )" NONE "\n",     \
+                          #RESULT, #EXPECTED);                                 \
+            (void)fprintf(stderr, RED "ERROR: RESULT( ");                      \
+            (void)fprintf(stderr, TYPE_FORMAT_SPECIFIER, (RESULT));            \
             (void)fprintf(stderr, " ) != EXPECTED( ");                         \
-            (void)fprintf(stderr, TYPE_FORMAT_SPECIFIER, EXPECTED);            \
-            (void)fprintf(stderr, " )\n");                                     \
+            (void)fprintf(stderr, TYPE_FORMAT_SPECIFIER, (EXPECTED));          \
+            (void)fprintf(stderr, " )" CYAN "\n" NONE);                        \
+            (void)fprintf(stderr, CYAN "see line %d\n" NONE, __LINE__);        \
             return FAIL;                                                       \
         }                                                                      \
     } while (0)
