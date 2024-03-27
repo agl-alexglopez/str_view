@@ -883,7 +883,8 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
 /* Providing strnstrn rather than strstr at the lowest level works better
    for string views where the string may not be null terminated. There needs
    to always be the additional constraint that a search cannot exceed the
-   hay length. */
+   hay length. Returns 0 based index position at which needle begins in
+   hay if it can be found, otherwise the hay size is returned. */
 static size_t
 sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
@@ -982,8 +983,8 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
     /* ssize_t is used throughout. Is this the best choice? The two-way
        algo relies on negative numbers. This fits with size_t capabilities
        but does not feel right. Plain old signed may be better. */
-    ssize_t critical_pos;
-    ssize_t period_dist;
+    ssize_t critical_pos = 0;
+    ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
     const struct sv_factorization s = sv_maximal_suffix(needle, needle_sz);
     const struct sv_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
@@ -1224,8 +1225,8 @@ static inline size_t
 sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
             ssize_t needle_sz)
 {
-    ssize_t critical_pos;
-    ssize_t period_dist;
+    ssize_t critical_pos = 0;
+    ssize_t period_dist = 0;
     const struct sv_factorization s = sv_rmaximal_suffix(needle, needle_sz);
     const struct sv_factorization r = sv_rmaximal_suffix_rev(needle, needle_sz);
     if (s.start_critical_pos > r.start_critical_pos)
