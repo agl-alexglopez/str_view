@@ -57,10 +57,10 @@ test_compare_single(void)
     const str_view e2_view = sv(e2);
     const int cmp_res = strcmp(e1, e2);
     const int cmp_res2 = strcmp(e2, e1);
-    CHECK(cmp_res < 0, sv_strcmp(e1_view, e2) < 0, "%d");
-    CHECK(cmp_res < 0, sv_cmp(e1_view, e2_view) < 0, "%d");
-    CHECK(cmp_res2 > 0, sv_strcmp(e2_view, e1) > 0, "%d");
-    CHECK(cmp_res2 > 0, sv_cmp(e2_view, e1_view) > 0, "%d");
+    CHECK(cmp_res < 0, sv_strcmp(e1_view, e2) < 0, "%b");
+    CHECK(cmp_res < 0, sv_cmp(e1_view, e2_view) < 0, "%b");
+    CHECK(cmp_res2 > 0, sv_strcmp(e2_view, e1) > 0, "%b");
+    CHECK(cmp_res2 > 0, sv_cmp(e2_view, e1_view) > 0, "%b");
     return PASS;
 }
 
@@ -77,10 +77,10 @@ test_compare_equal(void)
     const str_view e2_view = sv(e2);
     const int cmp_res = strcmp(e1, e2);
     const int cmp_res2 = strcmp(e2, e1);
-    CHECK(cmp_res, sv_strcmp(e1_view, e2), "%d");
-    CHECK(cmp_res, sv_cmp(e1_view, e2_view), "%d");
-    CHECK(cmp_res2, sv_strcmp(e2_view, e1), "%d");
-    CHECK(cmp_res2, sv_cmp(e2_view, e1_view), "%d");
+    CHECK(cmp_res == 0, sv_strcmp(e1_view, e2) == 0, "%b");
+    CHECK(cmp_res == 0, sv_cmp(e1_view, e2_view) == 0, "%b");
+    CHECK(cmp_res2 == 0, sv_strcmp(e2_view, e1) == 0, "%b");
+    CHECK(cmp_res2 == 0, sv_cmp(e2_view, e1_view) == 0, "%b");
     return PASS;
 }
 
@@ -97,9 +97,9 @@ test_compare_equal_view(void)
     const str_view e1_view = sv(e1);
     const str_view e2_view = sv_n(strlen(e1), e2);
     const int cmp_res = strcmp(e1, e1);
-    CHECK(cmp_res, sv_cmp(e1_view, e2_view), "%d");
-    CHECK(cmp_res, sv_strcmp(e2_view, e1), "%d");
-    CHECK(cmp_res, sv_cmp(e2_view, e1_view), "%d");
+    CHECK(cmp_res == 0, sv_cmp(e1_view, e2_view) == 0, "%b");
+    CHECK(cmp_res == 0, sv_strcmp(e2_view, e1) == 0, "%b");
+    CHECK(cmp_res == 0, sv_cmp(e2_view, e1_view) == 0, "%b");
     return PASS;
 }
 
@@ -116,10 +116,10 @@ test_compare_terminated(void)
     const str_view greater_view = sv(greater);
     const int cmp_res = strcmp(lesser, greater);
     const int cmp_res2 = strcmp(greater, lesser);
-    CHECK(cmp_res < 0, sv_strcmp(lesser_view, greater) < 0, "%d");
-    CHECK(cmp_res < 0, sv_cmp(lesser_view, greater_view) < 0, "%d");
-    CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, "%d");
-    CHECK(cmp_res2 > 0, sv_cmp(greater_view, lesser_view) > 0, "%d");
+    CHECK(cmp_res < 0, sv_strcmp(lesser_view, greater) < 0, "%b");
+    CHECK(cmp_res < 0, sv_cmp(lesser_view, greater_view) < 0, "%b");
+    CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, "%b");
+    CHECK(cmp_res2 > 0, sv_cmp(greater_view, lesser_view) > 0, "%b");
     return PASS;
 }
 
