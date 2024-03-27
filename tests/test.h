@@ -1,6 +1,9 @@
 #ifndef TEST
 #define TEST
 
+#include <signal.h>
+#include <stdio.h>
+
 #define RED "\033[38;5;9m"
 #define GREEN "\033[38;5;10m"
 #define CYAN "\033[38;5;14m"
