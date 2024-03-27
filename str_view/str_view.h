@@ -11,7 +11,7 @@
    cases where no pointers are accessed or dereferenced. The attributes
    relating to null terminators provide stronger compiler warnings if
    supported to ensure that safe string handling occurs on non null and
-   null terminated strings. */
+   null terminated strings. Credit Harith on Code Review Stack Exchange. */
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
 #    if defined __has_attribute
 #        if __has_attribute(pure)
