@@ -91,7 +91,7 @@ sv(const char str[const static 1])
 }
 
 str_view
-sv_n(size_t n, const char str[const static n])
+sv_n(size_t n, const char str[const static 1])
 {
     if (!str || !n)
     {
@@ -135,7 +135,7 @@ sv_print(FILE *f, str_view sv)
 }
 
 str_view
-sv_copy(const size_t str_sz, const char src_str[const static str_sz])
+sv_copy(const size_t str_sz, const char src_str[const static 1])
 {
     return sv_n(str_sz, src_str);
 }

@@ -75,7 +75,7 @@ str_view sv(const char str[static 1]) PURE;
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-str_view sv_n(size_t n, const char str[static n]) PURE;
+str_view sv_n(size_t n, const char str[static 1]) PURE;
 
 /* Constructs and returns a string view from a NULL TERMINATED string
    broken on the first ocurrence of delimeter if found or null
@@ -128,7 +128,7 @@ void sv_swap(str_view *a, str_view *b);
 
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
-str_view sv_copy(size_t str_sz, const char src_str[static str_sz]) PURE;
+str_view sv_copy(size_t str_sz, const char src_str[static 1]) PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
