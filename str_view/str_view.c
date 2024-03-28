@@ -629,8 +629,9 @@ sv_find(str_view hay, size_t pos, str_view needle)
     {
         return hay.sz;
     }
-    return sv_strnstrn(hay.s + pos, (ssize_t)(hay.sz - pos), needle.s,
-                       (ssize_t)needle.sz);
+    return pos
+           + sv_strnstrn(hay.s + pos, (ssize_t)(hay.sz - pos), needle.s,
+                         (ssize_t)needle.sz);
 }
 
 size_t
