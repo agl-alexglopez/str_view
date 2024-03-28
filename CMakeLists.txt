@@ -3,7 +3,7 @@ project(c-str-view VERSION 0.1.0 LANGUAGES C)
 
 include(etc/scanners.cmake)
 
-include_directories("${PROJECT_SOURCE_DIR}/sammples")
+include_directories("${PROJECT_SOURCE_DIR}/samples")
 include_directories("${PROJECT_SOURCE_DIR}/str_view")
 include_directories("${PROJECT_SOURCE_DIR}/tests")
 
