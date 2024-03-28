@@ -98,23 +98,23 @@ test_iter(void)
     for (const char *cur = sv_begin(chars); cur != sv_end(chars);
          cur = sv_next(cur))
     {
-        CHECK(*cur, reference[i], "%c");
+        CHECK(*cur, reference[i], char, "%c");
         ++i;
     }
     i = 0;
     str_view cur = sv_begin_tok(chars, sv(" "));
     for (; !sv_end_tok(chars, cur); cur = sv_next_tok(chars, cur, sv(" ")))
     {
-        CHECK(sv_front(cur), reference[i], "%c");
+        CHECK(sv_front(cur), reference[i], char, "%c");
         i += 2;
     }
-    CHECK(sv_front(cur), '\0', "%c");
+    CHECK(sv_front(cur), '\0', char, "%c");
     str_view cur2 = sv_begin_tok(chars, sv(","));
     for (; !sv_end_tok(chars, cur2); cur2 = sv_next_tok(chars, cur2, sv(",")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
     }
-    CHECK(sv_front(cur2), '\0', "%d");
+    CHECK(sv_front(cur2), '\0', char, "%c");
     return PASS;
 }
 
@@ -132,7 +132,7 @@ test_iter2(void)
     for (const char *cur = sv_begin(chars);
          cur != sv_end(chars) && i < sv_len(chars); cur = sv_next(cur))
     {
-        CHECK(*cur, reference[i], "%c");
+        CHECK(*cur, reference[i], char, "%c");
         ++i;
     }
     i = 0;
@@ -140,20 +140,20 @@ test_iter2(void)
     for (; !sv_end_tok(chars, cur) && i < size;
          cur = sv_next_tok(chars, cur, sv(" ")))
     {
-        CHECK(sv_front(cur), *toks[i], "%c");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_front(cur), *toks[i], char, "%c");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(sv_front(cur), '\0', "%c");
+    CHECK(sv_front(cur), '\0', char, "%c");
     i = 0;
     str_view cur2 = sv_begin_tok(chars, sv(","));
     for (; !sv_end_tok(chars, cur2) && i < 1;
          cur2 = sv_next_tok(chars, cur2, sv(",")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
         ++i;
     }
-    CHECK(sv_front(cur2), '\0', "%c");
+    CHECK(sv_front(cur2), '\0', char, "%c");
     return PASS;
 }
 
@@ -165,16 +165,16 @@ test_riter(void)
     str_view cur = sv_rbegin_tok(ref, sv(" "));
     for (; !sv_rend_tok(ref, cur); cur = sv_rnext_tok(ref, cur, sv(" ")))
     {
-        CHECK(sv_front(cur), *sv_pos(ref, i), "%c");
+        CHECK(sv_front(cur), *sv_pos(ref, i), char, "%c");
         i -= 2;
     }
-    CHECK(sv_begin(cur), sv_begin(ref), "%s");
+    CHECK(sv_begin(cur), sv_begin(ref), char *const, "%s");
     str_view cur2 = sv_rbegin_tok(ref, sv(","));
     for (; !sv_rend_tok(ref, cur2); cur2 = sv_rnext_tok(ref, cur2, sv(",")))
     {
-        CHECK(sv_cmp(cur2, ref), EQL, "%d");
+        CHECK(sv_cmp(cur2, ref), EQL, sv_threeway_cmp, "%d");
     }
-    CHECK(sv_begin(cur2), sv_begin(ref), "%s");
+    CHECK(sv_begin(cur2), sv_begin(ref), char *const, "%s");
     return PASS;
 }
 
@@ -192,29 +192,29 @@ test_riter2(void)
          c = sv_rnext(c))
     {
         --character;
-        CHECK(c, sv_pos(ref, character), "%s");
-        CHECK(*c, sv_at(ref, character), "%c");
+        CHECK(c, sv_pos(ref, character), char *const, "%s");
+        CHECK(*c, sv_at(ref, character), char, "%c");
     }
-    CHECK(character, 0UL, "%zu");
+    CHECK(character, 0UL, size_t, "%zu");
     size_t i = size;
     str_view cur = sv_rbegin_tok(ref, sv(" "));
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, sv(" ")))
     {
         --i;
-        CHECK(sv_front(cur), *toks[i], "%c");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_front(cur), *toks[i], char, "%c");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(sv_begin(cur), sv_begin(ref), "%s");
+    CHECK(sv_begin(cur), sv_begin(ref), char *const, "%s");
     i = 1;
     str_view cur2 = sv_rbegin_tok(ref, sv(","));
     for (; !sv_rend_tok(ref, cur2) && i;
          cur2 = sv_rnext_tok(ref, cur2, sv(",")))
     {
         --i;
-        CHECK(sv_cmp(cur2, ref), EQL, "%d");
-        CHECK(sv_len(cur2), sv_len(ref), "%zu");
+        CHECK(sv_cmp(cur2, ref), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), sv_len(ref), size_t, "%zu");
     }
-    CHECK(sv_begin(cur2), sv_begin(ref), "%s");
+    CHECK(sv_begin(cur2), sv_begin(ref), char *const, "%s");
     return PASS;
 }
 
@@ -230,25 +230,25 @@ test_riter_multi(void)
     };
     size_t i = size;
     const size_t last_delim_pos = sv_rfind(ref, sv_len(ref), delim);
-    CHECK(last_delim_pos, sv_len(ref) - 2, "%zu");
+    CHECK(last_delim_pos, sv_len(ref) - 2, size_t, "%zu");
     str_view cur = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, delim))
     {
         --i;
-        CHECK(sv_front(cur), *toks[i], "%c");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_front(cur), *toks[i], char, "%c");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(sv_begin(cur), sv_begin(ref), "%s");
+    CHECK(sv_begin(cur), sv_begin(ref), char *const, "%s");
     i = 1;
     str_view cur2 = sv_rbegin_tok(ref, SV(","));
     for (; !sv_rend_tok(ref, cur2) && i;
          cur2 = sv_rnext_tok(ref, cur2, SV(",")))
     {
         --i;
-        CHECK(sv_cmp(cur2, ref), EQL, "%d");
-        CHECK(sv_len(cur2), sv_len(ref), "%zu");
+        CHECK(sv_cmp(cur2, ref), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), sv_len(ref), size_t, "%zu");
     }
-    CHECK(sv_begin(cur2), sv_begin(ref), "%s");
+    CHECK(sv_begin(cur2), sv_begin(ref), char *const, "%s");
     return PASS;
 }
 
@@ -261,69 +261,69 @@ test_min_delim(void)
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0/");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("/0/");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("0/0");
     size_t sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/0/0");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0/0/");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/0/0/");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -336,69 +336,69 @@ test_min_delim_two_byte(void)
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0//");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("//0//");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("0//0");
     size_t sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("//0//0");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0//0//");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("//0//0//");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -411,69 +411,69 @@ test_min_delim_three_byte(void)
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0///");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("///0///");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("0///0");
     size_t sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("///0///0");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0///0///");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("///0///0///");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -486,69 +486,69 @@ test_min_delim_four_byte(void)
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0////");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("////0////");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("0////0");
     size_t sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("////0////0");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0////0////");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("////0////0////");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -561,69 +561,69 @@ test_min_delim_five_byte(void)
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0/////");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("/////0/////");
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
     ref = SV("0/////0");
     size_t sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/////0/////0");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0/////0/////");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/////0/////0/////");
     sz = 2;
     i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i) && sz; i = sv_next_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_end(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_end(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -636,69 +636,69 @@ test_rmin_delim(void)
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0/");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("/0/");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("0/0");
     size_t sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/0/0");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0/0/");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/0/0/");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -711,69 +711,69 @@ test_rmin_delim_two_byte(void)
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0//");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("//0//");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("0//0");
     size_t sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("//0//0");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0//0//");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("//0//0//");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -786,69 +786,69 @@ test_rmin_delim_three_byte(void)
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0///");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("///0///");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("0///0");
     size_t sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("///0///0");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0///0///");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("///0///0///");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -861,69 +861,69 @@ test_rmin_delim_four_byte(void)
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0////");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("////0////");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("0////0");
     size_t sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("////0////0");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0////0////");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("////0////0////");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -936,69 +936,69 @@ test_rmin_delim_five_byte(void)
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
     ref = SV("0/////");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("/////0/////");
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
     ref = SV("0/////0");
     size_t sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/////0/////0");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("0/////0/////");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     ref = SV("/////0/////0/////");
     sz = 2;
     i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i) && sz; i = sv_rnext_tok(ref, i, delim))
     {
         --sz;
-        CHECK(sv_cmp(i, tok), EQL, "%d");
-        CHECK(sv_len(i), sv_len(tok), "%zu");
+        CHECK(sv_cmp(i, tok), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(i), sv_len(tok), size_t, "%zu");
     }
-    CHECK(sv_begin(i), sv_begin(ref), "%s");
-    CHECK(sz, 0UL, "%zu");
+    CHECK(sv_begin(i), sv_begin(ref), char *const, "%s");
+    CHECK(sz, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -1016,11 +1016,11 @@ test_simple_delim(void)
          !sv_end_tok(ref_view, tok) && i < sizeof(toks) / sizeof(toks[0]);
          tok = sv_next_tok(ref_view, tok, delim))
     {
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(i, sizeof(toks) / sizeof(toks[0]), "%zu");
+    CHECK(i, sizeof(toks) / sizeof(toks[0]), size_t, "%zu");
     return PASS;
 }
 
@@ -1040,10 +1040,10 @@ test_rsimple_delim(void)
          tok = sv_rnext_tok(ref_view, tok, delim))
     {
         --i;
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(i, 0UL, "%zu");
+    CHECK(i, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -1060,11 +1060,11 @@ test_tail_delim(void)
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
     {
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(i, sizeof(toks) / sizeof(toks[0]), "%zu");
+    CHECK(i, sizeof(toks) / sizeof(toks[0]), size_t, "%zu");
     return PASS;
 }
 
@@ -1083,10 +1083,10 @@ test_rtail_delim(void)
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
     {
         --i;
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(i, 0UL, "%zu");
+    CHECK(i, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -1106,10 +1106,10 @@ test_rtriple_delim(void)
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
     {
         --i;
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(i, 0UL, "%zu");
+    CHECK(i, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -1129,10 +1129,10 @@ test_rquad_delim(void)
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
     {
         --i;
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(i, 0UL, "%zu");
+    CHECK(i, 0UL, size_t, "%zu");
     return PASS;
 }
 
@@ -1151,19 +1151,19 @@ test_iter_repeating_delim(void)
     for (; !sv_end_tok(ref_view, cur);
          cur = sv_next_tok(ref_view, cur, sv(" ")))
     {
-        CHECK(sv_strcmp(cur, toks[i]), EQL, "%d");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(cur, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(sv_front(cur), '\0', "%c");
+    CHECK(sv_front(cur), '\0', char, "%c");
     str_view cur2 = sv_begin_tok(ref_view, sv(","));
     for (; !sv_end_tok(ref_view, cur2);
          cur2 = sv_next_tok(ref_view, cur2, sv(",")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
-        CHECK(sv_len(cur2), strlen(reference), "%zu");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
     }
-    CHECK(sv_front(cur2), '\0', "%c");
+    CHECK(sv_front(cur2), '\0', char, "%c");
     return PASS;
 }
 
@@ -1183,19 +1183,19 @@ test_iter_multichar_delim(void)
     str_view cur = sv_begin_tok(ref_view, delim);
     for (; !sv_end_tok(ref_view, cur); cur = sv_next_tok(ref_view, cur, delim))
     {
-        CHECK(sv_strcmp(cur, toks[i]), EQL, "%d");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(cur, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(sv_front(cur), '\0', "%c");
+    CHECK(sv_front(cur), '\0', char, "%c");
     str_view cur2 = sv_begin_tok(ref_view, sv(" "));
     for (; !sv_end_tok(ref_view, cur2);
          cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
-        CHECK(sv_len(cur2), strlen(reference), "%zu");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
     }
-    CHECK(sv_front(cur2), '\0', "%c");
+    CHECK(sv_front(cur2), '\0', char, "%c");
     return PASS;
 }
 
@@ -1218,19 +1218,19 @@ test_riter_multichar_delim(void)
          cur = sv_rnext_tok(ref_view, cur, delim))
     {
         --i;
-        CHECK(sv_strcmp(cur, toks[i]), EQL, "%d");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(cur, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(i, 0UL, "%zu");
-    CHECK(sv_begin(cur), reference, "%s");
+    CHECK(i, 0UL, size_t, "%zu");
+    CHECK(sv_begin(cur), reference, char *const, "%s");
     str_view cur2 = sv_rbegin_tok(ref_view, sv(" "));
     for (; !sv_rend_tok(ref_view, cur2);
          cur2 = sv_rnext_tok(ref_view, cur2, sv(" ")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
-        CHECK(sv_len(cur2), strlen(reference), "%zu");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
     }
-    CHECK(sv_begin(cur2), reference, "%s");
+    CHECK(sv_begin(cur2), reference, char *const, "%s");
     return PASS;
 }
 
@@ -1250,19 +1250,19 @@ test_iter_multichar_delim_short(void)
     str_view cur = sv_begin_tok(ref_view, delim);
     for (; !sv_end_tok(ref_view, cur); cur = sv_next_tok(ref_view, cur, delim))
     {
-        CHECK(sv_strcmp(cur, toks[i]), EQL, "%d");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(cur, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(sv_front(cur), '\0', "%c");
+    CHECK(sv_front(cur), '\0', char, "%c");
     str_view cur2 = sv_begin_tok(ref_view, sv(" "));
     for (; !sv_end_tok(ref_view, cur2);
          cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
-        CHECK(sv_len(cur2), strlen(reference), "%zu");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
     }
-    CHECK(sv_front(cur2), '\0', "%c");
+    CHECK(sv_front(cur2), '\0', char, "%c");
     return PASS;
 }
 
@@ -1285,19 +1285,19 @@ test_riter_multichar_delim_short(void)
          cur = sv_rnext_tok(ref_view, cur, delim))
     {
         --i;
-        CHECK(sv_strcmp(cur, toks[i]), EQL, "%d");
-        CHECK(sv_len(cur), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(cur, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
     }
-    CHECK(sv_begin(cur), reference, "%s");
-    CHECK(i, 0UL, "%zu");
+    CHECK(sv_begin(cur), reference, char *const, "%s");
+    CHECK(i, 0UL, size_t, "%zu");
     str_view cur2 = sv_rbegin_tok(ref_view, sv(" "));
     for (; !sv_rend_tok(ref_view, cur2);
          cur2 = sv_rnext_tok(ref_view, cur2, sv(" ")))
     {
-        CHECK(sv_strcmp(cur2, reference), EQL, "%d");
-        CHECK(sv_len(cur2), strlen(reference), "%zu");
+        CHECK(sv_strcmp(cur2, reference), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
     }
-    CHECK(sv_begin(cur2), reference, "%s");
+    CHECK(sv_begin(cur2), reference, char *const, "%s");
     return PASS;
 }
 
@@ -1310,17 +1310,17 @@ test_iter_delim_larger_than_str(void)
     const str_view ref_view = sv(ref);
     str_view constructed = sv_delim(ref, delim);
     str_view cur = sv_begin_tok(ref_view, delim_view);
-    CHECK(sv_cmp(constructed, cur), EQL, "%d");
-    CHECK(sv_strcmp(constructed, ref), EQL, "%d");
-    CHECK(sv_strcmp(cur, ref), EQL, "%d");
+    CHECK(sv_cmp(constructed, cur), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(constructed, ref), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(cur, ref), EQL, sv_threeway_cmp, "%d");
 
     for (; !sv_end_tok(ref_view, cur);
          cur = sv_next_tok(ref_view, cur, delim_view))
     {
-        CHECK(sv_strcmp(cur, ref), EQL, "%d");
-        CHECK(sv_len(cur), strlen(ref), "%zu");
+        CHECK(sv_strcmp(cur, ref), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), strlen(ref), size_t, "%zu");
     }
-    CHECK(sv_front(cur), '\0', "%c");
+    CHECK(sv_front(cur), '\0', char, "%c");
     return PASS;
 }
 
@@ -1333,17 +1333,17 @@ test_riter_delim_larger_than_str(void)
     const str_view ref_view = sv(ref);
     str_view constructed = sv_delim(ref, delim);
     str_view cur = sv_rbegin_tok(ref_view, delim_view);
-    CHECK(sv_cmp(constructed, cur), EQL, "%d");
-    CHECK(sv_strcmp(constructed, ref), EQL, "%d");
-    CHECK(sv_strcmp(cur, ref), EQL, "%d");
+    CHECK(sv_cmp(constructed, cur), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(constructed, ref), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(cur, ref), EQL, sv_threeway_cmp, "%d");
 
     for (; !sv_rend_tok(ref_view, cur);
          cur = sv_rnext_tok(ref_view, cur, delim_view))
     {
-        CHECK(sv_cmp(cur, ref_view), EQL, "%d");
-        CHECK(sv_len(cur), sv_len(ref_view), "%zu");
+        CHECK(sv_cmp(cur, ref_view), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(cur), sv_len(ref_view), size_t, "%zu");
     }
-    CHECK(*sv_begin(cur), *ref, "%c");
+    CHECK(*sv_begin(cur), *ref, char, "%c");
     return PASS;
 }
 
@@ -1363,11 +1363,11 @@ test_tokenize_not_terminated(void)
          !sv_end_tok(childless_path, tok);
          tok = sv_next_tok(childless_path, tok, delim))
     {
-        CHECK(sv_strcmp(tok, toks[i]), EQL, "%d");
-        CHECK(sv_len(tok), strlen(toks[i]), "%zu");
+        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
-    CHECK(i, sizeof(toks) / sizeof(toks[0]), "%zu");
+    CHECK(i, sizeof(toks) / sizeof(toks[0]), size_t, "%zu");
     return PASS;
 }
 
@@ -1400,15 +1400,15 @@ test_tokenize_three_views(void)
                   tok2 = sv_next_tok(second, tok2, delim),
                   tok3 = sv_next_tok(third, tok3, delim))
     {
-        CHECK(sv_strcmp(tok1, toks[0][i]), EQL, "%d");
-        CHECK(sv_len(tok1), strlen(toks[0][i]), "%zu");
-        CHECK(sv_strcmp(tok2, toks[1][i]), EQL, "%d");
-        CHECK(sv_len(tok2), strlen(toks[1][i]), "%zu");
-        CHECK(sv_strcmp(tok3, toks[2][i]), EQL, "%d");
-        CHECK(sv_len(tok3), strlen(toks[2][i]), "%zu");
+        CHECK(sv_strcmp(tok1, toks[0][i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok1), strlen(toks[0][i]), size_t, "%zu");
+        CHECK(sv_strcmp(tok2, toks[1][i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok2), strlen(toks[1][i]), size_t, "%zu");
+        CHECK(sv_strcmp(tok3, toks[2][i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok3), strlen(toks[2][i]), size_t, "%zu");
         ++i;
     }
-    CHECK(i, sizeof(toks) / sizeof(toks[0]), "%zu");
+    CHECK(i, sizeof(toks) / sizeof(toks[0]), size_t, "%zu");
     return PASS;
 }
 
@@ -1442,13 +1442,13 @@ test_rtokenize_three_views(void)
                   tok3 = sv_rnext_tok(third, tok3, delim))
     {
         --i;
-        CHECK(sv_strcmp(tok1, toks[0][i]), EQL, "%d");
-        CHECK(sv_len(tok1), strlen(toks[0][i]), "%zu");
-        CHECK(sv_strcmp(tok2, toks[1][i]), EQL, "%d");
-        CHECK(sv_len(tok2), strlen(toks[1][i]), "%zu");
-        CHECK(sv_strcmp(tok3, toks[2][i]), EQL, "%d");
-        CHECK(sv_len(tok3), strlen(toks[2][i]), "%zu");
+        CHECK(sv_strcmp(tok1, toks[0][i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok1), strlen(toks[0][i]), size_t, "%zu");
+        CHECK(sv_strcmp(tok2, toks[1][i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok2), strlen(toks[1][i]), size_t, "%zu");
+        CHECK(sv_strcmp(tok3, toks[2][i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_len(tok3), strlen(toks[2][i]), size_t, "%zu");
     }
-    CHECK(i, 0UL, "%zu");
+    CHECK(i, 0UL, size_t, "%zu");
     return PASS;
 }

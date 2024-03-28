@@ -58,10 +58,10 @@ test_compare_single(void)
     const str_view e2_view = sv(e2);
     const int cmp_res = strcmp(e1, e2);
     const int cmp_res2 = strcmp(e2, e1);
-    CHECK(cmp_res < 0, sv_strcmp(e1_view, e2) < 0, "%b");
-    CHECK(cmp_res < 0, sv_cmp(e1_view, e2_view) < 0, "%b");
-    CHECK(cmp_res2 > 0, sv_strcmp(e2_view, e1) > 0, "%b");
-    CHECK(cmp_res2 > 0, sv_cmp(e2_view, e1_view) > 0, "%b");
+    CHECK(cmp_res < 0, sv_strcmp(e1_view, e2) < 0, bool, "%b");
+    CHECK(cmp_res < 0, sv_cmp(e1_view, e2_view) < 0, bool, "%b");
+    CHECK(cmp_res2 > 0, sv_strcmp(e2_view, e1) > 0, bool, "%b");
+    CHECK(cmp_res2 > 0, sv_cmp(e2_view, e1_view) > 0, bool, "%b");
     return PASS;
 }
 
@@ -78,10 +78,10 @@ test_compare_equal(void)
     const str_view e2_view = sv(e2);
     const int cmp_res = strcmp(e1, e2);
     const int cmp_res2 = strcmp(e2, e1);
-    CHECK(cmp_res == 0, sv_strcmp(e1_view, e2) == 0, "%b");
-    CHECK(cmp_res == 0, sv_cmp(e1_view, e2_view) == 0, "%b");
-    CHECK(cmp_res2 == 0, sv_strcmp(e2_view, e1) == 0, "%b");
-    CHECK(cmp_res2 == 0, sv_cmp(e2_view, e1_view) == 0, "%b");
+    CHECK(cmp_res == 0, sv_strcmp(e1_view, e2) == 0, bool, "%b");
+    CHECK(cmp_res == 0, sv_cmp(e1_view, e2_view) == 0, bool, "%b");
+    CHECK(cmp_res2 == 0, sv_strcmp(e2_view, e1) == 0, bool, "%b");
+    CHECK(cmp_res2 == 0, sv_cmp(e2_view, e1_view) == 0, bool, "%b");
     return PASS;
 }
 
@@ -98,9 +98,9 @@ test_compare_equal_view(void)
     const str_view e1_view = sv(e1);
     const str_view e2_view = sv_n(strlen(e1), e2);
     const int cmp_res = strcmp(e1, e1);
-    CHECK(cmp_res == 0, sv_cmp(e1_view, e2_view) == 0, "%b");
-    CHECK(cmp_res == 0, sv_strcmp(e2_view, e1) == 0, "%b");
-    CHECK(cmp_res == 0, sv_cmp(e2_view, e1_view) == 0, "%b");
+    CHECK(cmp_res == 0, sv_cmp(e1_view, e2_view) == 0, bool, "%b");
+    CHECK(cmp_res == 0, sv_strcmp(e2_view, e1) == 0, bool, "%b");
+    CHECK(cmp_res == 0, sv_cmp(e2_view, e1_view) == 0, bool, "%b");
     return PASS;
 }
 
@@ -117,10 +117,10 @@ test_compare_terminated(void)
     const str_view greater_view = sv(greater);
     const int cmp_res = strcmp(lesser, greater);
     const int cmp_res2 = strcmp(greater, lesser);
-    CHECK(cmp_res < 0, sv_strcmp(lesser_view, greater) < 0, "%b");
-    CHECK(cmp_res < 0, sv_cmp(lesser_view, greater_view) < 0, "%b");
-    CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, "%b");
-    CHECK(cmp_res2 > 0, sv_cmp(greater_view, lesser_view) > 0, "%b");
+    CHECK(cmp_res < 0, sv_strcmp(lesser_view, greater) < 0, bool, "%b");
+    CHECK(cmp_res < 0, sv_cmp(lesser_view, greater_view) < 0, bool, "%b");
+    CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, bool, "%b");
+    CHECK(cmp_res2 > 0, sv_cmp(greater_view, lesser_view) > 0, bool, "%b");
     return PASS;
 }
 
@@ -134,10 +134,10 @@ test_compare_different_lengths_terminated(void)
     const str_view greater_view = sv(greater);
     const int cmp_res = strcmp(lesser, greater);
     const int cmp_res2 = strcmp(greater, lesser);
-    CHECK(cmp_res < 0, sv_strcmp(less_view, greater) < 0, "%b");
-    CHECK(cmp_res < 0, sv_cmp(less_view, greater_view) < 0, "%b");
-    CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, "%b");
-    CHECK(cmp_res2 > 0, sv_cmp(greater_view, less_view) > 0, "%b");
+    CHECK(cmp_res < 0, sv_strcmp(less_view, greater) < 0, bool, "%b");
+    CHECK(cmp_res < 0, sv_cmp(less_view, greater_view) < 0, bool, "%b");
+    CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, bool, "%b");
+    CHECK(cmp_res2 > 0, sv_cmp(greater_view, less_view) > 0, bool, "%b");
     return PASS;
 }
 
@@ -159,33 +159,41 @@ test_compare_different_lengths_views(void)
     const int str_cmp2 = strcmp(greater_str, lesser);
     const str_view greater_view = sv_n(strlen(greater_str), greater_longer);
     const str_view lesser_view = sv(lesser);
-    CHECK(str_cmp2 > 0, sv_strcmp(greater_view, lesser) > 0, "%b");
-    CHECK(str_cmp < 0, sv_strcmp(lesser_view, greater_str) < 0, "%b");
-    CHECK(str_cmp < 0, sv_cmp(lesser_view, greater_view) < 0, "%b");
-    CHECK(str_cmp2 > 0, sv_cmp(greater_view, lesser_view) > 0, "%b");
+    CHECK(str_cmp2 > 0, sv_strcmp(greater_view, lesser) > 0, bool, "%b");
+    CHECK(str_cmp < 0, sv_strcmp(lesser_view, greater_str) < 0, bool, "%b");
+    CHECK(str_cmp < 0, sv_cmp(lesser_view, greater_view) < 0, bool, "%b");
+    CHECK(str_cmp2 > 0, sv_cmp(greater_view, lesser_view) > 0, bool, "%b");
     return PASS;
 }
 
 static enum test_result
 test_compare_misc(void)
 {
-    CHECK(sv_cmp(sv(""), sv("")), EQL, "%d");
-    CHECK(sv_strcmp(sv(""), ""), EQL, "%d");
-    CHECK(sv_cmp(sv("same"), sv("same")), EQL, "%d");
-    CHECK(sv_cmp(sv("samz"), sv("same")), GRT, "%d");
-    CHECK(sv_cmp(sv("same"), sv("samz")), LES, "%d");
+    CHECK(sv_cmp(sv(""), sv("")), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv(""), ""), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("same"), sv("same")), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("samz"), sv("same")), GRT, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("same"), sv("samz")), LES, sv_threeway_cmp, "%d");
     /* The comparison function should treat the end of a string view as
        null terminating character even if it points to a delimeter */
-    CHECK(sv_cmp(sv("same"), sv_delim("same same", " ")), EQL, "%d");
-    CHECK(sv_cmp(sv("same"), sv_delim("samz same", " ")), LES, "%d");
-    CHECK(sv_cmp(sv_delim("sameez same", " "), sv("same")), GRT, "%d");
+    CHECK(sv_cmp(sv("same"), sv_delim("same same", " ")), EQL, sv_threeway_cmp,
+          "%d");
+    CHECK(sv_cmp(sv("same"), sv_delim("samz same", " ")), LES, sv_threeway_cmp,
+          "%d");
+    CHECK(sv_cmp(sv_delim("sameez same", " "), sv("same")), GRT,
+          sv_threeway_cmp, "%d");
     const char *const str = "same";
-    CHECK(sv_strcmp(sv(str), str), EQL, "%d");
-    CHECK(sv_strcmp(sv_delim("same same", " "), str), EQL, "%d");
-    CHECK(sv_strcmp(sv_delim("samez same", " "), str), GRT, "%d");
-    CHECK(sv_strcmp(sv_delim("sameez same", " "), str), GRT, "%d");
+    CHECK(sv_strcmp(sv(str), str), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv_delim("same same", " "), str), EQL, sv_threeway_cmp,
+          "%d");
+    CHECK(sv_strcmp(sv_delim("samez same", " "), str), GRT, sv_threeway_cmp,
+          "%d");
+    CHECK(sv_strcmp(sv_delim("sameez same", " "), str), GRT, sv_threeway_cmp,
+          "%d");
     /* strncmp compares at most n bytes inclusize or stops at null. */
-    CHECK(sv_strncmp(sv_delim("sameez same", " "), str, 10), GRT, "%d");
-    CHECK(sv_strncmp(sv_delim("saaeez same", " "), str, 3), LES, "%d");
+    CHECK(sv_strncmp(sv_delim("sameez same", " "), str, 10), GRT,
+          sv_threeway_cmp, "%d");
+    CHECK(sv_strncmp(sv_delim("saaeez same", " "), str, 3), LES,
+          sv_threeway_cmp, "%d");
     return PASS;
 }

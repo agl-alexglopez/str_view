@@ -42,12 +42,12 @@ test_length_terminated(void)
     };
     const size_t len = strlen(ref);
     const size_t bytes = sizeof ref;
-    CHECK(len, strlen(ref), "%zu");
-    CHECK(len, sv_len(sv(ref)), "%zu");
-    CHECK(bytes, sv_strsize(ref), "%zu");
-    CHECK(bytes, sv_size(sv(ref)), "%zu");
-    CHECK(len, sv_npos(sv(ref)), "%zu");
-    CHECK(len, sv_minlen(ref, -1), "%zu");
+    CHECK(len, strlen(ref), size_t, "%zu");
+    CHECK(len, sv_len(sv(ref)), size_t, "%zu");
+    CHECK(bytes, sv_strsize(ref), size_t, "%zu");
+    CHECK(bytes, sv_size(sv(ref)), size_t, "%zu");
+    CHECK(len, sv_npos(sv(ref)), size_t, "%zu");
+    CHECK(len, sv_minlen(ref, -1), size_t, "%zu");
     return PASS;
 }
 
@@ -62,12 +62,12 @@ test_length_unterminated(void)
     const size_t len = strlen(snip);
     const size_t bytes = sizeof snip;
     const str_view snip_view = sv_n(len, ref + 6);
-    CHECK(strlen(snip), len, "%zu");
-    CHECK(sv_len(snip_view), len, "%zu");
-    CHECK(sv_strsize(snip), bytes, "%zu");
-    CHECK(sv_size(snip_view), bytes, "%zu");
-    CHECK(len, sv_npos(snip_view), "%zu");
-    CHECK(len, sv_minlen(snip, 99), "%zu");
+    CHECK(strlen(snip), len, size_t, "%zu");
+    CHECK(sv_len(snip_view), len, size_t, "%zu");
+    CHECK(sv_strsize(snip), bytes, size_t, "%zu");
+    CHECK(sv_size(snip_view), bytes, size_t, "%zu");
+    CHECK(len, sv_npos(snip_view), size_t, "%zu");
+    CHECK(len, sv_minlen(snip, 99), size_t, "%zu");
     return PASS;
 }
 
@@ -82,18 +82,18 @@ test_length_innacurate(void)
     const size_t len = strlen(ref);
     const size_t bytes = len + 1;
     const str_view view = sv_n(sizeof(ref), ref);
-    CHECK(len, strlen(ref), "%zu");
-    CHECK(len, sv_len(view), "%zu");
-    CHECK(bytes, sv_strsize(ref), "%zu");
-    CHECK(bytes, sv_size(view), "%zu");
-    CHECK(len, sv_npos(view), "%zu");
-    CHECK(len, sv_minlen(ref, sizeof(ref)), "%zu");
+    CHECK(len, strlen(ref), size_t, "%zu");
+    CHECK(len, sv_len(view), size_t, "%zu");
+    CHECK(bytes, sv_strsize(ref), size_t, "%zu");
+    CHECK(bytes, sv_size(view), size_t, "%zu");
+    CHECK(len, sv_npos(view), size_t, "%zu");
+    CHECK(len, sv_minlen(ref, sizeof(ref)), size_t, "%zu");
     const str_view view2 = sv_n(sizeof(ref), ref);
-    CHECK(len, strlen(ref), "%zu");
-    CHECK(len, sv_len(view2), "%zu");
-    CHECK(bytes, sv_strsize(ref), "%zu");
-    CHECK(bytes, sv_size(view2), "%zu");
-    CHECK(len, (sv_npos(view2)), "%zu");
-    CHECK(len, sv_minlen(ref, sizeof(ref)), "%zu");
+    CHECK(len, strlen(ref), size_t, "%zu");
+    CHECK(len, sv_len(view2), size_t, "%zu");
+    CHECK(bytes, sv_strsize(ref), size_t, "%zu");
+    CHECK(bytes, sv_size(view2), size_t, "%zu");
+    CHECK(len, (sv_npos(view2)), size_t, "%zu");
+    CHECK(len, sv_minlen(ref, sizeof(ref)), size_t, "%zu");
     return PASS;
 }

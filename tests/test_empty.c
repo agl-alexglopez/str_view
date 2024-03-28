@@ -6,7 +6,7 @@
 int
 main()
 {
-    CHECK(sv_empty(sv("")), true, "%b");
-    CHECK(*sv_null(), '\0', "%c");
+    CHECK(sv_empty(sv("")), true, bool, "%b");
+    CHECK(*sv_null(), '\0', char, "%c");
     return PASS;
 }
