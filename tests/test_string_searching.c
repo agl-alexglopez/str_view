@@ -245,12 +245,13 @@ test_consecutive_find(void)
         [10] = 'a', [11] = 'Z', [12] = '\0',
     };
     const size_t found_positions[3] = {3, 6, 11};
+    const size_t size = sizeof(found_positions) / sizeof(found_positions[0]);
     const str_view hay = sv(needles);
     const str_view needle = SV("Z");
     size_t pos = 0;
     size_t i = 0;
     bool found = false;
-    while ((pos = sv_find(hay, pos, needle)) != sv_npos(hay))
+    while (i < size && (pos = sv_find(hay, pos, needle)) != sv_npos(hay))
     {
         found = true;
         CHECK(pos, found_positions[i], size_t, "%zu");
@@ -258,8 +259,7 @@ test_consecutive_find(void)
         ++i;
     }
     CHECK(found, true, bool, "%b");
-    CHECK(i, sizeof(found_positions) / sizeof(found_positions[0]), size_t,
-          "%zu");
+    CHECK(i, size, size_t, "%zu");
     return PASS;
 }
 
@@ -277,7 +277,7 @@ test_consecutive_rfind(void)
     size_t pos = sv_len(hay);
     size_t i = sizeof(found_positions) / sizeof(found_positions[0]);
     bool found = false;
-    while ((pos = sv_rfind(hay, pos, needle)) != sv_npos(hay))
+    while (i && (pos = sv_rfind(hay, pos, needle)) != sv_npos(hay))
     {
         --i;
         found = true;

@@ -35,6 +35,7 @@
 #define CYAN "\033[38;5;14m"
 #define NONE "\033[0m"
 #define RED "\033[38;5;9m"
+#define PNK "\033[38;5;13m"
 
 struct file_buf
 {
@@ -43,11 +44,10 @@ struct file_buf
 };
 
 static int run(char * [static 1], size_t);
-static void search_file(str_view, str_view);
-static bool match_line(int, size_t, str_view, str_view);
+static bool match_file(str_view, str_view);
+static bool match_line(size_t, str_view, str_view);
 static void search_directory(str_view, DIR *, str_view);
 static bool fill_path(char[static FILESYS_MAX_PATH], str_view, str_view);
-static int num_digit_places(size_t);
 static struct file_buf get_file_buf(FILE *);
 
 int
@@ -91,7 +91,7 @@ run(char *args[static 1], size_t argc)
         const str_view filename = sv(args[0]);
         for (size_t i = 1; i < argc; ++i)
         {
-            search_file(filename, sv(args[i]));
+            match_file(filename, sv(args[i]));
         }
     }
     else
@@ -120,32 +120,37 @@ search_directory(str_view dirname, DIR *d, str_view needle)
         {
             continue;
         }
-        search_file(sv(path_buf), needle);
+        const str_view path_view = sv(path_buf);
+        if (match_file(path_view, needle))
+        {
+            (void)fprintf(stdout, PNK);
+            sv_print(stdout, path_view);
+            (void)fprintf(stdout, "\n\n" NONE);
+        }
     }
     seekdir(d, 0);
 }
 
-static void
-search_file(const str_view filename, str_view needle)
+static bool
+match_file(const str_view filename, str_view needle)
 {
     FILE *f = fopen(sv_begin(filename), "r");
     if (!f)
     {
         (void)fprintf(stderr, "error opening file %s, continuing.\n",
                       sv_begin(filename));
-        return;
+        return false;
     }
     const struct file_buf fb = get_file_buf(f);
     if (fclose(f))
     {
         (void)fprintf(stderr, "Error closing file.\n");
-        return;
+        return false;
     }
     if (!fb.buf)
     {
-        return;
+        return false;
     }
-    const int print_width = num_digit_places(fb.size);
     size_t read = 0;
     size_t lineno = 1;
     bool found = false;
@@ -153,7 +158,7 @@ search_file(const str_view filename, str_view needle)
          line = sv_delim(fb.buf + read, "\n"))
     {
         read += sv_size(line);
-        if (match_line(print_width, lineno, line, needle))
+        if (match_line(lineno, line, needle))
         {
             found = true;
         }
@@ -167,16 +172,11 @@ search_file(const str_view filename, str_view needle)
             lineno++;
         }
     }
-    if (found)
-    {
-        (void)fprintf(stdout, CYAN "\n↑↑↑ ");
-        sv_print(stdout, filename);
-        (void)fprintf(stdout, " ↑↑↑\n\n" NONE);
-    }
+    return found;
 }
 
 static bool
-match_line(int print_width, size_t lineno, str_view line, str_view needle)
+match_line(size_t lineno, str_view line, str_view needle)
 {
     size_t last_pos = 0;
     size_t pos = 0;
@@ -184,7 +184,7 @@ match_line(int print_width, size_t lineno, str_view line, str_view needle)
     {
         if (!last_pos)
         {
-            (void)fprintf(stdout, CYAN "%-*zu " NONE, print_width, lineno);
+            (void)fprintf(stdout, CYAN "%zu:" NONE, lineno);
         }
         sv_print(stdout, sv_substr(line, last_pos, pos - last_pos));
         (void)fprintf(stdout, RED);
@@ -239,16 +239,4 @@ get_file_buf(FILE *f)
         return (struct file_buf){0};
     }
     return (struct file_buf){.buf = buf, .size = size};
-}
-
-static int
-num_digit_places(size_t size)
-{
-    int digit_places = 0;
-    while (size)
-    {
-        ++digit_places;
-        size /= 10;
-    }
-    return digit_places;
 }
