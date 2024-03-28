@@ -43,8 +43,8 @@ struct file_buf
 };
 
 static int run(char * [static 1], size_t);
-static void search_file(str_view, FILE *, str_view);
-static bool search_line(int, size_t, str_view, str_view);
+static void search_file(str_view, str_view);
+static bool match_line(int, size_t, str_view, str_view);
 static void search_directory(str_view, DIR *, str_view);
 static bool fill_path(char[static FILESYS_MAX_PATH], str_view, str_view);
 static int num_digit_places(size_t);
@@ -91,12 +91,7 @@ run(char *args[static 1], size_t argc)
         const str_view filename = sv(args[0]);
         for (size_t i = 1; i < argc; ++i)
         {
-            search_file(filename, f, sv(args[i]));
-        }
-        if (fclose(f))
-        {
-            (void)fprintf(stderr, "Error closing file.\n");
-            return 1;
+            search_file(filename, sv(args[i]));
         }
     }
     else
@@ -125,21 +120,27 @@ search_directory(str_view dirname, DIR *d, str_view needle)
         {
             continue;
         }
-        FILE *f = fopen(path_buf, "r");
-        if (!f)
-        {
-            (void)fprintf(stderr, "error opening file in dir %s, continuing.\n",
-                          de->d_name);
-            continue;
-        }
-        search_file(sv(path_buf), f, needle);
+        search_file(sv(path_buf), needle);
     }
+    seekdir(d, 0);
 }
 
 static void
-search_file(str_view filename, FILE *f, str_view needle)
+search_file(const str_view filename, str_view needle)
 {
+    FILE *f = fopen(sv_begin(filename), "r");
+    if (!f)
+    {
+        (void)fprintf(stderr, "error opening file %s, continuing.\n",
+                      sv_begin(filename));
+        return;
+    }
     const struct file_buf fb = get_file_buf(f);
+    if (fclose(f))
+    {
+        (void)fprintf(stderr, "Error closing file.\n");
+        return;
+    }
     if (!fb.buf)
     {
         return;
@@ -156,7 +157,7 @@ search_file(str_view filename, FILE *f, str_view needle)
             break;
         }
         read += sv_size(line);
-        if (search_line(print_width, lineno, line, needle))
+        if (match_line(print_width, lineno, line, needle))
         {
             found = true;
         }
@@ -179,7 +180,7 @@ search_file(str_view filename, FILE *f, str_view needle)
 }
 
 static bool
-search_line(int print_width, size_t lineno, str_view line, str_view needle)
+match_line(int print_width, size_t lineno, str_view line, str_view needle)
 {
     size_t last_pos = 0;
     size_t pos = 0;
