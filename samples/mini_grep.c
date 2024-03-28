@@ -14,7 +14,7 @@
        ./build/rel/mini_grep str_view/ \)
 
    Directories must end in a slash to be searched as directories. Directories
-   are not searched recursively. */
+   are not searched recursively. Only files in a directory are searched. */
 #include "str_view.h"
 #include <dirent.h>
 #include <fcntl.h>
