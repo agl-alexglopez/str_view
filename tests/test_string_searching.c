@@ -13,12 +13,14 @@ static enum test_result test_find_of_sets(void);
 static enum test_result test_substring_brute_force(void);
 static enum test_result test_rfind_brute_force(void);
 static enum test_result test_find_rfind_memoization(void);
+static enum test_result test_consecutive_find(void);
+static enum test_result test_consecutive_rfind(void);
 static enum test_result test_substring_off_by_one(void);
 static enum test_result test_substring_search(void);
 static enum test_result test_rsubstring_search(void);
 static enum test_result test_long_substring(void);
 
-#define NUM_TESTS (size_t)11
+#define NUM_TESTS (size_t)13
 const struct fn_name all_tests[NUM_TESTS] = {
     {test_small_find, "test_small_find"},
     {test_small_rfind, "test_small_rfind"},
@@ -27,6 +29,8 @@ const struct fn_name all_tests[NUM_TESTS] = {
     {test_rfind_brute_force, "test_rfind_brute_force"},
     {test_rfind_off_by_one, "test_rfind_off_by_one"},
     {test_find_rfind_memoization, "test_find_rfind_memoization"},
+    {test_consecutive_find, "test_consecutive_find()"},
+    {test_consecutive_rfind, "test_consecutive_rfind()"},
     {test_substring_off_by_one, "test_substring_off_by_one"},
     {test_substring_search, "test_substring_search"},
     {test_rsubstring_search, "test_rsubstring_search"},
@@ -229,6 +233,59 @@ test_rfind_brute_force(void)
     const str_view needle_fail_rsvsv
         = sv_rmatch(haystack_view, sv("this is a failure"));
     CHECK(sv_empty(needle_fail_rsvsv), true, bool, "%b");
+    return PASS;
+}
+
+static enum test_result
+test_consecutive_find(void)
+{
+    const char needles[13] = {
+        [0] = 'a',  [1] = 'a',  [2] = 'a',   [3] = 'Z', [4] = 'a',
+        [5] = 'a',  [6] = 'Z',  [7] = 'a',   [8] = 'a', [9] = 'a',
+        [10] = 'a', [11] = 'Z', [12] = '\0',
+    };
+    const size_t found_positions[3] = {3, 6, 11};
+    const str_view hay = sv(needles);
+    const str_view needle = SV("Z");
+    size_t pos = 0;
+    size_t i = 0;
+    bool found = false;
+    while ((pos = sv_find(hay, pos, needle)) != sv_npos(hay))
+    {
+        found = true;
+        CHECK(pos, found_positions[i], size_t, "%zu");
+        ++pos;
+        ++i;
+    }
+    CHECK(found, true, bool, "%b");
+    CHECK(i, sizeof(found_positions) / sizeof(found_positions[0]), size_t,
+          "%zu");
+    return PASS;
+}
+
+static enum test_result
+test_consecutive_rfind(void)
+{
+    const char needles[13] = {
+        [0] = 'a',  [1] = 'a',  [2] = 'a',   [3] = 'Z', [4] = 'a',
+        [5] = 'a',  [6] = 'Z',  [7] = 'a',   [8] = 'a', [9] = 'a',
+        [10] = 'a', [11] = 'Z', [12] = '\0',
+    };
+    const size_t found_positions[3] = {3, 6, 11};
+    const str_view hay = sv(needles);
+    const str_view needle = SV("Z");
+    size_t pos = sv_len(hay);
+    size_t i = sizeof(found_positions) / sizeof(found_positions[0]);
+    bool found = false;
+    while ((pos = sv_rfind(hay, pos, needle)) != sv_npos(hay))
+    {
+        --i;
+        found = true;
+        CHECK(pos, found_positions[i], size_t, "%zu");
+        --pos;
+    }
+    CHECK(found, true, bool, "%b");
+    CHECK(i, 0ULL, size_t, "%zu");
     return PASS;
 }
 
