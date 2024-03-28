@@ -38,7 +38,7 @@
 
 struct file_buf
 {
-    const char *buf;
+    const char *const buf;
     size_t size;
 };
 
@@ -149,13 +149,9 @@ search_file(const str_view filename, str_view needle)
     size_t read = 0;
     size_t lineno = 1;
     bool found = false;
-    while (read < fb.size)
+    for (str_view line = sv_delim(fb.buf + read, "\n"); !sv_empty(line);
+         line = sv_delim(fb.buf + read, "\n"))
     {
-        const str_view line = sv_delim(fb.buf + read, "\n");
-        if (sv_empty(line))
-        {
-            break;
-        }
         read += sv_size(line);
         if (match_line(print_width, lineno, line, needle))
         {
