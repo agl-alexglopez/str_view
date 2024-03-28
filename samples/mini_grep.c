@@ -94,7 +94,7 @@ run(char *args[static 1], size_t argc)
         const str_view filename = sv(args[0]);
         for (size_t i = 1; i < argc; ++i)
         {
-            match_file(filename, sv(args[i]));
+            (void)match_file(filename, sv(args[i]));
         }
     }
     else
