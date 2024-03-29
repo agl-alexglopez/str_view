@@ -63,7 +63,7 @@ const str_view read_flag = SV("--read");
 
 static int run(char * [static 1], size_t);
 static bool match_file_mmap(str_view, str_view);
-static bool match_file_read(str_view, str_view);
+static bool match_file_read(FILE *, str_view);
 static bool match_line(size_t, str_view, str_view);
 static void search_directory(str_view, DIR *, enum io_method, str_view);
 static bool fill_path(char[static FILESYS_MAX_PATH], str_view, str_view);
@@ -111,33 +111,32 @@ run(char *args[static 1], size_t argc)
         }
         closedir(d);
     }
-    else if (S_ISREG(file_type.st_mode))
+    else
     {
-        FILE *f = fopen(args[start], "r");
+        bool success = true;
+        const str_view filename = sv(args[start]);
+        FILE *f = fopen(sv_begin(filename), "r");
         if (!f)
         {
-            (void)fprintf(stderr, "Could not open file.\n");
-            return 1;
+            success = false;
+            f = stdin;
         }
-        const str_view filename = sv(args[start]);
-        for (size_t i = start + 1; i < argc; ++i)
+        for (size_t i = start; i < argc; ++i)
         {
             switch (io_style)
             {
             case READ:
-                (void)match_file_read(filename, sv(args[i]));
+                (void)match_file_read(f, sv(args[i]));
                 break;
             case MMAP:
                 (void)match_file_mmap(filename, sv(args[i]));
                 break;
             }
         }
-    }
-    else
-    {
-        (void)fprintf(stderr,
-                      "mini grep can only search files and directories.\n");
-        return 1;
+        if (success)
+        {
+            (void)fclose(f);
+        }
     }
     return 0;
 }
@@ -161,14 +160,22 @@ search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
         }
         const str_view path_view = sv(path_buf);
         bool match_res = false;
-        switch (io)
+        if (io == READ)
         {
-        case READ:
-            match_res = match_file_read(path_view, needle);
-            break;
-        case MMAP:
+            FILE *f = fopen(sv_begin(path_view), "r");
+            if (f)
+            {
+                match_res = match_file_read(f, needle);
+                (void)fclose(f);
+            }
+        }
+        else if (io == MMAP)
+        {
             match_res = match_file_mmap(path_view, needle);
-            break;
+        }
+        else
+        {
+            (void)fprintf(stderr, "Review io options, one slipped through.\n");
         }
         if (match_res)
         {
@@ -181,15 +188,8 @@ search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
 }
 
 static bool
-match_file_read(const str_view filename, str_view needle)
+match_file_read(FILE *f, str_view needle)
 {
-    FILE *f = fopen(sv_begin(filename), "r");
-    if (!f)
-    {
-        (void)fprintf(stderr, "error opening file %s, continuing.\n",
-                      sv_begin(filename));
-        return false;
-    }
     char *lineptr = NULL;
     size_t len = 0;
     ssize_t read = 0;
