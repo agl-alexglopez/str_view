@@ -2,7 +2,7 @@
 
 ![mini-grep](/images/mini-grep.png)
 
-**Pictured Above: Mocking up a mini grep program is easy with the right tools. Use `mini_grep` and any other sample programs as they arrive in the `samples/` folder to test the utility and convenience of a `str_view`.**
+*Pictured Above: Mocking up a mini grep program is easy with the right tools. Use `mini_grep` and any other sample programs as they arrive in the `samples/` folder to test the utility and convenience of a `str_view`.*
 
 The `str_view` type is a simple, copyable, flexible, read only view of `const char *` data in C. This implementation is experimental for now, lacking any official packaging or robust sample programs. However, this library is well tested and does what is advertised in the interface. The entire implementation can be viewed in `str_view/str_view.h/.c` and included in any project for some convenient string helpers.
 
