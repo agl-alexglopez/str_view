@@ -121,7 +121,7 @@ run(char *args[static 1], size_t argc)
             success = false;
             f = stdin;
         }
-        for (size_t i = start; i < argc; ++i)
+        for (size_t i = start + success; i < argc; ++i)
         {
             switch (io_style)
             {
