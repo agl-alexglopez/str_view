@@ -113,15 +113,16 @@ run(char *args[static 1], size_t argc)
     }
     else
     {
-        bool success = true;
+        bool opened_file = true;
         const str_view filename = sv(args[start]);
         FILE *f = fopen(sv_begin(filename), "r");
         if (!f)
         {
-            success = false;
+            opened_file = false;
             f = stdin;
+            io_style = READ;
         }
-        for (size_t i = start + success; i < argc; ++i)
+        for (size_t i = start + opened_file; i < argc; ++i)
         {
             switch (io_style)
             {
@@ -133,7 +134,7 @@ run(char *args[static 1], size_t argc)
                 break;
             }
         }
-        if (success)
+        if (opened_file)
         {
             (void)fclose(f);
         }
