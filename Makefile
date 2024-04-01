@@ -1,4 +1,4 @@
-.PHONY: default build grel gdeb crel cdeb test-deb test-rel clean
+.PHONY: default install build grel gdeb crel cdeb test-deb test-rel clean
 
 MAKE := $(MAKE)
 MAKEFLAGS += --no-print-directory
@@ -8,24 +8,27 @@ BUILD_DIR := build/
 
 default: build
 
+build:
+	cmake --build $(BUILD_DIR) $(JOBS)
+
+install:
+	cmake --build $(BUILD_DIR) --target install $(JOBS)
+
 grel:
 	cmake --preset=grel
-	cmake --build $(BUILD_DIR) $(JOBS)
+	$(MAKE) install
 
 gdeb:
 	cmake --preset=gdeb
-	cmake --build $(BUILD_DIR) $(JOBS)
+	$(MAKE) install
 
 crel:
 	cmake --preset=crel
-	cmake --build $(BUILD_DIR) $(JOBS)
+	$(MAKE) install
 
 cdeb:
 	cmake --preset=cdeb
-	cmake --build $(BUILD_DIR) $(JOBS)
-
-build:
-	cmake --build $(BUILD_DIR) $(JOBS)
+	$(MAKE) install
 
 format:
 	cmake --build $(BUILD_DIR) --target format
