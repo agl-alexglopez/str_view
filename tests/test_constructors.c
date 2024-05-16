@@ -2,7 +2,6 @@
 #include "test.h"
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
 static enum test_result test_from_null(void);
@@ -13,13 +12,10 @@ static enum test_result test_from_delim_no_delim(void);
 static enum test_result test_empty_constructor(void);
 
 #define NUM_TESTS (size_t)6
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_from_null, "test_from_null"},
-    {test_from_delim, "test_from_delim"},
-    {test_from_delim_multiple, "test_from_delim_multiple"},
-    {test_from_multichar_delim, "test_from_multichar_delim"},
-    {test_from_delim_no_delim, "test_from_delim_no_delim"},
-    {test_empty_constructor, "test_empty_constructor"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_from_null,           test_from_delim,
+    test_from_delim_multiple, test_from_multichar_delim,
+    test_from_delim_no_delim, test_empty_constructor,
 };
 
 int
@@ -28,13 +24,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_constructors.c test failed: " CYAN
-                              "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }

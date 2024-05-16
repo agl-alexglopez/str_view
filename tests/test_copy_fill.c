@@ -1,16 +1,15 @@
 #include "str_view.h"
 #include "test.h"
 
-#include <stdio.h>
 #include <string.h>
 
 static enum test_result test_copy_fill(void);
 static enum test_result test_copy_section(void);
 
 #define NUM_TESTS (size_t)2
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_copy_fill, "fill a buffer and null terminate"},
-    {test_copy_section, "copy a section of string and fill buffer"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_copy_fill,
+    test_copy_section,
 };
 
 int
@@ -19,12 +18,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_copy_fill.c test failed: " CYAN "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }

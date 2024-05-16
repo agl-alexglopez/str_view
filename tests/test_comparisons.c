@@ -2,7 +2,6 @@
 #include "test.h"
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
 static enum test_result test_compare_single(void);
@@ -14,16 +13,14 @@ static enum test_result test_compare_different_lengths_views(void);
 static enum test_result test_compare_misc(void);
 
 #define NUM_TESTS (size_t)7
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_compare_single, "test_compare_single"},
-    {test_compare_equal, "test_compare_equal"},
-    {test_compare_equal_view, "test_compare_equal_view"},
-    {test_compare_terminated, "test_compare_terminated"},
-    {test_compare_different_lengths_terminated,
-     "test_compare_different_lengths_terminated"},
-    {test_compare_different_lengths_views,
-     "test_compare_different_lengths_views"},
-    {test_compare_misc, "test_compare_misc"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_compare_single,
+    test_compare_equal,
+    test_compare_equal_view,
+    test_compare_terminated,
+    test_compare_different_lengths_terminated,
+    test_compare_different_lengths_views,
+    test_compare_misc,
 };
 
 int
@@ -32,12 +29,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(
-                stderr, RED "test_comparisons.c test failed: " CYAN "%s\n" NONE,
-                all_tests[i].name);
             res = FAIL;
         }
     }

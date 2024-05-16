@@ -3,7 +3,6 @@
 
 #include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
 static const str_view dirslash = SV("/");
@@ -14,11 +13,11 @@ static enum test_result test_dir_entries(void);
 static enum test_result test_progressive_search(void);
 
 #define NUM_TESTS (size_t)4
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_prefix_suffix, "test_prefix_suffix"},
-    {test_substr, "test_substr"},
-    {test_dir_entries, "test_dir_entries"},
-    {test_progressive_search, "test_dir_dfs"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_prefix_suffix,
+    test_substr,
+    test_dir_entries,
+    test_progressive_search,
 };
 
 int
@@ -27,13 +26,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_view_editing.c test failed: " CYAN
-                              "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }

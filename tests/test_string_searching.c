@@ -21,20 +21,20 @@ static enum test_result test_rsubstring_search(void);
 static enum test_result test_long_substring(void);
 
 #define NUM_TESTS (size_t)13
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_small_find, "test_small_find"},
-    {test_small_rfind, "test_small_rfind"},
-    {test_find_of_sets, "test_find_of_sets"},
-    {test_substring_brute_force, "test_substring_brute_force"},
-    {test_rfind_brute_force, "test_rfind_brute_force"},
-    {test_rfind_off_by_one, "test_rfind_off_by_one"},
-    {test_find_rfind_memoization, "test_find_rfind_memoization"},
-    {test_consecutive_find, "test_consecutive_find()"},
-    {test_consecutive_rfind, "test_consecutive_rfind()"},
-    {test_substring_off_by_one, "test_substring_off_by_one"},
-    {test_substring_search, "test_substring_search"},
-    {test_rsubstring_search, "test_rsubstring_search"},
-    {test_long_substring, "test_long_substring"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_small_find,
+    test_small_rfind,
+    test_find_of_sets,
+    test_substring_brute_force,
+    test_rfind_brute_force,
+    test_rfind_off_by_one,
+    test_find_rfind_memoization,
+    test_consecutive_find,
+    test_consecutive_rfind,
+    test_substring_off_by_one,
+    test_substring_search,
+    test_rsubstring_search,
+    test_long_substring,
 };
 
 int
@@ -43,13 +43,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_string_searching.c test failed: " CYAN
-                              "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }

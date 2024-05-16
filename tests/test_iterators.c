@@ -1,7 +1,6 @@
 #include "str_view.h"
 #include "test.h"
 
-#include <stdio.h>
 #include <string.h>
 
 static enum test_result test_iter(void);
@@ -37,38 +36,38 @@ static enum test_result test_tokenize_three_views(void);
 static enum test_result test_rtokenize_three_views(void);
 
 #define NUM_TESTS (size_t)31
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_iter, "test_iter"},
-    {test_iter2, "test_iter2"},
-    {test_riter, "test_riter"},
-    {test_riter_multi, "test_riter_multi"},
-    {test_riter2, "test_riter2"},
-    {test_min_delim, "test_min_delim"},
-    {test_min_delim_two_byte, "test_min_delim_two_byte"},
-    {test_min_delim_three_byte, "test_min_delim_three_byte"},
-    {test_min_delim_four_byte, "test_min_delim_four_byte"},
-    {test_min_delim_five_byte, "test_min_delim_five_byte"},
-    {test_rmin_delim, "test_rmin_delim"},
-    {test_rmin_delim_two_byte, "test_rmin_delim_two_byte"},
-    {test_rmin_delim_three_byte, "test_rmin_delim_three_byte"},
-    {test_rmin_delim_four_byte, "test_rmin_delim_four_byte"},
-    {test_rmin_delim_five_byte, "test_rmin_delim_five_byte"},
-    {test_simple_delim, "test_simple_delim"},
-    {test_rsimple_delim, "test_rsimple_delim"},
-    {test_tail_delim, "test_tail_delim"},
-    {test_rtail_delim, "test_rtail_delim"},
-    {test_rtriple_delim, "test_rtriple_delim"},
-    {test_rquad_delim, "test_rquad_delim"},
-    {test_iter_repeating_delim, "test_iter_repeating_delim"},
-    {test_iter_multichar_delim, "test_iter_multichar_delim"},
-    {test_riter_multichar_delim, "test_riter_multichar_delim"},
-    {test_iter_multichar_delim_short, "test_iter_multichar_delim_short"},
-    {test_riter_multichar_delim_short, "test_riter_multichar_delim_short"},
-    {test_iter_delim_larger_than_str, "test_iter_delim_larger_than_str"},
-    {test_riter_delim_larger_than_str, "test_riter_delim_larger_than_str"},
-    {test_tokenize_not_terminated, "test_tokenize_not_terminated"},
-    {test_tokenize_three_views, "test_tokenize_three_view"},
-    {test_rtokenize_three_views, "test_rtokenize_three_view"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_iter,
+    test_iter2,
+    test_riter,
+    test_riter_multi,
+    test_riter2,
+    test_min_delim,
+    test_min_delim_two_byte,
+    test_min_delim_three_byte,
+    test_min_delim_four_byte,
+    test_min_delim_five_byte,
+    test_rmin_delim,
+    test_rmin_delim_two_byte,
+    test_rmin_delim_three_byte,
+    test_rmin_delim_four_byte,
+    test_rmin_delim_five_byte,
+    test_simple_delim,
+    test_rsimple_delim,
+    test_tail_delim,
+    test_rtail_delim,
+    test_rtriple_delim,
+    test_rquad_delim,
+    test_iter_repeating_delim,
+    test_iter_multichar_delim,
+    test_riter_multichar_delim,
+    test_iter_multichar_delim_short,
+    test_riter_multichar_delim_short,
+    test_iter_delim_larger_than_str,
+    test_riter_delim_larger_than_str,
+    test_tokenize_not_terminated,
+    test_tokenize_three_views,
+    test_rtokenize_three_views,
 };
 
 int
@@ -77,12 +76,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_iterators.c test failed: " CYAN "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }
