@@ -84,12 +84,12 @@ run(char *args[static 1], size_t argc)
 {
     enum io_method io_style = READ;
     size_t start = 0;
-    if (sv_strcmp(mmap_flag, args[start]) == EQL)
+    if (sv_strcmp(mmap_flag, args[start]) == SV_EQL)
     {
         io_style = MMAP;
         ++start;
     }
-    else if (sv_strcmp(read_flag, args[start]) == EQL)
+    else if (sv_strcmp(read_flag, args[start]) == SV_EQL)
     {
         io_style = READ;
         ++start;

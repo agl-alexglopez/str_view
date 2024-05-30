@@ -164,31 +164,31 @@ test_compare_different_lengths_views(void)
 static enum test_result
 test_compare_misc(void)
 {
-    CHECK(sv_cmp(sv(""), sv("")), EQL, sv_threeway_cmp, "%d");
-    CHECK(sv_strcmp(sv(""), ""), EQL, sv_threeway_cmp, "%d");
-    CHECK(sv_cmp(sv("same"), sv("same")), EQL, sv_threeway_cmp, "%d");
-    CHECK(sv_cmp(sv("samz"), sv("same")), GRT, sv_threeway_cmp, "%d");
-    CHECK(sv_cmp(sv("same"), sv("samz")), LES, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv(""), sv("")), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv(""), ""), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("same"), sv("same")), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("samz"), sv("same")), SV_GRT, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("same"), sv("samz")), SV_LES, sv_threeway_cmp, "%d");
     /* The comparison function should treat the end of a string view as
        null terminating character even if it points to a delimeter */
-    CHECK(sv_cmp(sv("same"), sv_delim("same same", " ")), EQL, sv_threeway_cmp,
-          "%d");
-    CHECK(sv_cmp(sv("same"), sv_delim("samz same", " ")), LES, sv_threeway_cmp,
-          "%d");
-    CHECK(sv_cmp(sv_delim("sameez same", " "), sv("same")), GRT,
+    CHECK(sv_cmp(sv("same"), sv_delim("same same", " ")), SV_EQL,
+          sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv("same"), sv_delim("samz same", " ")), SV_LES,
+          sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(sv_delim("sameez same", " "), sv("same")), SV_GRT,
           sv_threeway_cmp, "%d");
     const char *const str = "same";
-    CHECK(sv_strcmp(sv(str), str), EQL, sv_threeway_cmp, "%d");
-    CHECK(sv_strcmp(sv_delim("same same", " "), str), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(sv(str), str), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv_delim("same same", " "), str), SV_EQL, sv_threeway_cmp,
           "%d");
-    CHECK(sv_strcmp(sv_delim("samez same", " "), str), GRT, sv_threeway_cmp,
+    CHECK(sv_strcmp(sv_delim("samez same", " "), str), SV_GRT, sv_threeway_cmp,
           "%d");
-    CHECK(sv_strcmp(sv_delim("sameez same", " "), str), GRT, sv_threeway_cmp,
+    CHECK(sv_strcmp(sv_delim("sameez same", " "), str), SV_GRT, sv_threeway_cmp,
           "%d");
     /* strncmp compares at most n bytes inclusize or stops at null. */
-    CHECK(sv_strncmp(sv_delim("sameez same", " "), str, 10), GRT,
+    CHECK(sv_strncmp(sv_delim("sameez same", " "), str, 10), SV_GRT,
           sv_threeway_cmp, "%d");
-    CHECK(sv_strncmp(sv_delim("saaeez same", " "), str, 3), LES,
+    CHECK(sv_strncmp(sv_delim("saaeez same", " "), str, 3), SV_LES,
           sv_threeway_cmp, "%d");
     return PASS;
 }

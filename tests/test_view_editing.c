@@ -77,22 +77,22 @@ test_substr(void)
     const char *const substr2 = "Have another!";
     const str_view substr1_view = sv(substr1);
     const str_view substr2_view = sv(substr2);
-    CHECK(sv_strcmp(sv_substr(sv(ref), 0, strlen(substr1)), substr1), EQL,
+    CHECK(sv_strcmp(sv_substr(sv(ref), 0, strlen(substr1)), substr1), SV_EQL,
           sv_threeway_cmp, "%d");
     CHECK(sv_strcmp(sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)),
                     substr2),
-          EQL, sv_threeway_cmp, "%d");
-    CHECK(sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref), EQL,
+          SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv_substr(sv(ref), 0, ULLONG_MAX), ref), SV_EQL,
           sv_threeway_cmp, "%d");
     /* Make sure the fill function adds null terminator */
     char dump_substr1[27] = {[13] = '@'};
     (void)sv_fill(27, dump_substr1, sv_substr(sv(ref), 0, strlen(substr1)));
-    CHECK(sv_strcmp(substr1_view, dump_substr1), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(substr1_view, dump_substr1), SV_EQL, sv_threeway_cmp, "%d");
     /* Make sure the fill function adds null terminator */
     char dump_substr2[27] = {[14] = '@'};
     (void)sv_fill(27, dump_substr2,
                   sv_substr(sv(ref), strlen(substr1) + 1, strlen(substr2)));
-    CHECK(sv_strcmp(substr2_view, dump_substr2), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(substr2_view, dump_substr2), SV_EQL, sv_threeway_cmp, "%d");
     return PASS;
 }
 
@@ -107,8 +107,8 @@ test_dir_entries(void)
         = sv_substr(root_single_entry_slash, 0,
                     sv_rfind(root_single_entry_slash,
                              sv_len(root_single_entry_slash), dirslash));
-    CHECK(sv_cmp(without_last_slash, root_single_entry), EQL, sv_threeway_cmp,
-          "%d");
+    CHECK(sv_cmp(without_last_slash, root_single_entry), SV_EQL,
+          sv_threeway_cmp, "%d");
     const str_view special_file = SV("/this/is/a/very/special/file");
     const char *const toks[6] = {"this", "is", "a", "very", "special", "file"};
     size_t i = 0;
@@ -116,7 +116,7 @@ test_dir_entries(void)
          !sv_end_tok(special_file, tok);
          tok = sv_next_tok(special_file, tok, dirslash), ++i)
     {
-        CHECK(sv_strcmp(tok, toks[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_strcmp(tok, toks[i]), SV_EQL, sv_threeway_cmp, "%d");
     }
     CHECK(i, sizeof(toks) / sizeof(toks[0]), size_t, "%zu");
     return PASS;
@@ -143,7 +143,7 @@ test_progressive_search(void)
     for (str_view path = starting_path; !sv_empty(path);
          path = sv_remove_prefix(path, sv_find_first_of(path, dirslash) + 1))
     {
-        CHECK(sv_strcmp(path, sub_paths[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_strcmp(path, sub_paths[i]), SV_EQL, sv_threeway_cmp, "%d");
         ++i;
     }
     CHECK(i, sizeof(sub_paths) / sizeof(sub_paths[0]), size_t, "%zu");
@@ -163,7 +163,7 @@ test_progressive_search(void)
          path = sv_remove_suffix(path, sv_len(path)
                                            - sv_find_last_of(path, dirslash)))
     {
-        CHECK(sv_strcmp(path, sub_paths_rev[i]), EQL, sv_threeway_cmp, "%d");
+        CHECK(sv_strcmp(path, sub_paths_rev[i]), SV_EQL, sv_threeway_cmp, "%d");
         ++i;
     }
     CHECK(i, sizeof(sub_paths_rev) / sizeof(sub_paths_rev[0]), size_t, "%zu");
