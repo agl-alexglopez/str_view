@@ -115,7 +115,7 @@ str_view sv_delim(const char str[static const 1],
     ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
 
 /* Creates the substring from position pos for count length. The count is
-   the minimum value between count and (str_view.sz - pos). If an invalid
+   the minimum value between count and (length - pos). If an invalid
    position is given greater than str_view length an empty view is returned
    positioned at the end of str_view. This position may or may not hold the
    null terminator. */
@@ -126,7 +126,7 @@ str_view sv_substr(str_view sv, size_t pos, size_t count) ATTRIB_PURE;
    such as NULL as the underlying str_view string pointer. */
 const char *sv_null(void) ATTRIB_PURE;
 
-/* The end of a str_view guaranted to be greater than or equal to size.
+/* The end of a str_view guaranteed to be greater than or equal to size.
    May be used for the idiomatic check for most string searching function
    return values when something is not found. If a size is returned from
    a searching function it is possible to check it against npos. */
@@ -135,7 +135,7 @@ size_t sv_npos(str_view sv) ATTRIB_CONST;
 /* Returns true if the provided str_view is empty, false otherwise.
    This is a useful function to check for str_view searches that yield
    an empty view at the end of a str_view when an element cannot be
-   found. See sv_svsv or sv_rsvsv as an example. */
+   found. */
 bool sv_empty(str_view sv) ATTRIB_CONST;
 
 /* Returns the length of the str_view in O(1) time. The position at
@@ -253,7 +253,7 @@ size_t sv_minlen(const char str[static const 1], size_t n) ATTRIB_NONNULL(1)
    delim is found the entire str_view is returned. */
 str_view sv_begin_tok(str_view src, str_view delim) ATTRIB_PURE;
 
-/* Returns true if no further tokes are found and position is at the end
+/* Returns true if no further tokens are found and position is at the end
    position, meaning a call to sv_next_tok has yielded a size 0 str_view
    that points at the end of the src str_view which may or may not be null
    terminated. */
@@ -289,8 +289,8 @@ bool sv_rend_tok(str_view src, str_view tok) ATTRIB_PURE;
    than in the forward direction when partial matches occur and some portion
    of the delimeter is in a token. This is because the string is now being
    parsed from right to left. However, the token returned starts at the first
-   character and is read from left to right between two delimeters as is
-   in the forward tokenization.  */
+   character and is read from left to right between two delimeters as in the
+   forward tokenization.  */
 str_view sv_rnext_tok(str_view src, str_view tok, str_view delim) ATTRIB_PURE;
 
 /* Returns a read only pointer to the beginning of the string view,
