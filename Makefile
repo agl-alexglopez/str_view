@@ -5,6 +5,11 @@ MAKEFLAGS += --no-print-directory
 # Adjust parallel build jobs based on your available cores.
 JOBS ?= $(shell (command -v nproc > /dev/null 2>&1 && echo "-j$$(nproc)") || echo "")
 BUILD_DIR := build/
+PREFIX := install/
+
+ifeq ($(words $(MAKECMDGOALS)),2)
+  PREFIX := $(word 2, $(MAKECMDGOALS))
+endif
 
 default: build
 
@@ -15,20 +20,20 @@ install:
 	cmake --build $(BUILD_DIR) --target install $(JOBS)
 
 grel:
-	cmake --preset=grel
-	$(MAKE) install
+	cmake --preset=grel -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	$(MAKE) build
 
 gdeb:
-	cmake --preset=gdeb
-	$(MAKE) install
+	cmake --preset=gdeb -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	$(MAKE) build
 
 crel:
-	cmake --preset=crel
-	$(MAKE) install
+	cmake --preset=crel -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	$(MAKE) build
 
 cdeb:
-	cmake --preset=cdeb
-	$(MAKE) install
+	cmake --preset=cdeb -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	$(MAKE) build
 
 format:
 	cmake --build $(BUILD_DIR) --target format
