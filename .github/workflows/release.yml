@@ -30,6 +30,7 @@ jobs:
       - name: Create Release Zip
         run: |
           git archive --format=zip --output=release-${GITHUB_REF#refs/tags/}.zip release-${GITHUB_REF#refs/tags/}
+          ls
 
       - name: Create GitHub Release
         id: create_release
