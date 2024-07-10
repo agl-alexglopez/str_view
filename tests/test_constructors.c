@@ -110,6 +110,6 @@ test_empty_constructor(void)
     const char *const reference = "------------";
     const str_view sv = sv_delim(reference, "-");
     CHECK(sv_len(sv), 0UL, size_t, "%zu");
-    CHECK(sv_empty(sv), true, bool, "%b");
+    CHECK(sv_empty(sv), true, bool, "%d");
     return PASS;
 }

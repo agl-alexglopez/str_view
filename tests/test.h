@@ -39,7 +39,7 @@ typedef enum test_result (*test_fn)(void);
    types must be comparable with ==/!=. Finally, provide the type and
    format specifier for the types being compared which also must be
    the same for both RESULT and EXPECTED (e.g. int, "%d", size_t, "%zu",
-   bool, "%b"). If RESULT or EXPECTED are function calls they will only
+   bool, "%d"). If RESULT or EXPECTED are function calls they will only
    be evaluated once, as expected. */
 #define CHECK(RESULT, EXPECTED, TYPE, TYPE_FORMAT_SPECIFIER)                   \
     do                                                                         \

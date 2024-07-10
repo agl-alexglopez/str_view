@@ -219,16 +219,16 @@ test_rfind_brute_force(void)
                                         sv("this is a failure"));
     CHECK(needle_fail, sv_len(haystack_view), size_t, "%zu");
     const str_view one_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("J"));
-    CHECK(sv_empty(one_byte_fail_rsvsv), true, bool, "%b");
+    CHECK(sv_empty(one_byte_fail_rsvsv), true, bool, "%d");
     const str_view two_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("ZZ"));
-    CHECK(sv_empty(two_byte_fail_rsvsv), true, bool, "%b");
+    CHECK(sv_empty(two_byte_fail_rsvsv), true, bool, "%d");
     const str_view three_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("888"));
-    CHECK(sv_empty(three_byte_fail_rsvsv), true, bool, "%b");
+    CHECK(sv_empty(three_byte_fail_rsvsv), true, bool, "%d");
     const str_view four_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("1738"));
-    CHECK(sv_empty(four_byte_fail_rsvsv), true, bool, "%b");
+    CHECK(sv_empty(four_byte_fail_rsvsv), true, bool, "%d");
     const str_view needle_fail_rsvsv
         = sv_rmatch(haystack_view, sv("this is a failure"));
-    CHECK(sv_empty(needle_fail_rsvsv), true, bool, "%b");
+    CHECK(sv_empty(needle_fail_rsvsv), true, bool, "%d");
     return PASS;
 }
 
@@ -254,7 +254,7 @@ test_consecutive_find(void)
         ++pos;
         ++i;
     }
-    CHECK(found, true, bool, "%b");
+    CHECK(found, true, bool, "%d");
     CHECK(i, size, size_t, "%zu");
     return PASS;
 }
@@ -280,7 +280,7 @@ test_consecutive_rfind(void)
         CHECK(pos, found_positions[i], size_t, "%zu");
         --pos;
     }
-    CHECK(found, true, bool, "%b");
+    CHECK(found, true, bool, "%d");
     CHECK(i, 0ULL, size_t, "%zu");
     return PASS;
 }

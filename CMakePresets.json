@@ -9,6 +9,7 @@
         {
             "name": "gcc-deb",
             "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/install",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_C_STANDARD": "11",
@@ -22,6 +23,7 @@
         {
             "name": "gcc-rel",
             "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/install",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_C_STANDARD": "11",
@@ -35,6 +37,7 @@
         {
             "name": "clang-deb",
             "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/install",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_C_STANDARD": "11",
@@ -48,6 +51,7 @@
         {
             "name": "clang-rel",
             "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/install",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_C_STANDARD": "11",

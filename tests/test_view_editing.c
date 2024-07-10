@@ -57,9 +57,9 @@ test_prefix_suffix(void)
         ++i;
     }
     CHECK(sv_empty(sv_remove_prefix(entire_string, ULLONG_MAX)), true, bool,
-          "%b");
+          "%d");
     CHECK(sv_empty(sv_remove_suffix(entire_string, ULLONG_MAX)), true, bool,
-          "%b");
+          "%d");
     return PASS;
 }
 
@@ -100,7 +100,7 @@ static enum test_result
 test_dir_entries(void)
 {
     CHECK(sv_empty(sv_substr(dirslash, 0, sv_rfind(dirslash, 0, dirslash))),
-          true, bool, "%b");
+          true, bool, "%d");
     const str_view root_single_entry = SV("/usr");
     const str_view root_single_entry_slash = SV("/usr/");
     const str_view without_last_slash

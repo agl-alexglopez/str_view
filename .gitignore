@@ -58,3 +58,4 @@ install/
 .gdbinit
 .gdb_history
 CMakeUserPresets.json
+Makefile.user
