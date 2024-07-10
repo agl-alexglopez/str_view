@@ -11,6 +11,7 @@ include(etc/scanners.cmake)
 
 include_directories("${PROJECT_SOURCE_DIR}/samples")
 include_directories("${PROJECT_SOURCE_DIR}/tests")
+include_directories("${PROJECT_SOURCE_DIR}/str_view")
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/samples")
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests")
@@ -61,7 +62,7 @@ file(GENERATE
 
 # without it public headers won't get installed
 set(public_headers
-    include/str_view.h
+    str_view/str_view.h
 )
 
 # not for MSVC
