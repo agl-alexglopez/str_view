@@ -7,14 +7,27 @@ project("str_view"
     DESCRIPTION "Robust read-only string handling, tokenization, and matching in C."
 )
 
-include(etc/scanners.cmake)
 
-include_directories("${PROJECT_SOURCE_DIR}/samples")
-include_directories("${PROJECT_SOURCE_DIR}/tests")
 include_directories("${PROJECT_SOURCE_DIR}/str_view")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/samples")
-add_subdirectory("${PROJECT_SOURCE_DIR}/tests")
+# The goal of this section is to allow the tagged releases to run an
+# automatic script that deletes the samples and test folders and any
+# work that is intended for development only. The user should
+# be able to download or clone the absolute bare minimum for this
+# library to work.
+if (EXISTS "${PROJECT_SOURCE_DIR}/samples")
+    include_directories("${PROJECT_SOURCE_DIR}/samples")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/samples")
+endif()
+if (EXISTS "${PROJECT_SOURCE_DIR}/tests")
+    include_directories("${PROJECT_SOURCE_DIR}/tests")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/tests")
+endif()
+if (EXISTS "${PROJECT_SOURCE_DIR}/tests" AND EXISTS "${PROJECT_SOURCE_DIR}/samples")
+    include(etc/scanners.cmake)
+endif()
+
+
 
 if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     message(STATUS "This project has a top-level one called [${CMAKE_PROJECT_NAME}]")
@@ -64,13 +77,6 @@ file(GENERATE
 set(public_headers
     str_view/str_view.h
 )
-
-# not for MSVC
-if(CMAKE_COMPILER_IS_GNUC)
-    # compile options for this target only
-    # treat warnings as errors
-    target_compile_options(${PROJECT_NAME} PRIVATE -Werror)
-endif()
 
 # where to find our CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
