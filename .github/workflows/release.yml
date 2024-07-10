@@ -1,0 +1,54 @@
+name: Create Tagged Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create Release Branch
+        run: |
+          git checkout -b release-${GITHUB_REF#refs/tags/}
+          git rm -r --cached tests samples images res vcpkg etc || true
+          git commit -m "Remove unnecessary files for release ${GITHUB_REF#refs/tags/}"
+          git push origin release-${GITHUB_REF#refs/tags/}
+
+      - name: Create Release Zip
+        run: |
+          git archive --format=zip --output=release-${GITHUB_REF#refs/tags/}.zip release-${GITHUB_REF#refs/tags/}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          body: |
+            Release notes for version ${{ github.ref_name }}.
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release-${GITHUB_REF#refs/tags/}.zip
+          asset_name: release-${GITHUB_REF#refs/tags/}.zip
+          asset_content_type: application/zip
+
+      - name: Delete Tag Branch
+        run: |
+          git push --delete origin release-${GITHUB_REF#refs/tags/}
