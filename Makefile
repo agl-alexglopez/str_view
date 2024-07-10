@@ -45,4 +45,4 @@ test-rel: build
 	@echo "RAN TESTS"
 
 clean:
-	rm -rf build/
+	rm -rf build/ install/
