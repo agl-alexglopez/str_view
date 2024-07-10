@@ -55,9 +55,8 @@
 /* A str_view is a read-only view of string data in C. It is modeled after
    the C++ std::string_view. It consists of a pointer to const char data
    and a size_t field. Therefore, the exact size of this type may be platform
-   dependent but it is small enough that one should prefer to use the provided
-   functions when manupulating views. Try to avoid accessing struct fields.
-   A str_view is a cheap, copyable type in all functions but swap. */
+   dependent but it is small enough that one should use the provided functions
+   and pass by copy whenever possible. Avoid accessing struct fields. */
 typedef struct
 {
     const char *s;
