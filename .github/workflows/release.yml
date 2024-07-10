@@ -20,6 +20,8 @@ jobs:
 
       - name: Create Release Branch
         run: |
+          git config user.email "agl.alexglopez@gmail.com"
+          git config user.name "Alex Lopez"
           git checkout -b release-${GITHUB_REF#refs/tags/}
           git rm -r --cached tests samples images res vcpkg etc || true
           git commit -m "Remove unnecessary files for release ${GITHUB_REF#refs/tags/}"
