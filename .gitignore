@@ -57,3 +57,4 @@ build/
 install/
 .gdbinit
 .gdb_history
+CMakeUserPresets.json
