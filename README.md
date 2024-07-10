@@ -1,4 +1,4 @@
-# c-str-view
+# str_view
 
 ![mini-grep](/images/mini-grep.png)
 
