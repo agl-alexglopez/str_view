@@ -21,20 +21,20 @@ static enum test_result test_rsubstring_search(void);
 static enum test_result test_long_substring(void);
 
 #define NUM_TESTS (size_t)13
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_small_find, "test_small_find"},
-    {test_small_rfind, "test_small_rfind"},
-    {test_find_of_sets, "test_find_of_sets"},
-    {test_substring_brute_force, "test_substring_brute_force"},
-    {test_rfind_brute_force, "test_rfind_brute_force"},
-    {test_rfind_off_by_one, "test_rfind_off_by_one"},
-    {test_find_rfind_memoization, "test_find_rfind_memoization"},
-    {test_consecutive_find, "test_consecutive_find()"},
-    {test_consecutive_rfind, "test_consecutive_rfind()"},
-    {test_substring_off_by_one, "test_substring_off_by_one"},
-    {test_substring_search, "test_substring_search"},
-    {test_rsubstring_search, "test_rsubstring_search"},
-    {test_long_substring, "test_long_substring"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_small_find,
+    test_small_rfind,
+    test_find_of_sets,
+    test_substring_brute_force,
+    test_rfind_brute_force,
+    test_rfind_off_by_one,
+    test_find_rfind_memoization,
+    test_consecutive_find,
+    test_consecutive_rfind,
+    test_substring_off_by_one,
+    test_substring_search,
+    test_rsubstring_search,
+    test_long_substring,
 };
 
 int
@@ -43,13 +43,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_string_searching.c test failed: " CYAN
-                              "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }
@@ -119,21 +115,21 @@ test_substring_brute_force(void)
     const str_view haystack_view = sv(haystack);
 
     const str_view one_byte_view = sv_match(haystack_view, sv(one_byte_needle));
-    CHECK(sv_strcmp(one_byte_view, one_byte_needle), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(one_byte_view, one_byte_needle), SV_EQL, sv_threeway_cmp,
           "%d");
     const str_view two_byte_view = sv_match(haystack_view, sv(two_byte_needle));
-    CHECK(sv_strcmp(two_byte_view, two_byte_needle), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(two_byte_view, two_byte_needle), SV_EQL, sv_threeway_cmp,
           "%d");
     const str_view three_byte_view
         = sv_match(haystack_view, sv(three_byte_needle));
-    CHECK(sv_strcmp(three_byte_view, three_byte_needle), EQL, sv_threeway_cmp,
-          "%d");
+    CHECK(sv_strcmp(three_byte_view, three_byte_needle), SV_EQL,
+          sv_threeway_cmp, "%d");
     const str_view four_byte_view
         = sv_match(haystack_view, sv(four_byte_needle));
-    CHECK(sv_strcmp(four_byte_view, four_byte_needle), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(four_byte_view, four_byte_needle), SV_EQL, sv_threeway_cmp,
           "%d");
     const str_view needle_view = sv_match(haystack_view, sv(needle));
-    CHECK(sv_strcmp(needle_view, needle), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(needle_view, needle), SV_EQL, sv_threeway_cmp, "%d");
     const char *one_byte_found = strstr(haystack, one_byte_needle);
     CHECK(one_byte_found, sv_begin(one_byte_view), char *const, "%s");
     const char *two_byte_found = strstr(haystack, two_byte_needle);
@@ -190,22 +186,22 @@ test_rfind_brute_force(void)
 
     const str_view one_byte_rsvsv
         = sv_rmatch(haystack_view, sv(one_byte_needle));
-    CHECK(sv_strcmp(one_byte_rsvsv, one_byte_needle), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(one_byte_rsvsv, one_byte_needle), SV_EQL, sv_threeway_cmp,
           "%d");
     const str_view two_byte_rsvsv
         = sv_rmatch(haystack_view, sv(two_byte_needle));
-    CHECK(sv_strcmp(two_byte_rsvsv, two_byte_needle), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(two_byte_rsvsv, two_byte_needle), SV_EQL, sv_threeway_cmp,
           "%d");
     const str_view three_byte_rsvsv
         = sv_rmatch(haystack_view, sv(three_byte_needle));
-    CHECK(sv_strcmp(three_byte_rsvsv, three_byte_needle), EQL, sv_threeway_cmp,
-          "%d");
+    CHECK(sv_strcmp(three_byte_rsvsv, three_byte_needle), SV_EQL,
+          sv_threeway_cmp, "%d");
     const str_view four_byte_rsvsv
         = sv_rmatch(haystack_view, sv(four_byte_needle));
-    CHECK(sv_strcmp(four_byte_rsvsv, four_byte_needle), EQL, sv_threeway_cmp,
+    CHECK(sv_strcmp(four_byte_rsvsv, four_byte_needle), SV_EQL, sv_threeway_cmp,
           "%d");
     const str_view needle_rsvsv = sv_rmatch(haystack_view, sv(needle));
-    CHECK(sv_strcmp(needle_rsvsv, needle), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(needle_rsvsv, needle), SV_EQL, sv_threeway_cmp, "%d");
 
     const size_t one_byte_fail
         = sv_rfind(haystack_view, sv_len(haystack_view), sv("J"));
@@ -367,7 +363,7 @@ test_substring_off_by_one(void)
     const str_view needle_view = sv(needle);
     const char *ref = strstr(haystack, needle);
     const str_view found_first = sv_match(haystack_view, needle_view);
-    CHECK(sv_strcmp(found_first, needle), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(found_first, needle), SV_EQL, sv_threeway_cmp, "%d");
     CHECK(sv_begin(found_first), ref, char *const, "%s");
 
     const size_t find_pos = sv_find(haystack_view, 0, needle_view);
@@ -377,7 +373,7 @@ test_substring_off_by_one(void)
     const str_view found_second = sv_match(
         sv_substr(haystack_view, needle_len, ULLONG_MAX), needle_view);
     CHECK(sv_begin(found_second), ref2, char *const, "%s");
-    CHECK(sv_strcmp(found_second, needle), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(found_second, needle), SV_EQL, sv_threeway_cmp, "%d");
 
     const size_t find_pos2 = sv_find(
         sv_substr(haystack_view, needle_len, ULLONG_MAX), 0, needle_view);
@@ -413,7 +409,7 @@ test_substring_search(void)
     str_view b = sv_n(needle_len, a);
     str_view c = sv_match(haystack_view, needle_view);
 
-    CHECK(sv_cmp(b, c), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(b, c), SV_EQL, sv_threeway_cmp, "%d");
     CHECK(sv_begin(c), a, char *const, "%s");
     a += needle_len;
     a = strstr(a, needle);
@@ -425,7 +421,7 @@ test_substring_search(void)
     const str_view new_haystack_view = sv(a);
     b = sv_n(needle_len, a);
     c = sv_match(new_haystack_view, needle_view);
-    CHECK(sv_cmp(b, c), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(b, c), SV_EQL, sv_threeway_cmp, "%d");
     CHECK(sv_begin(c), a, char *const, "%s");
     const str_view first_chunk
         = sv_substr(haystack_view, 0, sv_find(haystack_view, 0, needle_view));
@@ -441,11 +437,11 @@ test_substring_search(void)
     {
         if (i == 0)
         {
-            CHECK(sv_cmp(v, first_chunk), EQL, sv_threeway_cmp, "%d");
+            CHECK(sv_cmp(v, first_chunk), SV_EQL, sv_threeway_cmp, "%d");
         }
         else
         {
-            CHECK(sv_cmp(v, second_chunk), EQL, sv_threeway_cmp, "%d");
+            CHECK(sv_cmp(v, second_chunk), SV_EQL, sv_threeway_cmp, "%d");
         }
         ++i;
     }
@@ -477,14 +473,14 @@ test_rsubstring_search(void)
     const str_view middle_needle = sv_rmatch(haystack_view, needle_view);
     const size_t middle_pos
         = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
-    CHECK(sv_cmp(middle_needle, needle_view), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(middle_needle, needle_view), SV_EQL, sv_threeway_cmp, "%d");
     CHECK(sv_begin(middle_needle), middle, char *const, "%s");
     CHECK(middle_pos, (size_t)(middle - haystack), size_t, "%zu");
     const str_view first_chunk_view = sv_n(middle_pos, haystack);
     const str_view begin_needle = sv_rmatch(first_chunk_view, needle_view);
     const size_t begin_pos
         = sv_rfind(first_chunk_view, sv_len(first_chunk_view), needle_view);
-    CHECK(sv_cmp(begin_needle, needle_view), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(begin_needle, needle_view), SV_EQL, sv_threeway_cmp, "%d");
     CHECK(sv_begin(begin_needle), begin, char *const, "%s");
     CHECK(begin_pos, (size_t)(begin - haystack), size_t, "%zu");
     return PASS;
@@ -513,6 +509,6 @@ test_long_substring(void)
     const size_t rfind_pos
         = sv_rfind(haystack_view, sv_len(haystack_view), needle_view);
     CHECK(rfind_pos, (size_t)(strstr_needle - haystack), size_t, "%zu");
-    CHECK(sv_cmp(svsv_needle, rsvsv_needle), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_cmp(svsv_needle, rsvsv_needle), SV_EQL, sv_threeway_cmp, "%d");
     return PASS;
 }

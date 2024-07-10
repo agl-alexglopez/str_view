@@ -54,5 +54,6 @@ dkms.conf
 # Cmake and lsp
 .cache/
 build/
+install/
 .gdbinit
 .gdb_history

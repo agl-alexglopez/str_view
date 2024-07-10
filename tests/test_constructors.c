@@ -2,7 +2,6 @@
 #include "test.h"
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
 static enum test_result test_from_null(void);
@@ -13,13 +12,10 @@ static enum test_result test_from_delim_no_delim(void);
 static enum test_result test_empty_constructor(void);
 
 #define NUM_TESTS (size_t)6
-const struct fn_name all_tests[NUM_TESTS] = {
-    {test_from_null, "test_from_null"},
-    {test_from_delim, "test_from_delim"},
-    {test_from_delim_multiple, "test_from_delim_multiple"},
-    {test_from_multichar_delim, "test_from_multichar_delim"},
-    {test_from_delim_no_delim, "test_from_delim_no_delim"},
-    {test_empty_constructor, "test_empty_constructor"},
+const test_fn all_tests[NUM_TESTS] = {
+    test_from_null,           test_from_delim,
+    test_from_delim_multiple, test_from_multichar_delim,
+    test_from_delim_no_delim, test_empty_constructor,
 };
 
 int
@@ -28,13 +24,9 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i].fn();
+        const enum test_result t_res = all_tests[i]();
         if (t_res == FAIL)
         {
-            (void)fprintf(stderr,
-                          RED "test_constructors.c test failed: " CYAN
-                              "%s\n" NONE,
-                          all_tests[i].name);
             res = FAIL;
         }
     }
@@ -48,12 +40,12 @@ test_from_null(void)
     const str_view s = sv(reference);
     const size_t reference_len = strlen(reference);
     CHECK(reference_len, sv_len(s), size_t, "%zu");
-    CHECK(sv_strcmp(s, reference), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(s, reference), SV_EQL, sv_threeway_cmp, "%d");
     const char *const chunk = "Don't";
     const size_t chunk_len = strlen(chunk);
     const str_view n_bytes = sv_n(chunk_len, reference);
     CHECK(sv_len(n_bytes), chunk_len, size_t, "%zu");
-    CHECK(sv_strcmp(n_bytes, chunk), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(n_bytes, chunk), SV_EQL, sv_threeway_cmp, "%d");
     return PASS;
 }
 
@@ -65,15 +57,15 @@ test_from_delim(void)
     const str_view sv = sv_delim(reference, " ");
     const size_t reference_len = strlen(reference_chunk);
     CHECK(reference_len, sv_len(sv), size_t, "%zu");
-    CHECK(sv_strcmp(sv, reference_chunk), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv, reference_chunk), SV_EQL, sv_threeway_cmp, "%d");
     /* If the string starts with delim we must skip it. */
     const char *const ref2 = ",Don't miss the delim, that was it!";
     const char *const ref2_chunk = "Don't miss the delim";
     const str_view sv2 = sv_delim(ref2, ",");
     const size_t ref2_len = strlen(ref2_chunk);
     CHECK(ref2_len, sv_len(sv2), size_t, "%zu");
-    CHECK(sv_strcmp(sv2, ref2_chunk), EQL, sv_threeway_cmp, "%d");
-    CHECK(sv_strcmp(sv_extend(sv2), ref2 + 1), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv2, ref2_chunk), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv_extend(sv2), ref2 + 1), SV_EQL, sv_threeway_cmp, "%d");
     return PASS;
 }
 
@@ -85,7 +77,7 @@ test_from_delim_multiple(void)
     const str_view sv = sv_delim(reference, ",");
     const size_t reference_len = strlen(reference_chunk);
     CHECK(reference_len, sv_len(sv), size_t, "%zu");
-    CHECK(sv_strcmp(sv, reference_chunk), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv, reference_chunk), SV_EQL, sv_threeway_cmp, "%d");
     return PASS;
 }
 
@@ -97,7 +89,7 @@ test_from_multichar_delim(void)
     const str_view sv = sv_delim(reference, "delim");
     const size_t reference_len = strlen(reference_chunk);
     CHECK(reference_len, sv_len(sv), size_t, "%zu");
-    CHECK(sv_strcmp(sv, reference_chunk), EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(sv, reference_chunk), SV_EQL, sv_threeway_cmp, "%d");
     return PASS;
 }
 

@@ -226,7 +226,7 @@ sv_cmp(str_view lhs, str_view rhs)
 {
     if (!lhs.s || !rhs.s)
     {
-        return ERR;
+        return SV_ERR;
     }
     const size_t sz = sv_min(lhs.sz, rhs.sz);
     size_t i = 0;
@@ -234,13 +234,13 @@ sv_cmp(str_view lhs, str_view rhs)
     {}
     if (i == lhs.sz && i == rhs.sz)
     {
-        return EQL;
+        return SV_EQL;
     }
     if (i < lhs.sz && i < rhs.sz)
     {
-        return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? LES : GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? SV_LES : SV_GRT;
     }
-    return (i < lhs.sz) ? GRT : LES;
+    return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
 sv_threeway_cmp
@@ -248,7 +248,7 @@ sv_strcmp(str_view lhs, const char rhs[static const 1])
 {
     if (!lhs.s || !rhs)
     {
-        return ERR;
+        return SV_ERR;
     }
     const size_t sz = lhs.sz;
     size_t i = 0;
@@ -256,13 +256,13 @@ sv_strcmp(str_view lhs, const char rhs[static const 1])
     {}
     if (i == lhs.sz && rhs[i] == '\0')
     {
-        return EQL;
+        return SV_EQL;
     }
     if (i < lhs.sz && rhs[i] != '\0')
     {
-        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? LES : GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
     }
-    return (i < lhs.sz) ? GRT : LES;
+    return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
 sv_threeway_cmp
@@ -270,7 +270,7 @@ sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
 {
     if (!lhs.s || !rhs)
     {
-        return ERR;
+        return SV_ERR;
     }
     const size_t sz = sv_min(lhs.sz, n);
     size_t i = 0;
@@ -278,14 +278,14 @@ sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
     {}
     if (i == lhs.sz && sz == n)
     {
-        return EQL;
+        return SV_EQL;
     }
     /* strncmp compares the first at most n bytes inclusive */
     if (i < lhs.sz && sz <= n)
     {
-        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? LES : GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
     }
-    return (i < lhs.sz) ? GRT : LES;
+    return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
 char
@@ -529,7 +529,7 @@ sv_starts_with(str_view sv, str_view prefix)
     {
         return false;
     }
-    return sv_cmp(sv_substr(sv, 0, prefix.sz), prefix) == EQL;
+    return sv_cmp(sv_substr(sv, 0, prefix.sz), prefix) == SV_EQL;
 }
 
 str_view
@@ -546,7 +546,8 @@ sv_ends_with(str_view sv, str_view suffix)
     {
         return false;
     }
-    return sv_cmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix) == EQL;
+    return sv_cmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix)
+           == SV_EQL;
 }
 
 str_view
@@ -743,10 +744,9 @@ sv_after_find(str_view hay, str_view needle)
     }
     size_t delim_i = 0;
     size_t i = 0;
-    for (; i < hay.sz && needle.s[delim_i] == hay.s[i]; ++i)
-    {
-        delim_i = (delim_i + 1) % needle.sz;
-    }
+    for (; i < hay.sz && needle.s[delim_i] == hay.s[i];
+         delim_i = (delim_i + 1) % needle.sz, ++i)
+    {}
     /* Also reset to the last mismatch found. If some of the delimeter matched
        but then the string changed into a mismatch go back to get characters
        that are partially in the delimeter. */
@@ -764,10 +764,8 @@ sv_before_rfind(str_view hay, str_view needle)
     size_t i = 0;
     for (; i < hay.sz
            && needle.s[needle.sz - delim_i - 1] == hay.s[hay.sz - i - 1];
-         ++i)
-    {
-        delim_i = (delim_i + 1) % needle.sz;
-    }
+         delim_i = (delim_i + 1) % needle.sz, ++i)
+    {}
     /* Ugly logic to account for the reverse nature of this modulo search.
        the position needs to account for any part of the delim that may
        have started to match but then mismatched. The 1 is because
@@ -1026,34 +1024,34 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
 static inline size_t
 sv_two_way_memoization(struct sv_two_way_pack p)
 {
-    ssize_t l_pos = 0;
-    ssize_t r_pos = 0;
+    ssize_t lpos = 0;
+    ssize_t rpos = 0;
     /* Eliminate worst case quadratic time complexity with memoization. */
     ssize_t memoize_shift = -1;
-    while (l_pos <= p.hay_sz - p.needle_sz)
+    while (lpos <= p.hay_sz - p.needle_sz)
     {
-        r_pos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
-        while (r_pos < p.needle_sz && p.needle[r_pos] == p.hay[r_pos + l_pos])
+        rpos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
+        while (rpos < p.needle_sz && p.needle[rpos] == p.hay[rpos + lpos])
         {
-            ++r_pos;
+            ++rpos;
         }
-        if (r_pos < p.needle_sz)
+        if (rpos < p.needle_sz)
         {
-            l_pos += (r_pos - p.critical_pos);
+            lpos += (rpos - p.critical_pos);
             memoize_shift = -1;
             continue;
         }
         /* p.r_pos >= p.needle_sz */
-        r_pos = p.critical_pos;
-        while (r_pos > memoize_shift && p.needle[r_pos] == p.hay[r_pos + l_pos])
+        rpos = p.critical_pos;
+        while (rpos > memoize_shift && p.needle[rpos] == p.hay[rpos + lpos])
         {
-            --r_pos;
+            --rpos;
         }
-        if (r_pos <= memoize_shift)
+        if (rpos <= memoize_shift)
         {
-            return l_pos;
+            return lpos;
         }
-        l_pos += p.period_dist;
+        lpos += p.period_dist;
         /* Some prefix of needle coincides with the text. Memoize the length
            of this prefix to increase length of next shift, if possible. */
         memoize_shift = p.needle_sz - p.period_dist - 1;
@@ -1069,31 +1067,31 @@ sv_two_way_normal(struct sv_two_way_pack p)
     p.period_dist
         = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
           + 1;
-    ssize_t l_pos = 0;
-    ssize_t r_pos = 0;
-    while (l_pos <= p.hay_sz - p.needle_sz)
+    ssize_t lpos = 0;
+    ssize_t rpos = 0;
+    while (lpos <= p.hay_sz - p.needle_sz)
     {
-        r_pos = p.critical_pos + 1;
-        while (r_pos < p.needle_sz && p.needle[r_pos] == p.hay[r_pos + l_pos])
+        rpos = p.critical_pos + 1;
+        while (rpos < p.needle_sz && p.needle[rpos] == p.hay[rpos + lpos])
         {
-            ++r_pos;
+            ++rpos;
         }
-        if (r_pos < p.needle_sz)
+        if (rpos < p.needle_sz)
         {
-            l_pos += (r_pos - p.critical_pos);
+            lpos += (rpos - p.critical_pos);
             continue;
         }
         /* p.r_pos >= p.needle_sz */
-        r_pos = p.critical_pos;
-        while (r_pos >= 0 && p.needle[r_pos] == p.hay[r_pos + l_pos])
+        rpos = p.critical_pos;
+        while (rpos >= 0 && p.needle[rpos] == p.hay[rpos + lpos])
         {
-            --r_pos;
+            --rpos;
         }
-        if (r_pos < 0)
+        if (rpos < 0)
         {
-            return l_pos;
+            return lpos;
         }
-        l_pos += p.period_dist;
+        lpos += p.period_dist;
     }
     return p.hay_sz;
 }
@@ -1114,12 +1112,12 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
     {
         switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
-        case LES:
+        case SV_LES:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case EQL:
+        case SV_EQL:
             if (rest != period)
             {
                 ++rest;
@@ -1130,7 +1128,7 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
                 rest = 1;
             }
             break;
-        case GRT:
+        case SV_GRT:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1157,12 +1155,12 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
     {
         switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
-        case GRT:
+        case SV_GRT:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case EQL:
+        case SV_EQL:
             if (rest != period)
             {
                 ++rest;
@@ -1173,7 +1171,7 @@ sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                 rest = 1;
             }
             break;
-        case LES:
+        case SV_LES:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1265,37 +1263,37 @@ sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
 static inline size_t
 sv_rtwo_way_memoization(struct sv_two_way_pack p)
 {
-    ssize_t l_pos = 0;
-    ssize_t r_pos = 0;
+    ssize_t lpos = 0;
+    ssize_t rpos = 0;
     ssize_t memoize_shift = -1;
-    while (l_pos <= p.hay_sz - p.needle_sz)
+    while (lpos <= p.hay_sz - p.needle_sz)
     {
-        r_pos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
-        while (r_pos < p.needle_sz
-               && p.needle[p.needle_sz - r_pos - 1]
-                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
+        rpos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
+        while (rpos < p.needle_sz
+               && p.needle[p.needle_sz - rpos - 1]
+                      == p.hay[p.hay_sz - (rpos + lpos) - 1])
         {
-            ++r_pos;
+            ++rpos;
         }
-        if (r_pos < p.needle_sz)
+        if (rpos < p.needle_sz)
         {
-            l_pos += (r_pos - p.critical_pos);
+            lpos += (rpos - p.critical_pos);
             memoize_shift = -1;
             continue;
         }
         /* p.r_pos >= p.needle_sz */
-        r_pos = p.critical_pos;
-        while (r_pos > memoize_shift
-               && p.needle[p.needle_sz - r_pos - 1]
-                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
+        rpos = p.critical_pos;
+        while (rpos > memoize_shift
+               && p.needle[p.needle_sz - rpos - 1]
+                      == p.hay[p.hay_sz - (rpos + lpos) - 1])
         {
-            --r_pos;
+            --rpos;
         }
-        if (r_pos <= memoize_shift)
+        if (rpos <= memoize_shift)
         {
-            return p.hay_sz - l_pos - p.needle_sz;
+            return p.hay_sz - lpos - p.needle_sz;
         }
-        l_pos += p.period_dist;
+        lpos += p.period_dist;
         /* Some prefix of needle coincides with the text. Memoize the length
            of this prefix to increase length of next shift, if possible. */
         memoize_shift = p.needle_sz - p.period_dist - 1;
@@ -1309,35 +1307,35 @@ sv_rtwo_way_normal(struct sv_two_way_pack p)
     p.period_dist
         = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
           + 1;
-    ssize_t l_pos = 0;
-    ssize_t r_pos = 0;
-    while (l_pos <= p.hay_sz - p.needle_sz)
+    ssize_t lpos = 0;
+    ssize_t rpos = 0;
+    while (lpos <= p.hay_sz - p.needle_sz)
     {
-        r_pos = p.critical_pos + 1;
-        while (r_pos < p.needle_sz
-               && (p.needle[p.needle_sz - r_pos - 1]
-                   == p.hay[p.hay_sz - (r_pos + l_pos) - 1]))
+        rpos = p.critical_pos + 1;
+        while (rpos < p.needle_sz
+               && (p.needle[p.needle_sz - rpos - 1]
+                   == p.hay[p.hay_sz - (rpos + lpos) - 1]))
         {
-            ++r_pos;
+            ++rpos;
         }
-        if (r_pos < p.needle_sz)
+        if (rpos < p.needle_sz)
         {
-            l_pos += (r_pos - p.critical_pos);
+            lpos += (rpos - p.critical_pos);
             continue;
         }
         /* p.r_pos >= p.needle_sz */
-        r_pos = p.critical_pos;
-        while (r_pos >= 0
-               && p.needle[p.needle_sz - r_pos - 1]
-                      == p.hay[p.hay_sz - (r_pos + l_pos) - 1])
+        rpos = p.critical_pos;
+        while (rpos >= 0
+               && p.needle[p.needle_sz - rpos - 1]
+                      == p.hay[p.hay_sz - (rpos + lpos) - 1])
         {
-            --r_pos;
+            --rpos;
         }
-        if (r_pos < 0)
+        if (rpos < 0)
         {
-            return p.hay_sz - l_pos - p.needle_sz;
+            return p.hay_sz - lpos - p.needle_sz;
         }
-        l_pos += p.period_dist;
+        lpos += p.period_dist;
     }
     return p.hay_sz;
 }
@@ -1354,12 +1352,12 @@ sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
         switch (sv_char_cmp(needle[needle_sz - (last_rest + rest) - 1],
                             needle[needle_sz - (suff_pos + rest) - 1]))
         {
-        case LES:
+        case SV_LES:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case EQL:
+        case SV_EQL:
             if (rest != period)
             {
                 ++rest;
@@ -1370,7 +1368,7 @@ sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
                 rest = 1;
             }
             break;
-        case GRT:
+        case SV_GRT:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1395,12 +1393,12 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
         switch (sv_char_cmp(needle[needle_sz - (last_rest + rest) - 1],
                             needle[needle_sz - (suff_pos + rest) - 1]))
         {
-        case GRT:
+        case SV_GRT:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case EQL:
+        case SV_EQL:
             if (rest != period)
             {
                 ++rest;
@@ -1411,7 +1409,7 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
                 rest = 1;
             }
             break;
-        case LES:
+        case SV_LES:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
