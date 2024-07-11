@@ -13,15 +13,21 @@ jobs:
         contents: write
 
     steps:
-
-      - name: Clean Repository
-        run: |
-          git checkout -b release-${GITHUB_REF#refs/tags/}
-          git rm -r --cached tests samples images res vcpkg etc || true
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            cmake
+            CMake*
+            compile_commands.json
+            Config.cmake.in
+            LICENSE
+            Makefile
+            str_view
 
       - name: Create Release Zip
         run: |
-          git archive $( git write-tree ) --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip
+          git archive --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip release-${GITHUB_REF#refs/tags/}
           echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
@@ -47,4 +53,3 @@ jobs:
           asset_path: ${{ env.ZIP_FILE }}
           asset_name: ${{ env.ZIP_FILE }}
           asset_content_type: application/zip
-
