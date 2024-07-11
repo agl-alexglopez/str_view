@@ -17,13 +17,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            cmake
+            cmake/*
             CMake*
             compile_commands.json
             Config.cmake.in
             LICENSE
             Makefile
-            str_view
+            str_view/*
 
       - name: Create Release Zip
         run: |
