@@ -37,7 +37,7 @@ If you want to simply write the following command in your `CMakeLists.txt`,
 find_package(str_view)
 ```
 
-specify that this library shall be installed to a location CMake recognizing by default. For example, my preferred location is as follows:
+specify that this library shall be installed to a location CMake recognizes by default. For example, my preferred location is as follows:
 
 ```zsh
 make gcc-rel ~/.local

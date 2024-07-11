@@ -10,7 +10,9 @@ A `str_view` is a 16-byte struct and, due to this size, is treated throughout th
 
 ## Install Instructions
 
-See [INSTALL.md](/INSTALL.md) for full build and installation instructions.
+Download and extract the latest release `str_view-v[VERSION]` from the [Releases](https://github.com/agl-alexglopez/str_view/releases) page.
+
+See [INSTALL.md](/INSTALL.md) file provided in this repo or in the downloaded release for full build and installation instructions.
 
 ## Interface
 
