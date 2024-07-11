@@ -30,8 +30,8 @@ main()
 static enum test_result
 test_front_back_terminated(void)
 {
-    CHECK(sv_back(sv("")), '\0', char, "%c");
-    CHECK(sv_front(sv("")), '\0', char, "%c");
+    CHECK(sv_back(SV("")), '\0', char, "%c");
+    CHECK(sv_front(SV("")), '\0', char, "%c");
     const char *const reference = "*The front was * the back is!";
     const str_view s = sv(reference);
     const size_t ref_len = strlen(reference);

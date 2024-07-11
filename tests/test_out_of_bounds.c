@@ -4,7 +4,7 @@
 int
 main()
 {
-    const str_view s = sv("a");
+    const str_view s = SV("a");
     const str_view empty = sv(sv_pos(s, 1));
     CHECK(sv_at(s, 9), '\0', char, "%c");
     CHECK(sv_pos(s, 9), sv_end(s), char *const, "%s");

@@ -62,9 +62,9 @@ test_small_find(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     str_view str = sv(ref);
-    CHECK(sv_find(str, 0, sv("C")), 2UL, size_t, "%zu");
-    CHECK(sv_find(str, 0, sv("")), 19UL, size_t, "%zu");
-    CHECK(sv_find(str, 0, sv("_")), 11UL, size_t, "%zu");
+    CHECK(sv_find(str, 0, SV("C")), 2UL, size_t, "%zu");
+    CHECK(sv_find(str, 0, SV("")), 19UL, size_t, "%zu");
+    CHECK(sv_find(str, 0, SV("_")), 11UL, size_t, "%zu");
     return PASS;
 }
 
@@ -78,9 +78,9 @@ test_small_rfind(void)
         [15] = '!', [16] = '!', [17] = ' ', [18] = 'A', [19] = '\0',
     };
     str_view str = sv(ref);
-    CHECK(sv_rfind(str, sv_len(str), sv("!")), 16UL, size_t, "%zu");
-    CHECK(sv_rfind(str, sv_len(str), sv("Y")), 0UL, size_t, "%zu");
-    CHECK(sv_rfind(str, sv_len(str), sv("X")), 19UL, size_t, "%zu");
+    CHECK(sv_rfind(str, sv_len(str), SV("!")), 16UL, size_t, "%zu");
+    CHECK(sv_rfind(str, sv_len(str), SV("Y")), 0UL, size_t, "%zu");
+    CHECK(sv_rfind(str, sv_len(str), SV("X")), 19UL, size_t, "%zu");
     return PASS;
 }
 
@@ -95,11 +95,11 @@ test_find_of_sets(void)
         [20] = '!', [21] = '!', [22] = 'Z', [23] = 'z', [24] = '\0',
     };
     str_view str = sv(ref);
-    CHECK(sv_find_first_of(str, sv("CB!")), 2UL, size_t, "%zu");
-    CHECK(sv_find_first_of(str, sv("")), 24UL, size_t, "%zu");
-    CHECK(sv_find_last_of(str, sv("! _")), 21UL, size_t, "%zu");
-    CHECK(sv_find_last_not_of(str, sv("CBA!")), 22UL, size_t, "%zu");
-    CHECK(sv_find_first_not_of(str, sv("ACB!;:, *.")), 14UL, size_t, "%zu");
+    CHECK(sv_find_first_of(str, SV("CB!")), 2UL, size_t, "%zu");
+    CHECK(sv_find_first_of(str, SV("")), 24UL, size_t, "%zu");
+    CHECK(sv_find_last_of(str, SV("! _")), 21UL, size_t, "%zu");
+    CHECK(sv_find_last_not_of(str, SV("CBA!")), 22UL, size_t, "%zu");
+    CHECK(sv_find_first_not_of(str, SV("ACB!;:, *.")), 14UL, size_t, "%zu");
     return PASS;
 }
 
@@ -140,15 +140,15 @@ test_substring_brute_force(void)
     CHECK(four_byte_found, sv_begin(four_byte_view), char *const, "%s");
     const char *needle_found = strstr(haystack, needle);
     CHECK(needle_found, sv_begin(needle_view), char *const, "%s");
-    const str_view one_byte_fail = sv_match(haystack_view, sv("J"));
+    const str_view one_byte_fail = sv_match(haystack_view, SV("J"));
     CHECK(sv_len(one_byte_fail), 0UL, size_t, "%zu");
-    const str_view two_byte_fail = sv_match(haystack_view, sv("XY"));
+    const str_view two_byte_fail = sv_match(haystack_view, SV("XY"));
     CHECK(sv_len(two_byte_fail), 0UL, size_t, "%zu");
-    const str_view three_byte_fail = sv_match(haystack_view, sv("ZZY"));
+    const str_view three_byte_fail = sv_match(haystack_view, SV("ZZY"));
     CHECK(sv_len(three_byte_fail), 0UL, size_t, "%zu");
-    const str_view four_byte_fail = sv_match(haystack_view, sv("8888"));
+    const str_view four_byte_fail = sv_match(haystack_view, SV("8888"));
     CHECK(sv_len(four_byte_fail), 0UL, size_t, "%zu");
-    const str_view needle_fail = sv_match(haystack_view, sv("this is failure"));
+    const str_view needle_fail = sv_match(haystack_view, SV("this is failure"));
     CHECK(sv_len(needle_fail), 0UL, size_t, "%zu");
     return PASS;
 }
@@ -204,30 +204,30 @@ test_rfind_brute_force(void)
     CHECK(sv_strcmp(needle_rsvsv, needle), SV_EQL, sv_threeway_cmp, "%d");
 
     const size_t one_byte_fail
-        = sv_rfind(haystack_view, sv_len(haystack_view), sv("J"));
+        = sv_rfind(haystack_view, sv_len(haystack_view), SV("J"));
     CHECK(one_byte_fail, sv_len(haystack_view), size_t, "%zu");
     const size_t two_byte_fail
-        = sv_rfind(haystack_view, sv_len(haystack_view), sv("ZZ"));
+        = sv_rfind(haystack_view, sv_len(haystack_view), SV("ZZ"));
     CHECK(two_byte_fail, sv_len(haystack_view), size_t, "%zu");
     const size_t three_byte_fail
-        = sv_rfind(haystack_view, sv_len(haystack_view), sv("888"));
+        = sv_rfind(haystack_view, sv_len(haystack_view), SV("888"));
     CHECK(three_byte_fail, sv_len(haystack_view), size_t, "%zu");
     const size_t four_byte_fail
-        = sv_rfind(haystack_view, sv_len(haystack_view), sv("1738"));
+        = sv_rfind(haystack_view, sv_len(haystack_view), SV("1738"));
     CHECK(four_byte_fail, sv_len(haystack_view), size_t, "%zu");
     const size_t needle_fail = sv_rfind(haystack_view, sv_len(haystack_view),
-                                        sv("this is a failure"));
+                                        SV("this is a failure"));
     CHECK(needle_fail, sv_len(haystack_view), size_t, "%zu");
-    const str_view one_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("J"));
+    const str_view one_byte_fail_rsvsv = sv_rmatch(haystack_view, SV("J"));
     CHECK(sv_empty(one_byte_fail_rsvsv), true, bool, "%d");
-    const str_view two_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("ZZ"));
+    const str_view two_byte_fail_rsvsv = sv_rmatch(haystack_view, SV("ZZ"));
     CHECK(sv_empty(two_byte_fail_rsvsv), true, bool, "%d");
-    const str_view three_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("888"));
+    const str_view three_byte_fail_rsvsv = sv_rmatch(haystack_view, SV("888"));
     CHECK(sv_empty(three_byte_fail_rsvsv), true, bool, "%d");
-    const str_view four_byte_fail_rsvsv = sv_rmatch(haystack_view, sv("1738"));
+    const str_view four_byte_fail_rsvsv = sv_rmatch(haystack_view, SV("1738"));
     CHECK(sv_empty(four_byte_fail_rsvsv), true, bool, "%d");
     const str_view needle_fail_rsvsv
-        = sv_rmatch(haystack_view, sv("this is a failure"));
+        = sv_rmatch(haystack_view, SV("this is a failure"));
     CHECK(sv_empty(needle_fail_rsvsv), true, bool, "%d");
     return PASS;
 }
@@ -289,22 +289,22 @@ static enum test_result
 test_rfind_off_by_one(void)
 {
     const char *one_byte_needle = "Z";
-    CHECK(sv_rfind(sv(one_byte_needle), 1, sv("Z")), 0UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(one_byte_needle), 1, sv("A")), 1UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(one_byte_needle), 1, SV("Z")), 0UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(one_byte_needle), 1, SV("A")), 1UL, size_t, "%zu");
     const char *two_byte_needle = "BB";
-    CHECK(sv_rfind(sv(two_byte_needle), 2, sv("BB")), 0UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(two_byte_needle), 2, sv("AB")), 2UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(two_byte_needle), 2, sv("BA")), 2UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(two_byte_needle), 2, SV("BB")), 0UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(two_byte_needle), 2, SV("AB")), 2UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(two_byte_needle), 2, SV("BA")), 2UL, size_t, "%zu");
     const char *three_byte_needle = "DCC";
-    CHECK(sv_rfind(sv(three_byte_needle), 3, sv("DCC")), 0UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(three_byte_needle), 3, sv("ACC")), 3UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(three_byte_needle), 3, sv("DAC")), 3UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(three_byte_needle), 3, sv("DCA")), 3UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(three_byte_needle), 3, SV("DCC")), 0UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(three_byte_needle), 3, SV("ACC")), 3UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(three_byte_needle), 3, SV("DAC")), 3UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(three_byte_needle), 3, SV("DCA")), 3UL, size_t, "%zu");
     const char *four_byte_needle = "YDDD";
-    CHECK(sv_rfind(sv(four_byte_needle), 4, sv("YDDD")), 0UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(four_byte_needle), 4, sv("ADDD")), 4UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(four_byte_needle), 4, sv("YDBD")), 4UL, size_t, "%zu");
-    CHECK(sv_rfind(sv(four_byte_needle), 4, sv("YDDA")), 4UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(four_byte_needle), 4, SV("YDDD")), 0UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(four_byte_needle), 4, SV("ADDD")), 4UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(four_byte_needle), 4, SV("YDBD")), 4UL, size_t, "%zu");
+    CHECK(sv_rfind(sv(four_byte_needle), 4, SV("YDDA")), 4UL, size_t, "%zu");
     const char *needle = "Zind the needle!";
     CHECK(sv_rfind(sv(needle), strlen(needle), sv(needle)), 0UL, size_t, "%zu");
     const char *const haystack = "DDDD++CCC+++AB+++A+++find the needle!+++";

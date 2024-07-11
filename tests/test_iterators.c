@@ -98,15 +98,15 @@ test_iter(void)
         ++i;
     }
     i = 0;
-    str_view cur = sv_begin_tok(chars, sv(" "));
-    for (; !sv_end_tok(chars, cur); cur = sv_next_tok(chars, cur, sv(" ")))
+    str_view cur = sv_begin_tok(chars, SV(" "));
+    for (; !sv_end_tok(chars, cur); cur = sv_next_tok(chars, cur, SV(" ")))
     {
         CHECK(sv_front(cur), reference[i], char, "%c");
         i += 2;
     }
     CHECK(sv_front(cur), '\0', char, "%c");
-    str_view cur2 = sv_begin_tok(chars, sv(","));
-    for (; !sv_end_tok(chars, cur2); cur2 = sv_next_tok(chars, cur2, sv(",")))
+    str_view cur2 = sv_begin_tok(chars, SV(","));
+    for (; !sv_end_tok(chars, cur2); cur2 = sv_next_tok(chars, cur2, SV(",")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
     }
@@ -132,9 +132,9 @@ test_iter2(void)
         ++i;
     }
     i = 0;
-    str_view cur = sv_begin_tok(chars, sv(" "));
+    str_view cur = sv_begin_tok(chars, SV(" "));
     for (; !sv_end_tok(chars, cur) && i < size;
-         cur = sv_next_tok(chars, cur, sv(" ")))
+         cur = sv_next_tok(chars, cur, SV(" ")))
     {
         CHECK(sv_front(cur), *toks[i], char, "%c");
         CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
@@ -142,9 +142,9 @@ test_iter2(void)
     }
     CHECK(sv_front(cur), '\0', char, "%c");
     i = 0;
-    str_view cur2 = sv_begin_tok(chars, sv(","));
+    str_view cur2 = sv_begin_tok(chars, SV(","));
     for (; !sv_end_tok(chars, cur2) && i < 1;
-         cur2 = sv_next_tok(chars, cur2, sv(",")))
+         cur2 = sv_next_tok(chars, cur2, SV(",")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
         ++i;
@@ -156,17 +156,17 @@ test_iter2(void)
 static enum test_result
 test_riter(void)
 {
-    const str_view ref = sv("A B C D E G H I J K L M N O P");
+    const str_view ref = SV("A B C D E G H I J K L M N O P");
     size_t i = sv_len(ref) - 1;
-    str_view cur = sv_rbegin_tok(ref, sv(" "));
-    for (; !sv_rend_tok(ref, cur); cur = sv_rnext_tok(ref, cur, sv(" ")))
+    str_view cur = sv_rbegin_tok(ref, SV(" "));
+    for (; !sv_rend_tok(ref, cur); cur = sv_rnext_tok(ref, cur, SV(" ")))
     {
         CHECK(sv_front(cur), *sv_pos(ref, i), char, "%c");
         i -= 2;
     }
     CHECK(sv_begin(cur), sv_begin(ref), char *const, "%s");
-    str_view cur2 = sv_rbegin_tok(ref, sv(","));
-    for (; !sv_rend_tok(ref, cur2); cur2 = sv_rnext_tok(ref, cur2, sv(",")))
+    str_view cur2 = sv_rbegin_tok(ref, SV(","));
+    for (; !sv_rend_tok(ref, cur2); cur2 = sv_rnext_tok(ref, cur2, SV(",")))
     {
         CHECK(sv_cmp(cur2, ref), SV_EQL, sv_threeway_cmp, "%d");
     }
@@ -177,7 +177,7 @@ test_riter(void)
 static enum test_result
 test_riter2(void)
 {
-    const str_view ref = sv(" A B C D E G H I J K L M N O P ");
+    const str_view ref = SV(" A B C D E G H I J K L M N O P ");
     const size_t size = 15;
     const char *const toks[15] = {
         "A", "B", "C", "D", "E", "G", "H", "I",
@@ -193,8 +193,8 @@ test_riter2(void)
     }
     CHECK(character, 0UL, size_t, "%zu");
     size_t i = size;
-    str_view cur = sv_rbegin_tok(ref, sv(" "));
-    for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, sv(" ")))
+    str_view cur = sv_rbegin_tok(ref, SV(" "));
+    for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, SV(" ")))
     {
         --i;
         CHECK(sv_front(cur), *toks[i], char, "%c");
@@ -202,9 +202,9 @@ test_riter2(void)
     }
     CHECK(sv_begin(cur), sv_begin(ref), char *const, "%s");
     i = 1;
-    str_view cur2 = sv_rbegin_tok(ref, sv(","));
+    str_view cur2 = sv_rbegin_tok(ref, SV(","));
     for (; !sv_rend_tok(ref, cur2) && i;
-         cur2 = sv_rnext_tok(ref, cur2, sv(",")))
+         cur2 = sv_rnext_tok(ref, cur2, SV(",")))
     {
         --i;
         CHECK(sv_cmp(cur2, ref), SV_EQL, sv_threeway_cmp, "%d");
@@ -217,8 +217,8 @@ test_riter2(void)
 static enum test_result
 test_riter_multi(void)
 {
-    const str_view ref = sv("//A//B//C//D//E//G//H//I//J//K//L//M//N//O//P//");
-    const str_view delim = sv("//");
+    const str_view ref = SV("//A//B//C//D//E//G//H//I//J//K//L//M//N//O//P//");
+    const str_view delim = SV("//");
     const size_t size = 15;
     const char *const toks[15] = {
         "A", "B", "C", "D", "E", "G", "H", "I",
@@ -1006,7 +1006,7 @@ test_simple_delim(void)
         "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
     };
     const str_view ref_view = sv(reference);
-    const str_view delim = sv("/");
+    const str_view delim = SV("/");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok) && i < sizeof(toks) / sizeof(toks[0]);
@@ -1029,7 +1029,7 @@ test_rsimple_delim(void)
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view ref_view = sv(reference);
-    const str_view delim = sv("/");
+    const str_view delim = SV("/");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok) && i;
@@ -1051,7 +1051,7 @@ test_tail_delim(void)
         "0/1", "2", "2", "3", "3", "3", "4", "4", "4", "/4578",
     };
     const str_view ref_view = sv(reference);
-    const str_view delim = sv("//");
+    const str_view delim = SV("//");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
@@ -1073,7 +1073,7 @@ test_rtail_delim(void)
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view ref_view = sv(reference);
-    const str_view delim = sv("//");
+    const str_view delim = SV("//");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
@@ -1096,7 +1096,7 @@ test_rtriple_delim(void)
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view ref_view = sv(reference);
-    const str_view delim = sv("!!!");
+    const str_view delim = SV("!!!");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
@@ -1119,7 +1119,7 @@ test_rquad_delim(void)
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view ref_view = sv(reference);
-    const str_view delim = sv("!!!!");
+    const str_view delim = SV("!!!!");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
@@ -1143,18 +1143,18 @@ test_iter_repeating_delim(void)
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
     const str_view ref_view = sv(reference);
     size_t i = 0;
-    str_view cur = sv_begin_tok(ref_view, sv(" "));
+    str_view cur = sv_begin_tok(ref_view, SV(" "));
     for (; !sv_end_tok(ref_view, cur);
-         cur = sv_next_tok(ref_view, cur, sv(" ")))
+         cur = sv_next_tok(ref_view, cur, SV(" ")))
     {
         CHECK(sv_strcmp(cur, toks[i]), SV_EQL, sv_threeway_cmp, "%d");
         CHECK(sv_len(cur), strlen(toks[i]), size_t, "%zu");
         ++i;
     }
     CHECK(sv_front(cur), '\0', char, "%c");
-    str_view cur2 = sv_begin_tok(ref_view, sv(","));
+    str_view cur2 = sv_begin_tok(ref_view, SV(","));
     for (; !sv_end_tok(ref_view, cur2);
-         cur2 = sv_next_tok(ref_view, cur2, sv(",")))
+         cur2 = sv_next_tok(ref_view, cur2, SV(",")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
         CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
@@ -1184,9 +1184,9 @@ test_iter_multichar_delim(void)
         ++i;
     }
     CHECK(sv_front(cur), '\0', char, "%c");
-    str_view cur2 = sv_begin_tok(ref_view, sv(" "));
+    str_view cur2 = sv_begin_tok(ref_view, SV(" "));
     for (; !sv_end_tok(ref_view, cur2);
-         cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
+         cur2 = sv_next_tok(ref_view, cur2, SV(" ")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
         CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
@@ -1206,7 +1206,7 @@ test_riter_multichar_delim(void)
     const char *const reference
         = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
           "abcOabcabcPiabcabc\\(*.*)/abc";
-    const str_view delim = sv("abc");
+    const str_view delim = SV("abc");
     const str_view ref_view = sv(reference);
     str_view cur = sv_rbegin_tok(ref_view, delim);
     size_t i = size;
@@ -1219,9 +1219,9 @@ test_riter_multichar_delim(void)
     }
     CHECK(i, 0UL, size_t, "%zu");
     CHECK(sv_begin(cur), reference, char *const, "%s");
-    str_view cur2 = sv_rbegin_tok(ref_view, sv(" "));
+    str_view cur2 = sv_rbegin_tok(ref_view, SV(" "));
     for (; !sv_rend_tok(ref_view, cur2);
-         cur2 = sv_rnext_tok(ref_view, cur2, sv(" ")))
+         cur2 = sv_rnext_tok(ref_view, cur2, SV(" ")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
         CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
@@ -1251,9 +1251,9 @@ test_iter_multichar_delim_short(void)
         ++i;
     }
     CHECK(sv_front(cur), '\0', char, "%c");
-    str_view cur2 = sv_begin_tok(ref_view, sv(" "));
+    str_view cur2 = sv_begin_tok(ref_view, SV(" "));
     for (; !sv_end_tok(ref_view, cur2);
-         cur2 = sv_next_tok(ref_view, cur2, sv(" ")))
+         cur2 = sv_next_tok(ref_view, cur2, SV(" ")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
         CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
@@ -1274,7 +1274,7 @@ test_riter_multichar_delim_short(void)
                                   "---H---I-----J-----K-----L-M--N"
                                   "-------O-----Pi-----\\(*.*)/-----";
     size_t i = size;
-    const str_view delim = sv("-----");
+    const str_view delim = SV("-----");
     const str_view ref_view = sv(reference);
     str_view cur = sv_rbegin_tok(ref_view, delim);
     for (; !sv_rend_tok(ref_view, cur);
@@ -1286,9 +1286,9 @@ test_riter_multichar_delim_short(void)
     }
     CHECK(sv_begin(cur), reference, char *const, "%s");
     CHECK(i, 0UL, size_t, "%zu");
-    str_view cur2 = sv_rbegin_tok(ref_view, sv(" "));
+    str_view cur2 = sv_rbegin_tok(ref_view, SV(" "));
     for (; !sv_rend_tok(ref_view, cur2);
-         cur2 = sv_rnext_tok(ref_view, cur2, sv(" ")))
+         cur2 = sv_rnext_tok(ref_view, cur2, SV(" ")))
     {
         CHECK(sv_strcmp(cur2, reference), SV_EQL, sv_threeway_cmp, "%d");
         CHECK(sv_len(cur2), strlen(reference), size_t, "%zu");
@@ -1351,7 +1351,7 @@ test_tokenize_not_terminated(void)
         "this", "path", "will", "be", "missing", "its",
     };
     const str_view path = sv(path_str);
-    const str_view delim = sv("/");
+    const str_view delim = SV("/");
     const str_view childless_path
         = sv_remove_suffix(path, sv_len(path) - sv_find_last_of(path, delim));
     size_t i = 0;
@@ -1378,14 +1378,14 @@ test_tokenize_three_views(void)
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view path = sv(path_str);
-    const str_view delim = sv("/");
-    const str_view first = sv_substr(path, 0, sv_find(path, 0, sv("/paths/")));
-    const str_view second = sv_substr(path, sv_find(path, 0, sv("/paths/")),
-                                      sv_find(path, 0, sv("/and/"))
-                                          - sv_find(path, 0, sv("/paths/")));
+    const str_view delim = SV("/");
+    const str_view first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
+    const str_view second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
+                                      sv_find(path, 0, SV("/and/"))
+                                          - sv_find(path, 0, SV("/paths/")));
     const str_view third
-        = sv_substr(path, sv_find(path, 0, sv("/and/")),
-                    sv_len(path) - sv_find(path, 0, sv("/and/")));
+        = sv_substr(path, sv_find(path, 0, SV("/and/")),
+                    sv_len(path) - sv_find(path, 0, SV("/and/")));
     size_t i = 0;
     for (str_view tok1 = sv_begin_tok(first, delim),
                   tok2 = sv_begin_tok(second, delim),
@@ -1419,14 +1419,14 @@ test_rtokenize_three_views(void)
     };
     const size_t size = sizeof(toks) / sizeof(toks[0]);
     const str_view path = sv(path_str);
-    const str_view delim = sv("/");
-    const str_view first = sv_substr(path, 0, sv_find(path, 0, sv("/paths/")));
-    const str_view second = sv_substr(path, sv_find(path, 0, sv("/paths/")),
-                                      sv_find(path, 0, sv("/and/"))
-                                          - sv_find(path, 0, sv("/paths/")));
+    const str_view delim = SV("/");
+    const str_view first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
+    const str_view second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
+                                      sv_find(path, 0, SV("/and/"))
+                                          - sv_find(path, 0, SV("/paths/")));
     const str_view third
-        = sv_substr(path, sv_find(path, 0, sv("/and/")),
-                    sv_len(path) - sv_find(path, 0, sv("/and/")));
+        = sv_substr(path, sv_find(path, 0, SV("/and/")),
+                    sv_len(path) - sv_find(path, 0, SV("/and/")));
     size_t i = size;
     for (str_view tok1 = sv_rbegin_tok(first, delim),
                   tok2 = sv_rbegin_tok(second, delim),
