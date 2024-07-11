@@ -15,19 +15,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            cmake/*
-            CMake*
-            compile_commands.json
-            Config.cmake.in
-            LICENSE
-            Makefile
-            str_view/*
 
       - name: Create Release Zip
         run: |
-          git archive --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip release-${GITHUB_REF#refs/tags/}
+          git rm -r --cached tests samples images res vcpkg etc || true
+          git archive $( git write-tree ) --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip release-${GITHUB_REF#refs/tags/}
           echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
