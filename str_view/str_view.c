@@ -87,10 +87,10 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 
 #if defined(_MSC_VER)
 str_view
-sv(const char *str)
+sv(const char str[1])
 #else
 str_view
-sv(const char str[1])
+sv(const char str[static const 1])
 #endif
 {
     if (!str)
@@ -102,10 +102,10 @@ sv(const char str[1])
 
 #if defined(_MSC_VER)
 str_view
-sv_n(size_t n, const char *str)
+sv_n(size_t n, const char str[1])
 #else
 str_view
-sv_n(size_t n, const char str[1])
+sv_n(size_t n, const char str[static const 1])
 #endif
 {
     if (!str || !n)
@@ -117,10 +117,10 @@ sv_n(size_t n, const char str[1])
 
 #if defined(_MSC_VER)
 str_view
-sv_delim(const char *str, const char *delim)
+sv_delim(const char str[1], const char delim[1])
 #else
 str_view
-sv_delim(const char str[1], const char delim[1])
+sv_delim(const char str[static const 1], const char delim[static const 1])
 #endif
 {
     if (!str)
@@ -156,10 +156,10 @@ sv_print(FILE *f, str_view sv)
 
 #if defined(_MSC_VER)
 str_view
-sv_copy(const size_t str_sz, const char *src_str)
+sv_copy(const size_t str_sz, const char src_str[1])
 #else
 str_view
-sv_copy(const size_t str_sz, const char src_str[1])
+sv_copy(const size_t str_sz, const char src_str[static const 1])
 #endif
 {
     return sv_n(str_sz, src_str);
@@ -167,10 +167,10 @@ sv_copy(const size_t str_sz, const char src_str[1])
 
 #if defined(_MSC_VER)
 size_t
-sv_fill(size_t dest_sz, char *dest_buf, str_view src)
+sv_fill(size_t dest_sz, char dest_buf[1], str_view src)
 #else
 size_t
-sv_fill(size_t dest_sz, char dest_buf[1], str_view src)
+sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
 #endif
 {
     if (!dest_buf || !dest_sz || !src.s || !src.sz)
@@ -203,10 +203,10 @@ sv_size(str_view sv)
 
 #if defined(_MSC_VER)
 size_t
-sv_strsize(const char *str)
+sv_strsize(const char str[1])
 #else
 size_t
-sv_strsize(const char str[1])
+sv_strsize(const char str[static const 1])
 #endif
 {
     if (!str)
@@ -218,10 +218,10 @@ sv_strsize(const char str[1])
 
 #if defined(_MSC_VER)
 size_t
-sv_minlen(const char *str, size_t n)
+sv_minlen(const char str[1], size_t n)
 #else
 size_t
-sv_minlen(const char str[1], size_t n)
+sv_minlen(const char str[static const 1], size_t n)
 #endif
 {
     if (!str)
@@ -285,10 +285,10 @@ sv_cmp(str_view lhs, str_view rhs)
 
 #if defined(_MSC_VER)
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char *rhs)
+sv_strcmp(str_view lhs, const char rhs[1])
 #else
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char rhs[1])
+sv_strcmp(str_view lhs, const char rhs[static const 1])
 #endif
 {
     if (!lhs.s || !rhs)
@@ -312,10 +312,10 @@ sv_strcmp(str_view lhs, const char rhs[1])
 
 #if defined(_MSC_VER)
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char *rhs, const size_t n)
+sv_strncmp(str_view lhs, const char rhs[1], const size_t n)
 #else
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char rhs[1], const size_t n)
+sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
 #endif
 {
     if (!lhs.s || !rhs)
@@ -383,7 +383,7 @@ const char *
 sv_next(const char c[1])
 #else
 const char *
-sv_next(const char c[1])
+sv_next(const char c[static 1])
 #endif
 {
     if (!c)
@@ -423,10 +423,10 @@ sv_rend(str_view sv)
 
 #if defined(_MSC_VER)
 const char *
-sv_rnext(const char *c)
+sv_rnext(const char c[1])
 #else
 const char *
-sv_rnext(const char c[1])
+sv_rnext(const char c[static 1])
 #endif
 {
     if (!c)
