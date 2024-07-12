@@ -90,7 +90,7 @@ str_view
 sv(const char *str)
 #else
 str_view
-sv(const char str[static const 1])
+sv(const char str[1])
 #endif
 {
     if (!str)
@@ -105,7 +105,7 @@ str_view
 sv_n(size_t n, const char *str)
 #else
 str_view
-sv_n(size_t n, const char str[static const 1])
+sv_n(size_t n, const char str[1])
 #endif
 {
     if (!str || !n)
@@ -120,7 +120,7 @@ str_view
 sv_delim(const char *str, const char *delim)
 #else
 str_view
-sv_delim(const char str[static const 1], const char delim[static const 1])
+sv_delim(const char str[1], const char delim[1])
 #endif
 {
     if (!str)
@@ -159,7 +159,7 @@ str_view
 sv_copy(const size_t str_sz, const char *src_str)
 #else
 str_view
-sv_copy(const size_t str_sz, const char src_str[static const 1])
+sv_copy(const size_t str_sz, const char src_str[1])
 #endif
 {
     return sv_n(str_sz, src_str);
@@ -170,7 +170,7 @@ size_t
 sv_fill(size_t dest_sz, char *dest_buf, str_view src)
 #else
 size_t
-sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
+sv_fill(size_t dest_sz, char dest_buf[1], str_view src)
 #endif
 {
     if (!dest_buf || !dest_sz || !src.s || !src.sz)
@@ -206,7 +206,7 @@ size_t
 sv_strsize(const char *str)
 #else
 size_t
-sv_strsize(const char str[static const 1])
+sv_strsize(const char str[1])
 #endif
 {
     if (!str)
@@ -221,7 +221,7 @@ size_t
 sv_minlen(const char *str, size_t n)
 #else
 size_t
-sv_minlen(const char str[static const 1], size_t n)
+sv_minlen(const char str[1], size_t n)
 #endif
 {
     if (!str)
@@ -288,7 +288,7 @@ sv_threeway_cmp
 sv_strcmp(str_view lhs, const char *rhs)
 #else
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char rhs[static const 1])
+sv_strcmp(str_view lhs, const char rhs[1])
 #endif
 {
     if (!lhs.s || !rhs)
@@ -315,7 +315,7 @@ sv_threeway_cmp
 sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 #else
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
+sv_strncmp(str_view lhs, const char rhs[1], const size_t n)
 #endif
 {
     if (!lhs.s || !rhs)
@@ -383,7 +383,7 @@ const char *
 sv_next(const char c[1])
 #else
 const char *
-sv_next(const char c[static 1])
+sv_next(const char c[1])
 #endif
 {
     if (!c)
@@ -426,7 +426,7 @@ const char *
 sv_rnext(const char *c)
 #else
 const char *
-sv_rnext(const char c[static 1])
+sv_rnext(const char c[1])
 #endif
 {
     if (!c)
