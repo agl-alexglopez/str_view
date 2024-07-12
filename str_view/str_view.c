@@ -378,8 +378,13 @@ sv_end(const str_view sv)
     return sv.s + sv.sz;
 }
 
+#if defined(_MSC_VER)
+const char *
+sv_next(const char c[1])
+#else
 const char *
 sv_next(const char c[static 1])
+#endif
 {
     if (!c)
     {
