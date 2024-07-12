@@ -30,4 +30,6 @@ jobs:
       run: cmake -S . -B build -G "NMake Makefiles"
 
     - name: Build with nmake
-      run: nmake
+      run: |
+        cd build
+        nmake
