@@ -85,8 +85,13 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 
 /* ===================   Interface Implementation   ====================== */
 
+#if defined(_MSC_VER)
 str_view
 sv(const char str[1])
+#else
+str_view
+sv(const char str[static const 1])
+#endif
 {
     if (!str)
     {
@@ -95,8 +100,13 @@ sv(const char str[1])
     return (str_view){.s = str, .sz = strlen(str)};
 }
 
+#if defined(_MSC_VER)
 str_view
 sv_n(size_t n, const char str[1])
+#else
+str_view
+sv_n(size_t n, const char str[static const 1])
+#endif
 {
     if (!str || !n)
     {
@@ -105,8 +115,13 @@ sv_n(size_t n, const char str[1])
     return (str_view){.s = str, .sz = strnlen(str, n)};
 }
 
+#if defined(_MSC_VER)
 str_view
 sv_delim(const char str[1], const char delim[1])
+#else
+str_view
+sv_delim(const char str[static const 1], const char delim[static const 1])
+#endif
 {
     if (!str)
     {
@@ -139,8 +154,13 @@ sv_print(FILE *f, str_view sv)
     (void)fwrite(sv.s, sizeof(char), sv.sz, f);
 }
 
+#if defined(_MSC_VER)
 str_view
 sv_copy(const size_t str_sz, const char src_str[1])
+#else
+str_view
+sv_copy(const size_t str_sz, const char src_str[static const 1])
+#endif
 {
     return sv_n(str_sz, src_str);
 }
@@ -176,8 +196,13 @@ sv_size(str_view sv)
     return sv.sz + 1;
 }
 
+#if defined(_MSC_VER)
 size_t
 sv_strsize(const char str[1])
+#else
+size_t
+sv_strsize(const char str[static const 1])
+#endif
 {
     if (!str)
     {
@@ -186,8 +211,13 @@ sv_strsize(const char str[1])
     return strlen(str) + 1;
 }
 
+#if defined(_MSC_VER)
 size_t
 sv_minlen(const char str[1], size_t n)
+#else
+size_t
+sv_minlen(const char str[static const 1], size_t n)
+#endif
 {
     if (!str)
     {
@@ -248,8 +278,13 @@ sv_cmp(str_view lhs, str_view rhs)
     return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
+#if defined(_MSC_VER)
 sv_threeway_cmp
 sv_strcmp(str_view lhs, const char rhs[1])
+#else
+sv_threeway_cmp
+sv_strcmp(str_view lhs, const char rhs[static const 1])
+#endif
 {
     if (!lhs.s || !rhs)
     {
@@ -270,8 +305,13 @@ sv_strcmp(str_view lhs, const char rhs[1])
     return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
+#if defined(_MSC_VER)
 sv_threeway_cmp
 sv_strncmp(str_view lhs, const char rhs[1], const size_t n)
+#else
+sv_threeway_cmp
+sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
+#endif
 {
     if (!lhs.s || !rhs)
     {
@@ -371,8 +411,13 @@ sv_rend(str_view sv)
     return sv.s - 1;
 }
 
+#if defined(_MSC_VER)
+const char *
+sv_rnext(const char c[1])
+#else
 const char *
 sv_rnext(const char c[static 1])
+#endif
 {
     if (!c)
     {
