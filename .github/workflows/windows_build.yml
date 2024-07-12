@@ -1,0 +1,32 @@
+name: Windows Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Delete non-library files
+      run: |
+        Remove-Item -Path samples -Recurse
+        Remove-Item -Path tests -Recurse
+
+    - name: Set up CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Configure with CMake
+      run: cmake -S . -B build -G "Ninja"
+
+    - name: Configure and Build Debug
+      run: cmake --build build --config Debug
