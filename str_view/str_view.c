@@ -7,6 +7,11 @@
    String-Searching algorithm, similar to glibc. */
 #include "str_view.h"
 
+#if defined(_MSC_VER)
+#    include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
