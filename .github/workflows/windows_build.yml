@@ -27,7 +27,7 @@ jobs:
 
 
     - name: Configure with CMake
-      run: cmake -S . -B build -G "NMake Makefiles" -A x64
+      run: cmake -S . -B build -G "NMake Makefiles"
 
     - name: Build with nmake
       run: nmake
