@@ -165,8 +165,13 @@ sv_copy(const size_t str_sz, const char src_str[static const 1])
     return sv_n(str_sz, src_str);
 }
 
+#if defined(_MSC_VER)
+size_t
+sv_fill(size_t dest_sz, char *dest_buf, str_view src)
+#else
 size_t
 sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
+#endif
 {
     if (!dest_buf || !dest_sz || !src.s || !src.sz)
     {

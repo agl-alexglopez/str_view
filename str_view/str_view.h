@@ -189,8 +189,12 @@ str_view sv_copy(size_t str_sz, const char src_str[static const 1])
    destination size and source view size, null terminating
    the string. This may cut off src data if dest_sz < src.sz.
    Returns how many bytes were written to the buffer. */
+#if defined(_MSC_VER)
+size_t sv_fill(size_t dest_sz, char *dest_buf, str_view src) ATTRIB_NONNULL(2);
+#else
 size_t sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
     ATTRIB_NONNULL(2);
+#endif
 
 /* Returns a str_view of the entirety of the underlying string, starting
    at the current view pointer position. This guarantees that the str_view
