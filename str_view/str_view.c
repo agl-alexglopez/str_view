@@ -7,7 +7,7 @@
    String-Searching algorithm, similar to glibc. */
 #include "str_view.h"
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 #    include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
 #endif
@@ -85,7 +85,7 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 
 /* ===================   Interface Implementation   ====================== */
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 str_view
 sv(const char *str)
 #else
@@ -100,7 +100,7 @@ sv(const char str[static const 1])
     return (str_view){.s = str, .sz = strlen(str)};
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 str_view
 sv_n(size_t n, const char *str)
 #else
@@ -115,7 +115,7 @@ sv_n(size_t n, const char str[static const 1])
     return (str_view){.s = str, .sz = strnlen(str, n)};
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 str_view
 sv_delim(const char *str, const char *delim)
 #else
@@ -154,7 +154,7 @@ sv_print(FILE *f, str_view sv)
     (void)fwrite(sv.s, sizeof(char), sv.sz, f);
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 str_view
 sv_copy(const size_t str_sz, const char *src_str)
 #else
@@ -165,7 +165,7 @@ sv_copy(const size_t str_sz, const char src_str[static const 1])
     return sv_n(str_sz, src_str);
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 size_t
 sv_fill(size_t dest_sz, char *dest_buf, str_view src)
 #else
@@ -201,7 +201,7 @@ sv_size(str_view sv)
     return sv.sz + 1;
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 size_t
 sv_strsize(const char *str)
 #else
@@ -216,7 +216,7 @@ sv_strsize(const char str[static const 1])
     return strlen(str) + 1;
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 size_t
 sv_minlen(const char *str, size_t n)
 #else
@@ -283,7 +283,7 @@ sv_cmp(str_view lhs, str_view rhs)
     return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 sv_threeway_cmp
 sv_strcmp(str_view lhs, const char *rhs)
 #else
@@ -310,7 +310,7 @@ sv_strcmp(str_view lhs, const char rhs[static const 1])
     return (i < lhs.sz) ? SV_GRT : SV_LES;
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 sv_threeway_cmp
 sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 #else
@@ -378,7 +378,7 @@ sv_end(const str_view sv)
     return sv.s + sv.sz;
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 const char *
 sv_next(const char c[1])
 #else
@@ -421,7 +421,7 @@ sv_rend(str_view sv)
     return sv.s - 1;
 }
 
-#if defined(_WIN32) || defined(_WIN64) || defined(_MSC_VER)
+#if defined(_MSC_VER)
 const char *
 sv_rnext(const char *c)
 #else
