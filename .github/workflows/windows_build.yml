@@ -33,3 +33,4 @@ jobs:
       run: |
         cd build
         nmake
+        cmake --build . --target install
