@@ -17,16 +17,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Setup cl.exe
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: Delete non-library files
       run: |
         Remove-Item -Path samples -Recurse
         Remove-Item -Path tests -Recurse
 
-    - name: Set up CMake
-      uses: lukka/get-cmake@latest
 
     - name: Configure with CMake
-      run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+      run: cmake -S . -B build -G "NMake Makefiles" -A x64
 
-    - name: Configure and Build Debug
-      run: cmake --build build --config Debug
+    - name: Build with nmake
+      run: nmake
