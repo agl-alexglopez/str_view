@@ -87,7 +87,7 @@ static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
 
 #if defined(_MSC_VER)
 str_view
-sv(const char str[1])
+sv(const char *str)
 #else
 str_view
 sv(const char str[static const 1])
@@ -102,7 +102,7 @@ sv(const char str[static const 1])
 
 #if defined(_MSC_VER)
 str_view
-sv_n(size_t n, const char str[1])
+sv_n(size_t n, const char *str)
 #else
 str_view
 sv_n(size_t n, const char str[static const 1])
@@ -117,7 +117,7 @@ sv_n(size_t n, const char str[static const 1])
 
 #if defined(_MSC_VER)
 str_view
-sv_delim(const char str[1], const char delim[1])
+sv_delim(const char *str, const char *delim)
 #else
 str_view
 sv_delim(const char str[static const 1], const char delim[static const 1])
@@ -156,7 +156,7 @@ sv_print(FILE *f, str_view sv)
 
 #if defined(_MSC_VER)
 str_view
-sv_copy(const size_t str_sz, const char src_str[1])
+sv_copy(const size_t str_sz, const char *src_str)
 #else
 str_view
 sv_copy(const size_t str_sz, const char src_str[static const 1])
@@ -203,7 +203,7 @@ sv_size(str_view sv)
 
 #if defined(_MSC_VER)
 size_t
-sv_strsize(const char str[1])
+sv_strsize(const char *str)
 #else
 size_t
 sv_strsize(const char str[static const 1])
@@ -218,7 +218,7 @@ sv_strsize(const char str[static const 1])
 
 #if defined(_MSC_VER)
 size_t
-sv_minlen(const char str[1], size_t n)
+sv_minlen(const char *str, size_t n)
 #else
 size_t
 sv_minlen(const char str[static const 1], size_t n)
@@ -285,7 +285,7 @@ sv_cmp(str_view lhs, str_view rhs)
 
 #if defined(_MSC_VER)
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char rhs[1])
+sv_strcmp(str_view lhs, const char *rhs)
 #else
 sv_threeway_cmp
 sv_strcmp(str_view lhs, const char rhs[static const 1])
@@ -312,7 +312,7 @@ sv_strcmp(str_view lhs, const char rhs[static const 1])
 
 #if defined(_MSC_VER)
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char rhs[1], const size_t n)
+sv_strncmp(str_view lhs, const char *rhs, const size_t n)
 #else
 sv_threeway_cmp
 sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
@@ -423,7 +423,7 @@ sv_rend(str_view sv)
 
 #if defined(_MSC_VER)
 const char *
-sv_rnext(const char c[1])
+sv_rnext(const char *c)
 #else
 const char *
 sv_rnext(const char c[static 1])
