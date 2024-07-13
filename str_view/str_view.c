@@ -93,24 +93,20 @@ static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[1],
 
 #else
 
-static size_t sv_two_way_memoization(ssize_t hay_sz,
-                                     const char[static const hay_sz],
+static size_t sv_two_way_memoization(ssize_t hay_sz, const char[static hay_sz],
                                      ssize_t needle_sz,
-                                     const char[static const needle_sz],
-                                     ssize_t, ssize_t);
-static size_t sv_two_way_normal(ssize_t hay_sz, const char[static const hay_sz],
-                                ssize_t needle_sz,
-                                const char[static const needle_sz], ssize_t,
-                                ssize_t);
-static size_t sv_rtwo_way_memoization(ssize_t hay_sz,
-                                      const char[static const hay_sz],
+                                     const char[static needle_sz], ssize_t,
+                                     ssize_t);
+static size_t sv_two_way_normal(ssize_t hay_sz, const char[static hay_sz],
+                                ssize_t needle_sz, const char[static needle_sz],
+                                ssize_t, ssize_t);
+static size_t sv_rtwo_way_memoization(ssize_t hay_sz, const char[static hay_sz],
                                       ssize_t needle_sz,
-                                      const char[static const needle_sz],
-                                      ssize_t, ssize_t);
-static size_t sv_rtwo_way_normal(ssize_t hay_sz,
-                                 const char[static const hay_sz],
+                                      const char[static needle_sz], ssize_t,
+                                      ssize_t);
+static size_t sv_rtwo_way_normal(ssize_t hay_sz, const char[static hay_sz],
                                  ssize_t needle_sz,
-                                 const char[static const needle_sz], ssize_t,
+                                 const char[static needle_sz], ssize_t,
                                  ssize_t);
 static size_t sv_two_way(ssize_t hay_sz, const char[static hay_sz],
                          ssize_t needle_sz, const char[static needle_sz]);
