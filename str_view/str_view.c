@@ -28,18 +28,6 @@ struct sv_factorization
     ssize_t period_dist;
 };
 
-struct sv_two_way_pack
-{
-    const char *const hay;
-    ssize_t hay_sz;
-    const char *const needle;
-    ssize_t needle_sz;
-    /* Taken from the factorization of needle for two-way searching */
-    ssize_t period_dist;
-    /* The critical position taken from our factorization. */
-    ssize_t critical_pos;
-};
-
 /* Avoid giving the user a chance to dereference null as much as posssible
    by returning this for various edgecases when it makes sense to communicate
    empty, null, invalid, not found etc. Used on cases by case basis.
@@ -52,36 +40,115 @@ static const str_view nil = {.s = "", .sz = 0};
 static size_t sv_after_find(str_view, str_view);
 static size_t sv_before_rfind(str_view, str_view);
 static size_t sv_min(size_t, size_t);
-static size_t sv_two_way(const char *, ssize_t, const char *, ssize_t);
-static size_t sv_rtwo_way(const char *, ssize_t, const char *, ssize_t);
-static struct sv_factorization sv_maximal_suffix(const char *, ssize_t);
-static struct sv_factorization sv_maximal_suffix_rev(const char *, ssize_t);
-static struct sv_factorization sv_rmaximal_suffix(const char *, ssize_t);
-static struct sv_factorization sv_rmaximal_suffix_rev(const char *, ssize_t);
-static size_t sv_two_way_memoization(struct sv_two_way_pack);
-static size_t sv_two_way_normal(struct sv_two_way_pack);
-static size_t sv_rtwo_way_memoization(struct sv_two_way_pack);
-static size_t sv_rtwo_way_normal(struct sv_two_way_pack);
 static sv_threeway_cmp sv_char_cmp(char, char);
 static ssize_t sv_ssizet_max(ssize_t, ssize_t);
-static size_t sv_twobyte_strnstrn(const unsigned char *, size_t,
-                                  const unsigned char *);
-static size_t sv_threebyte_strnstrn(const unsigned char *, size_t,
-                                    const unsigned char *);
-static size_t sv_fourbyte_strnstrn(const unsigned char *, size_t,
-                                   const unsigned char *);
-static size_t sv_strcspn(const char *, size_t, const char *, size_t);
-static size_t sv_strspn(const char *, size_t, const char *, size_t);
-static size_t sv_strnstrn(const char *, ssize_t, const char *, ssize_t);
-static size_t sv_strnchr(const char *, char, size_t);
-static size_t sv_rstrnchr(const char *, char, size_t);
-static size_t sv_rstrnstrn(const char *, ssize_t, const char *, ssize_t);
-static size_t sv_rtwobyte_strnstrn(const unsigned char *, size_t,
-                                   const unsigned char *);
-static size_t sv_rthreebyte_strnstrn(const unsigned char *, size_t,
-                                     const unsigned char *);
-static size_t sv_rfourbyte_strnstrn(const unsigned char *, size_t,
-                                    const unsigned char *);
+
+#if defined(_MSC_VER)
+static size_t sv_two_way_memoization(ssize_t hay_sz, const char[1],
+                                     ssize_t needle_sz, const char[1], ssize_t,
+                                     ssize_t);
+static size_t sv_two_way_normal(ssize_t hay_sz, const char[1],
+                                ssize_t needle_sz, const char[1], ssize_t,
+                                ssize_t);
+static size_t sv_rtwo_way_memoization(ssize_t hay_sz, const char[1],
+                                      ssize_t needle_sz, const char[1], ssize_t,
+                                      ssize_t);
+static size_t sv_rtwo_way_normal(ssize_t hay_sz, const char[1],
+                                 ssize_t needle_sz, const char[1], ssize_t,
+                                 ssize_t);
+static size_t sv_two_way(ssize_t hay_sz, const char[1], ssize_t needle_sz,
+                         const char[1]);
+static size_t sv_rtwo_way(ssize_t hay_sz, const char[1], ssize_t needle_sz,
+                          const char[1]);
+static struct sv_factorization sv_maximal_suffix(ssize_t needle_sz,
+                                                 const char[1]);
+static struct sv_factorization sv_maximal_suffix_rev(ssize_t needle_sz,
+                                                     const char[1]);
+static struct sv_factorization sv_rmaximal_suffix(ssize_t needle_sz,
+                                                  const char[1]);
+static struct sv_factorization sv_rmaximal_suffix_rev(ssize_t needle_sz,
+                                                      const char[1]);
+static size_t sv_twobyte_strnstrn(size_t hay_sz, const unsigned char[1],
+                                  const unsigned char[1]);
+static size_t sv_threebyte_strnstrn(size_t sz, const unsigned char[1],
+                                    const unsigned char[1]);
+static size_t sv_fourbyte_strnstrn(size_t sz, const unsigned char[1],
+                                   const unsigned char[1]);
+static size_t sv_strcspn(size_t str_sz, const char[1], size_t set_sz,
+                         const char[1]);
+static size_t sv_strspn(size_t str_sz, const char[1], size_t set_sz,
+                        const char[1]);
+static size_t sv_strnstrn(ssize_t hay_sz, const char[1], ssize_t needle_sz,
+                          const char[1]);
+static size_t sv_strnchr(size_t n, const char[1], char);
+static size_t sv_rstrnchr(size_t n, const char[1], char);
+static size_t sv_rstrnstrn(ssize_t hay_sz, const char[1], ssize_t needle_sz,
+                           const char[1]);
+static size_t sv_rtwobyte_strnstrn(size_t sz, const unsigned char[1],
+                                   const unsigned char[1]);
+static size_t sv_rthreebyte_strnstrn(size_t sz, const unsigned char[1],
+                                     const unsigned char[1]);
+static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[1],
+                                    const unsigned char[1]);
+
+#else
+
+static size_t sv_two_way_memoization(ssize_t hay_sz,
+                                     const char[static const hay_sz],
+                                     ssize_t needle_sz,
+                                     const char[static const needle_sz],
+                                     ssize_t, ssize_t);
+static size_t sv_two_way_normal(ssize_t hay_sz, const char[static const hay_sz],
+                                ssize_t needle_sz,
+                                const char[static const needle_sz], ssize_t,
+                                ssize_t);
+static size_t sv_rtwo_way_memoization(ssize_t hay_sz,
+                                      const char[static const hay_sz],
+                                      ssize_t needle_sz,
+                                      const char[static const needle_sz],
+                                      ssize_t, ssize_t);
+static size_t sv_rtwo_way_normal(ssize_t hay_sz,
+                                 const char[static const hay_sz],
+                                 ssize_t needle_sz,
+                                 const char[static const needle_sz], ssize_t,
+                                 ssize_t);
+static size_t sv_two_way(ssize_t hay_sz, const char[static hay_sz],
+                         ssize_t needle_sz, const char[static needle_sz]);
+static size_t sv_rtwo_way(ssize_t hay_sz, const char[static hay_sz],
+                          ssize_t needle_sz, const char[static needle_sz]);
+static struct sv_factorization sv_maximal_suffix(ssize_t needle_sz,
+                                                 const char[static needle_sz]);
+static struct sv_factorization
+sv_maximal_suffix_rev(ssize_t needle_sz, const char[static needle_sz]);
+static struct sv_factorization sv_rmaximal_suffix(ssize_t needle_sz,
+                                                  const char[static needle_sz]);
+static struct sv_factorization
+sv_rmaximal_suffix_rev(ssize_t needle_sz, const char[static needle_sz]);
+static size_t sv_twobyte_strnstrn(size_t hay_sz,
+                                  const unsigned char[static hay_sz],
+                                  const unsigned char[static 1]);
+static size_t sv_threebyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                    const unsigned char[static 1]);
+static size_t sv_fourbyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                   const unsigned char[static 1]);
+static size_t sv_strcspn(size_t str_sz, const char[static str_sz],
+                         size_t set_sz, const char[static set_sz]);
+static size_t sv_strspn(size_t str_sz, const char[static str_sz], size_t set_sz,
+                        const char[static set_sz]);
+static size_t sv_strnstrn(ssize_t hay_sz, const char[static hay_sz],
+                          ssize_t needle_sz, const char[static needle_sz]);
+static size_t sv_strnchr(size_t n, const char[static n], char);
+static size_t sv_rstrnchr(size_t n, const char[static n], char);
+static size_t sv_rstrnstrn(ssize_t hay_sz, const char[static hay_sz],
+                           ssize_t needle_sz, const char[static needle_sz]);
+static size_t sv_rtwobyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                   const unsigned char[static 1]);
+static size_t sv_rthreebyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                     const unsigned char[static 1]);
+static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                    const unsigned char[static 1]);
+
+#endif
 
 /* ===================   Interface Implementation   ====================== */
 
@@ -506,7 +573,7 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
         return (str_view){.s = src.s + src.sz, .sz = 0};
     }
     const size_t found
-        = sv_strnstrn(next.s, (ssize_t)next.sz, delim.s, (ssize_t)delim.sz);
+        = sv_strnstrn((ssize_t)next.sz, next.s, (ssize_t)delim.sz, delim.s);
     return (str_view){.s = next.s, .sz = found};
 }
 
@@ -552,8 +619,8 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return shorter;
     }
-    size_t start = sv_rstrnstrn(shorter.s, (ssize_t)before_delim, delim.s,
-                                (ssize_t)delim.sz);
+    size_t start = sv_rstrnstrn((ssize_t)before_delim, shorter.s,
+                                (ssize_t)delim.sz, delim.s);
     if (start == before_delim)
     {
         return (str_view){.s = shorter.s, .sz = before_delim + 1};
@@ -646,7 +713,7 @@ sv_contains(str_view hay, str_view needle)
         return true;
     }
     return hay.sz
-           != sv_strnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
+           != sv_strnstrn((ssize_t)hay.sz, hay.s, (ssize_t)needle.sz, needle.s);
 }
 
 str_view
@@ -661,7 +728,7 @@ sv_match(str_view hay, str_view needle)
         return (str_view){.s = hay.s + hay.sz, .sz = 0};
     }
     const size_t found
-        = sv_strnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
+        = sv_strnstrn((ssize_t)hay.sz, hay.s, (ssize_t)needle.sz, needle.s);
     return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
                            : (str_view){.s = hay.s + found, .sz = needle.sz};
 }
@@ -678,7 +745,7 @@ sv_rmatch(str_view hay, str_view needle)
         return (str_view){.s = hay.s + hay.sz, .sz = 0};
     }
     const size_t found
-        = sv_rstrnstrn(hay.s, (ssize_t)hay.sz, needle.s, (ssize_t)needle.sz);
+        = sv_rstrnstrn((ssize_t)hay.sz, hay.s, (ssize_t)needle.sz, needle.s);
     return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
                            : (str_view){.s = hay.s + found, .sz = needle.sz};
 }
@@ -691,8 +758,8 @@ sv_find(str_view hay, size_t pos, str_view needle)
         return hay.sz;
     }
     return pos
-           + sv_strnstrn(hay.s + pos, (ssize_t)(hay.sz - pos), needle.s,
-                         (ssize_t)needle.sz);
+           + sv_strnstrn((ssize_t)(hay.sz - pos), hay.s + pos,
+                         (ssize_t)needle.sz, needle.s);
 }
 
 size_t
@@ -707,7 +774,7 @@ sv_rfind(str_view h, size_t pos, str_view n)
         pos = h.sz - 1;
     }
     const size_t found
-        = sv_rstrnstrn(h.s, (ssize_t)pos + 1, n.s, (ssize_t)n.sz);
+        = sv_rstrnstrn((ssize_t)pos + 1, h.s, (ssize_t)n.sz, n.s);
     return found == pos + 1 ? h.sz : found;
 }
 
@@ -722,7 +789,7 @@ sv_find_first_of(str_view hay, str_view set)
     {
         return hay.sz;
     }
-    return sv_strcspn(hay.s, hay.sz, set.s, set.sz);
+    return sv_strcspn(hay.sz, hay.s, set.sz, set.s);
 }
 
 size_t
@@ -738,7 +805,7 @@ sv_find_last_of(str_view hay, str_view set)
     }
     size_t last_pos = hay.sz;
     for (size_t in = 0, prev = 0;
-         (in += sv_strspn(hay.s + in, hay.sz - in, set.s, set.sz)) != hay.sz;
+         (in += sv_strspn(hay.sz - in, hay.s + in, set.sz, set.s)) != hay.sz;
          ++in, prev = in)
     {
         if (in != prev)
@@ -760,7 +827,7 @@ sv_find_first_not_of(str_view hay, str_view set)
     {
         return 0;
     }
-    return sv_strspn(hay.s, hay.sz, set.s, set.sz);
+    return sv_strspn(hay.sz, hay.s, set.sz, set.s);
 }
 
 size_t
@@ -776,7 +843,7 @@ sv_find_last_not_of(str_view hay, str_view set)
     }
     size_t last_pos = hay.sz;
     for (size_t in = 0, prev = 0;
-         (in += sv_strspn(hay.s + in, hay.sz - in, set.s, set.sz)) != hay.sz;
+         (in += sv_strspn(hay.sz - in, hay.s + in, set.sz, set.s)) != hay.sz;
          ++in, prev = in)
     {
         if (in != prev)
@@ -882,8 +949,14 @@ sv_rmemcmp(const void *const vl, const void *const vr, size_t n)
    have no concept of a string view and will continue searching beyond the
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
+#if defined(_MSC_VER)
 static size_t
-sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
+sv_strcspn(size_t str_sz, const char str[1], size_t set_sz, const char set[1])
+#else
+static size_t
+sv_strcspn(size_t str_sz, const char str[static const str_sz], size_t set_sz,
+           const char set[static set_sz])
+#endif
 {
     const char *a = str;
     size_t byteset[32 / sizeof(size_t)];
@@ -914,8 +987,14 @@ sv_strcspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
    have no concept of a string view and will continue searching beyond the
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
+#if defined(_MSC_VER)
 static size_t
-sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
+sv_strspn(size_t str_sz, const char str[1], size_t set_sz, const char set[1])
+#else
+static size_t
+sv_strspn(size_t str_sz, const char str[static const str_sz], size_t set_sz,
+          const char set[static set_sz])
+#endif
 {
     const char *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
@@ -944,9 +1023,15 @@ sv_strspn(const char *const str, size_t str_sz, const char *set, size_t set_sz)
    to always be the additional constraint that a search cannot exceed the
    hay length. Returns 0 based index position at which needle begins in
    hay if it can be found, otherwise the hay size is returned. */
+#if defined(_MSC_VER)
 static size_t
-sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
-            ssize_t needle_sz)
+sv_strnstrn(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+            const char needle[1])
+#else
+static size_t
+sv_strnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
+            ssize_t needle_sz, const char needle[static const needle_sz])
+#endif
 {
     if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
     {
@@ -954,24 +1039,24 @@ sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
     }
     if (1 == needle_sz)
     {
-        return sv_strnchr(hay, *needle, hay_sz);
+        return sv_strnchr(hay_sz, hay, *needle);
     }
     if (2 == needle_sz)
     {
-        return sv_twobyte_strnstrn((unsigned char *)hay, hay_sz,
+        return sv_twobyte_strnstrn(hay_sz, (unsigned char *)hay,
                                    (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_threebyte_strnstrn((unsigned char *)hay, hay_sz,
+        return sv_threebyte_strnstrn(hay_sz, (unsigned char *)hay,
                                      (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_fourbyte_strnstrn((unsigned char *)hay, hay_sz,
+        return sv_fourbyte_strnstrn(hay_sz, (unsigned char *)hay,
                                     (unsigned char *)needle);
     }
-    return sv_two_way(hay, hay_sz, needle, needle_sz);
+    return sv_two_way(hay_sz, hay, needle_sz, needle);
 }
 
 /* For now reverse logic for backwards searches has been separated into
@@ -979,9 +1064,15 @@ sv_strnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
    forward logic into one set of functions, but the code is ugly. See
    the start of the reverse two-way algorithm for more. May unite if
    a clean way exists. */
+#if defined(_MSC_VER)
 static size_t
-sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
-             ssize_t needle_sz)
+sv_rstrnstrn(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+             const char needle[1])
+#else
+static size_t
+sv_rstrnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
+             ssize_t needle_sz, const char needle[static const needle_sz])
+#endif
 {
     if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
     {
@@ -989,28 +1080,29 @@ sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
     }
     if (1 == needle_sz)
     {
-        return sv_rstrnchr(hay, *needle, hay_sz);
+        return sv_rstrnchr(hay_sz, hay, *needle);
     }
     if (2 == needle_sz)
     {
-        return sv_rtwobyte_strnstrn((unsigned char *)hay, hay_sz,
+        return sv_rtwobyte_strnstrn(hay_sz, (unsigned char *)hay,
                                     (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_rthreebyte_strnstrn((unsigned char *)hay, hay_sz,
+        return sv_rthreebyte_strnstrn(hay_sz, (unsigned char *)hay,
                                       (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_rfourbyte_strnstrn((unsigned char *)hay, hay_sz,
+        return sv_rfourbyte_strnstrn(hay_sz, (unsigned char *)hay,
                                      (unsigned char *)needle);
     }
-    return sv_rtwo_way(hay, hay_sz, needle, needle_sz);
+    return sv_rtwo_way(hay_sz, hay, needle_sz, needle);
 }
 
-/* ==============   Post-Precomputation Two-Way Search    ==================
- */
+/*==============   Post-Precomputation Two-Way Search    =================*/
+
+/* NOLINTBEGIN(*easily-swappable*) */
 
 /* Definitions for Two-Way String-Matching taken from original authors:
 
@@ -1035,9 +1127,15 @@ sv_rstrnstrn(const char *const hay, ssize_t hay_sz, const char *const needle,
    and the string view library is most likely search a view rather than
    an entire string. Returns the position at which needle begins if found
    and the size of the hay stack if not found. */
+#if defined(_MSC_VER)
 static inline size_t
-sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
-           ssize_t needle_sz)
+sv_two_way(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+           const char needle[1])
+#else
+static inline size_t
+sv_two_way(ssize_t hay_sz, const char hay[static const hay_sz],
+           ssize_t needle_sz, const char needle[static const needle_sz])
+#endif
 {
     /* ssize_t is used throughout. Is this the best choice? The two-way
        algo relies on negative numbers. This fits with size_t capabilities
@@ -1045,8 +1143,8 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
-    const struct sv_factorization s = sv_maximal_suffix(needle, needle_sz);
-    const struct sv_factorization r = sv_maximal_suffix_rev(needle, needle_sz);
+    const struct sv_factorization s = sv_maximal_suffix(needle_sz, needle);
+    const struct sv_factorization r = sv_maximal_suffix_rev(needle_sz, needle);
     if (s.start_critical_pos > r.start_critical_pos)
     {
         critical_pos = s.start_critical_pos;
@@ -1060,50 +1158,48 @@ sv_two_way(const char *const hay, ssize_t hay_sz, const char *const needle,
     /* Determine if memoization is available due to found border/overlap. */
     if (!memcmp(needle, needle + period_dist, critical_pos + 1))
     {
-        return sv_two_way_memoization((struct sv_two_way_pack){
-            .hay = hay,
-            .hay_sz = hay_sz,
-            .needle = needle,
-            .needle_sz = needle_sz,
-            .period_dist = period_dist,
-            .critical_pos = critical_pos,
-        });
+        return sv_two_way_memoization(hay_sz, hay, needle_sz, needle,
+                                      period_dist, critical_pos);
     }
-    return sv_two_way_normal((struct sv_two_way_pack){
-        .hay = hay,
-        .hay_sz = hay_sz,
-        .needle = needle,
-        .needle_sz = needle_sz,
-        .period_dist = period_dist,
-        .critical_pos = critical_pos,
-    });
+    return sv_two_way_normal(hay_sz, hay, needle_sz, needle, period_dist,
+                             critical_pos);
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static inline size_t
-sv_two_way_memoization(struct sv_two_way_pack p)
+#if defined(_MSC_VER)
+static size_t
+sv_two_way_memoization(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+                       const char needle[1], ssize_t period_dist,
+                       ssize_t critical_pos)
+#else
+static size_t
+sv_two_way_memoization(ssize_t hay_sz, const char hay[static const hay_sz],
+                       ssize_t needle_sz,
+                       const char needle[static const needle_sz],
+                       ssize_t period_dist, ssize_t critical_pos)
+#endif
 {
     ssize_t lpos = 0;
     ssize_t rpos = 0;
     /* Eliminate worst case quadratic time complexity with memoization. */
     ssize_t memoize_shift = -1;
-    while (lpos <= p.hay_sz - p.needle_sz)
+    while (lpos <= hay_sz - needle_sz)
     {
-        rpos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
-        while (rpos < p.needle_sz && p.needle[rpos] == p.hay[rpos + lpos])
+        rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
+        while (rpos < needle_sz && needle[rpos] == hay[rpos + lpos])
         {
             ++rpos;
         }
-        if (rpos < p.needle_sz)
+        if (rpos < needle_sz)
         {
-            lpos += (rpos - p.critical_pos);
+            lpos += (rpos - critical_pos);
             memoize_shift = -1;
             continue;
         }
-        /* p.r_pos >= p.needle_sz */
-        rpos = p.critical_pos;
-        while (rpos > memoize_shift && p.needle[rpos] == p.hay[rpos + lpos])
+        /* r_pos >= needle_sz */
+        rpos = critical_pos;
+        while (rpos > memoize_shift && needle[rpos] == hay[rpos + lpos])
         {
             --rpos;
         }
@@ -1111,39 +1207,47 @@ sv_two_way_memoization(struct sv_two_way_pack p)
         {
             return lpos;
         }
-        lpos += p.period_dist;
+        lpos += period_dist;
         /* Some prefix of needle coincides with the text. Memoize the length
            of this prefix to increase length of next shift, if possible. */
-        memoize_shift = p.needle_sz - p.period_dist - 1;
+        memoize_shift = needle_sz - period_dist - 1;
     }
-    return p.hay_sz;
+    return hay_sz;
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static inline size_t
-sv_two_way_normal(struct sv_two_way_pack p)
+#if defined(_MSC_VER)
+static size_t
+sv_two_way_normal(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+                  const char needle[1], ssize_t period_dist,
+                  ssize_t critical_pos)
+#else
+static size_t
+sv_two_way_normal(ssize_t hay_sz, const char hay[static const hay_sz],
+                  ssize_t needle_sz, const char needle[static const needle_sz],
+                  ssize_t period_dist, ssize_t critical_pos)
+#endif
 {
-    p.period_dist
-        = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
-          + 1;
+    period_dist
+        = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
     ssize_t lpos = 0;
     ssize_t rpos = 0;
-    while (lpos <= p.hay_sz - p.needle_sz)
+    while (lpos <= hay_sz - needle_sz)
     {
-        rpos = p.critical_pos + 1;
-        while (rpos < p.needle_sz && p.needle[rpos] == p.hay[rpos + lpos])
+        rpos = critical_pos + 1;
+        while (rpos < needle_sz && needle[rpos] == hay[rpos + lpos])
         {
             ++rpos;
         }
-        if (rpos < p.needle_sz)
+        if (rpos < needle_sz)
         {
-            lpos += (rpos - p.critical_pos);
+            lpos += (rpos - critical_pos);
             continue;
         }
-        /* p.r_pos >= p.needle_sz */
-        rpos = p.critical_pos;
-        while (rpos >= 0 && p.needle[rpos] == p.hay[rpos + lpos])
+        /* r_pos >= needle_sz */
+        rpos = critical_pos;
+        while (rpos >= 0 && needle[rpos] == hay[rpos + lpos])
         {
             --rpos;
         }
@@ -1151,18 +1255,22 @@ sv_two_way_normal(struct sv_two_way_pack p)
         {
             return lpos;
         }
-        lpos += p.period_dist;
+        lpos += period_dist;
     }
-    return p.hay_sz;
+    return hay_sz;
 }
 
-/* ================   Suffix and Critical Factorization    =================
- */
+/* ==============   Suffix and Critical Factorization    =================*/
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
+#if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
+sv_maximal_suffix(ssize_t needle_sz, const char needle[1])
+#else
+static inline struct sv_factorization
+sv_maximal_suffix(ssize_t needle_sz, const char needle[static const needle_sz])
+#endif
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1204,8 +1312,14 @@ sv_maximal_suffix(const char *const needle, ssize_t needle_sz)
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
+#if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_maximal_suffix_rev(const char *const needle, ssize_t needle_sz)
+sv_maximal_suffix_rev(ssize_t needle_sz, const char needle[1])
+#else
+static inline struct sv_factorization
+sv_maximal_suffix_rev(ssize_t needle_sz,
+                      const char needle[static const needle_sz])
+#endif
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1280,14 +1394,20 @@ while (last_rest + rest < needle_sz)
 
 /* Searches a string from right to left with a two-way algorithm. Returns
    the position of the start of the strig if found and string size if not. */
+#if defined(_MSC_VER)
 static inline size_t
-sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
-            ssize_t needle_sz)
+sv_rtwo_way(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+            const char needle[1])
+#else
+static inline size_t
+sv_rtwo_way(ssize_t hay_sz, const char hay[static const hay_sz],
+            ssize_t needle_sz, const char needle[static const needle_sz])
+#endif
 {
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
-    const struct sv_factorization s = sv_rmaximal_suffix(needle, needle_sz);
-    const struct sv_factorization r = sv_rmaximal_suffix_rev(needle, needle_sz);
+    const struct sv_factorization s = sv_rmaximal_suffix(needle_sz, needle);
+    const struct sv_factorization r = sv_rmaximal_suffix_rev(needle_sz, needle);
     if (s.start_critical_pos > r.start_critical_pos)
     {
         critical_pos = s.start_critical_pos;
@@ -1301,107 +1421,120 @@ sv_rtwo_way(const char *const hay, ssize_t hay_sz, const char *const needle,
     if (!sv_rmemcmp(needle + needle_sz - 1,
                     needle + needle_sz - period_dist - 1, critical_pos + 1))
     {
-        return sv_rtwo_way_memoization((struct sv_two_way_pack){
-            .hay = hay,
-            .hay_sz = hay_sz,
-            .needle = needle,
-            .needle_sz = needle_sz,
-            .period_dist = period_dist,
-            .critical_pos = critical_pos,
-        });
+        return sv_rtwo_way_memoization(hay_sz, hay, needle_sz, needle,
+                                       period_dist, critical_pos);
     }
-    return sv_rtwo_way_normal((struct sv_two_way_pack){
-        .hay = hay,
-        .hay_sz = hay_sz,
-        .needle = needle,
-        .needle_sz = needle_sz,
-        .period_dist = period_dist,
-        .critical_pos = critical_pos,
-    });
+    return sv_rtwo_way_normal(hay_sz, hay, needle_sz, needle, period_dist,
+                              critical_pos);
 }
 
-static inline size_t
-sv_rtwo_way_memoization(struct sv_two_way_pack p)
+#if defined(_MSC_VER)
+static size_t
+sv_rtwo_way_memoization(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+                        const char needle[1], ssize_t period_dist,
+                        ssize_t critical_pos)
+#else
+static size_t
+sv_rtwo_way_memoization(ssize_t hay_sz, const char hay[static const hay_sz],
+                        ssize_t needle_sz,
+                        const char needle[static const needle_sz],
+                        ssize_t period_dist, ssize_t critical_pos)
+#endif
 {
     ssize_t lpos = 0;
     ssize_t rpos = 0;
     ssize_t memoize_shift = -1;
-    while (lpos <= p.hay_sz - p.needle_sz)
+    while (lpos <= hay_sz - needle_sz)
     {
-        rpos = sv_ssizet_max(p.critical_pos, memoize_shift) + 1;
-        while (rpos < p.needle_sz
-               && p.needle[p.needle_sz - rpos - 1]
-                      == p.hay[p.hay_sz - (rpos + lpos) - 1])
+        rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
+        while (rpos < needle_sz
+               && needle[needle_sz - rpos - 1]
+                      == hay[hay_sz - (rpos + lpos) - 1])
         {
             ++rpos;
         }
-        if (rpos < p.needle_sz)
+        if (rpos < needle_sz)
         {
-            lpos += (rpos - p.critical_pos);
+            lpos += (rpos - critical_pos);
             memoize_shift = -1;
             continue;
         }
-        /* p.r_pos >= p.needle_sz */
-        rpos = p.critical_pos;
+        /* r_pos >= needle_sz */
+        rpos = critical_pos;
         while (rpos > memoize_shift
-               && p.needle[p.needle_sz - rpos - 1]
-                      == p.hay[p.hay_sz - (rpos + lpos) - 1])
+               && needle[needle_sz - rpos - 1]
+                      == hay[hay_sz - (rpos + lpos) - 1])
         {
             --rpos;
         }
         if (rpos <= memoize_shift)
         {
-            return p.hay_sz - lpos - p.needle_sz;
+            return hay_sz - lpos - needle_sz;
         }
-        lpos += p.period_dist;
+        lpos += period_dist;
         /* Some prefix of needle coincides with the text. Memoize the length
            of this prefix to increase length of next shift, if possible. */
-        memoize_shift = p.needle_sz - p.period_dist - 1;
+        memoize_shift = needle_sz - period_dist - 1;
     }
-    return p.hay_sz;
+    return hay_sz;
 }
 
-static inline size_t
-sv_rtwo_way_normal(struct sv_two_way_pack p)
+#if defined(_MSC_VER)
+static size_t
+sv_rtwo_way_normal(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
+                   const char needle[1], ssize_t period_dist,
+                   ssize_t critical_pos)
+#else
+static size_t
+sv_rtwo_way_normal(ssize_t hay_sz, const char hay[static const hay_sz],
+                   ssize_t needle_sz, const char needle[static const needle_sz],
+                   ssize_t period_dist, ssize_t critical_pos)
+#endif
 {
-    p.period_dist
-        = sv_ssizet_max(p.critical_pos + 1, p.needle_sz - p.critical_pos - 1)
-          + 1;
+    period_dist
+        = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
     ssize_t lpos = 0;
     ssize_t rpos = 0;
-    while (lpos <= p.hay_sz - p.needle_sz)
+    while (lpos <= hay_sz - needle_sz)
     {
-        rpos = p.critical_pos + 1;
-        while (rpos < p.needle_sz
-               && (p.needle[p.needle_sz - rpos - 1]
-                   == p.hay[p.hay_sz - (rpos + lpos) - 1]))
+        rpos = critical_pos + 1;
+        while (rpos < needle_sz
+               && (needle[needle_sz - rpos - 1]
+                   == hay[hay_sz - (rpos + lpos) - 1]))
         {
             ++rpos;
         }
-        if (rpos < p.needle_sz)
+        if (rpos < needle_sz)
         {
-            lpos += (rpos - p.critical_pos);
+            lpos += (rpos - critical_pos);
             continue;
         }
-        /* p.r_pos >= p.needle_sz */
-        rpos = p.critical_pos;
+        /* r_pos >= needle_sz */
+        rpos = critical_pos;
         while (rpos >= 0
-               && p.needle[p.needle_sz - rpos - 1]
-                      == p.hay[p.hay_sz - (rpos + lpos) - 1])
+               && needle[needle_sz - rpos - 1]
+                      == hay[hay_sz - (rpos + lpos) - 1])
         {
             --rpos;
         }
         if (rpos < 0)
         {
-            return p.hay_sz - lpos - p.needle_sz;
+            return hay_sz - lpos - needle_sz;
         }
-        lpos += p.period_dist;
+        lpos += period_dist;
     }
-    return p.hay_sz;
+    return hay_sz;
 }
 
+/* NOLINTEND(*easily-swappable*) */
+
+#if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
+sv_rmaximal_suffix(ssize_t needle_sz, const char needle[1])
+#else
+static inline struct sv_factorization
+sv_rmaximal_suffix(ssize_t needle_sz, const char needle[static const needle_sz])
+#endif
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1441,8 +1574,14 @@ sv_rmaximal_suffix(const char *const needle, ssize_t needle_sz)
                                      .period_dist = period};
 }
 
+#if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
+sv_rmaximal_suffix_rev(ssize_t needle_sz, const char needle[1])
+#else
+static inline struct sv_factorization
+sv_rmaximal_suffix_rev(ssize_t needle_sz,
+                       const char needle[static const needle_sz])
+#endif
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1493,9 +1632,13 @@ sv_rmaximal_suffix_rev(const char *const needle, ssize_t needle_sz)
    search for rfind which most string libraries specify must search right
    to left. Also having a reverse tokenizer is convenient and also relies
    on right to left brute force searches. */
-
+#if defined(_MSC_VER)
 static inline size_t
-sv_strnchr(const char *s, const char c, size_t n)
+sv_strnchr(size_t n, const char s[1], const char c)
+#else
+static inline size_t
+sv_strnchr(size_t n, const char s[static n], const char c)
+#endif
 {
     size_t i = 0;
     for (; n && *s != c; s++, n--, ++i)
@@ -1503,8 +1646,13 @@ sv_strnchr(const char *s, const char c, size_t n)
     return i;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_rstrnchr(const char *s, const char c, size_t n)
+sv_rstrnchr(size_t n, const char s[1], const char c)
+#else
+static inline size_t
+sv_rstrnchr(size_t n, const char s[static const n], const char c)
+#endif
 {
     const char *x = s + n - 1;
     size_t i = n;
@@ -1513,9 +1661,15 @@ sv_rstrnchr(const char *s, const char c, size_t n)
     return i ? i - 1 : n;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_twobyte_strnstrn(const unsigned char *h, size_t sz,
-                    const unsigned char *const n)
+sv_twobyte_strnstrn(size_t sz, const unsigned char h[1],
+                    const unsigned char n[1])
+#else
+static inline size_t
+sv_twobyte_strnstrn(size_t sz, const unsigned char h[static sz],
+                    const unsigned char n[static const 1])
+#endif
 {
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
@@ -1525,9 +1679,15 @@ sv_twobyte_strnstrn(const unsigned char *h, size_t sz,
     return (i < sz) ? i - 1 : sz;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
-                     const unsigned char *const n)
+sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[1],
+                     const unsigned char n[1])
+#else
+static inline size_t
+sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[static sz],
+                     const unsigned char n[static const 1])
+#endif
 {
     h = h + sz - 2;
     uint16_t nw = n[0] << 8 | n[1];
@@ -1541,9 +1701,15 @@ sv_rtwobyte_strnstrn(const unsigned char *h, size_t sz,
     return i ? i - 1 : sz;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_threebyte_strnstrn(const unsigned char *h, size_t sz,
-                      const unsigned char *const n)
+sv_threebyte_strnstrn(size_t sz, const unsigned char h[1],
+                      const unsigned char n[1])
+#else
+static inline size_t
+sv_threebyte_strnstrn(size_t sz, const unsigned char h[static sz],
+                      const unsigned char n[static const 1])
+#endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
@@ -1553,9 +1719,15 @@ sv_threebyte_strnstrn(const unsigned char *h, size_t sz,
     return (i < sz) ? i - 2 : sz;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
-                       const unsigned char *const n)
+sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[1],
+                       const unsigned char n[1])
+#else
+static inline size_t
+sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[static sz],
+                       const unsigned char n[static const 1])
+#endif
 {
     h = h + sz - 3;
     uint32_t nw = (uint32_t)n[0] << 16 | n[1] << 8 | n[2];
@@ -1569,9 +1741,15 @@ sv_rthreebyte_strnstrn(const unsigned char *h, size_t sz,
     return i ? i - 1 : sz;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_fourbyte_strnstrn(const unsigned char *h, size_t sz,
-                     const unsigned char *const n)
+sv_fourbyte_strnstrn(size_t sz, const unsigned char h[1],
+                     const unsigned char n[1])
+#else
+static inline size_t
+sv_fourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
+                     const unsigned char n[static const 1])
+#endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
@@ -1581,9 +1759,15 @@ sv_fourbyte_strnstrn(const unsigned char *h, size_t sz,
     return (i < sz) ? i - 3 : sz;
 }
 
+#if defined(_MSC_VER)
 static inline size_t
-sv_rfourbyte_strnstrn(const unsigned char *h, size_t sz,
-                      const unsigned char *const n)
+sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[1],
+                      const unsigned char n[1])
+#else
+static inline size_t
+sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
+                      const unsigned char n[static const 1])
+#endif
 {
     h = h + sz - 4;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
