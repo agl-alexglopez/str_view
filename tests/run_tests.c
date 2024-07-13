@@ -89,10 +89,11 @@ run(const str_view tests_dir)
         passed += 1 - res;
         ++tests;
     }
-    passed == tests
-        ? printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", GREEN, passed, tests, NONE)
-        : printf("%sPASSED %zu/%zu T_T%s\n\n", RED, passed, tests, NONE);
-    return 0;
+    const bool fail = passed != tests;
+    fail
+        ? printf("%sPASSED %zu/%zu T_T%s\n\n", RED, passed, tests, NONE)
+        : printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", GREEN, passed, tests, NONE);
+    return fail;
 }
 
 enum test_result
