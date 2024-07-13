@@ -4,9 +4,9 @@
 
 *Pictured Above: Mocking up a mini grep program is easy with the right tools. Use `mini_grep` and any other sample programs as they arrive in the `samples/` folder to test the utility and convenience of a `str_view`.*
 
-The `str_view` type is a simple, copyable, flexible, read only view of `const char *` data in C, modeled after `std::string_view` in C++.
+The `str_view` type is a simple, copyable, flexible, read only view of `const char *` data in C, modeled after `std::string_view` in C++. However, there are a few extra features including read-only tokenization and threeway comparison between plain `const char *` data and a `str_view`.
 
-A `str_view` is a 16-byte struct and, due to this size, is treated throughout the interface as a copyable type. This is neither a trivially cheap nor excessively expensive type to copy. The intention of this library is to abstract away many sharp edges of working with C-strings to provide usage that "just works," not optimize for performance at this time.
+A `str_view` is a 16-byte struct and, due to this size, is treated throughout the interface as a copyable type. This is neither a trivially cheap nor excessively expensive type to copy. The intention of this library is to abstract away many sharp edges of working with C-strings to provide usage that "just works," not optimize for performance yet.
 
 ## Install Instructions
 
