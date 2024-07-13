@@ -69,11 +69,11 @@ static struct sv_factorization sv_rmaximal_suffix(ssize_t needle_sz,
 static struct sv_factorization sv_rmaximal_suffix_rev(ssize_t needle_sz,
                                                       const char[1]);
 static size_t sv_twobyte_strnstrn(size_t hay_sz, const unsigned char[1],
-                                  const unsigned char[1]);
+                                  size_t n_sz, const unsigned char[1]);
 static size_t sv_threebyte_strnstrn(size_t sz, const unsigned char[1],
-                                    const unsigned char[1]);
+                                    size_t n_sz, const unsigned char[1]);
 static size_t sv_fourbyte_strnstrn(size_t sz, const unsigned char[1],
-                                   const unsigned char[1]);
+                                   size_t n_sz, const unsigned char[1]);
 static size_t sv_strcspn(size_t str_sz, const char[1], size_t set_sz,
                          const char[1]);
 static size_t sv_strspn(size_t str_sz, const char[1], size_t set_sz,
@@ -85,11 +85,11 @@ static size_t sv_rstrnchr(size_t n, const char[1], char);
 static size_t sv_rstrnstrn(ssize_t hay_sz, const char[1], ssize_t needle_sz,
                            const char[1]);
 static size_t sv_rtwobyte_strnstrn(size_t sz, const unsigned char[1],
-                                   const unsigned char[1]);
+                                   size_t n_sz, const unsigned char[1]);
 static size_t sv_rthreebyte_strnstrn(size_t sz, const unsigned char[1],
-                                     const unsigned char[1]);
+                                     size_t n_sz, const unsigned char[1]);
 static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[1],
-                                    const unsigned char[1]);
+                                    size_t n_sz, const unsigned char[1]);
 
 #else
 
@@ -122,11 +122,14 @@ static struct sv_factorization
 sv_rmaximal_suffix_rev(ssize_t needle_sz, const char[static needle_sz]);
 static size_t sv_twobyte_strnstrn(size_t hay_sz,
                                   const unsigned char[static hay_sz],
-                                  const unsigned char[static 1]);
+                                  size_t n_sz,
+                                  const unsigned char[static n_sz]);
 static size_t sv_threebyte_strnstrn(size_t sz, const unsigned char[static sz],
-                                    const unsigned char[static 1]);
+                                    size_t n_sz,
+                                    const unsigned char[static n_sz]);
 static size_t sv_fourbyte_strnstrn(size_t sz, const unsigned char[static sz],
-                                   const unsigned char[static 1]);
+                                   size_t n_sz,
+                                   const unsigned char[static n_sz]);
 static size_t sv_strcspn(size_t str_sz, const char[static str_sz],
                          size_t set_sz, const char[static set_sz]);
 static size_t sv_strspn(size_t str_sz, const char[static str_sz], size_t set_sz,
@@ -138,11 +141,14 @@ static size_t sv_rstrnchr(size_t n, const char[static n], char);
 static size_t sv_rstrnstrn(ssize_t hay_sz, const char[static hay_sz],
                            ssize_t needle_sz, const char[static needle_sz]);
 static size_t sv_rtwobyte_strnstrn(size_t sz, const unsigned char[static sz],
-                                   const unsigned char[static 1]);
+                                   size_t n_sz,
+                                   const unsigned char[static n_sz]);
 static size_t sv_rthreebyte_strnstrn(size_t sz, const unsigned char[static sz],
-                                     const unsigned char[static 1]);
+                                     size_t n_sz,
+                                     const unsigned char[static n_sz]);
 static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[static sz],
-                                    const unsigned char[static 1]);
+                                    size_t n_sz,
+                                    const unsigned char[static n_sz]);
 
 #endif
 
@@ -1039,17 +1045,17 @@ sv_strnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
     }
     if (2 == needle_sz)
     {
-        return sv_twobyte_strnstrn(hay_sz, (unsigned char *)hay,
+        return sv_twobyte_strnstrn(hay_sz, (unsigned char *)hay, 2,
                                    (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_threebyte_strnstrn(hay_sz, (unsigned char *)hay,
+        return sv_threebyte_strnstrn(hay_sz, (unsigned char *)hay, 3,
                                      (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_fourbyte_strnstrn(hay_sz, (unsigned char *)hay,
+        return sv_fourbyte_strnstrn(hay_sz, (unsigned char *)hay, 4,
                                     (unsigned char *)needle);
     }
     return sv_two_way(hay_sz, hay, needle_sz, needle);
@@ -1080,17 +1086,17 @@ sv_rstrnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
     }
     if (2 == needle_sz)
     {
-        return sv_rtwobyte_strnstrn(hay_sz, (unsigned char *)hay,
+        return sv_rtwobyte_strnstrn(hay_sz, (unsigned char *)hay, 2,
                                     (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_rthreebyte_strnstrn(hay_sz, (unsigned char *)hay,
+        return sv_rthreebyte_strnstrn(hay_sz, (unsigned char *)hay, 3,
                                       (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_rfourbyte_strnstrn(hay_sz, (unsigned char *)hay,
+        return sv_rfourbyte_strnstrn(hay_sz, (unsigned char *)hay, 4,
                                      (unsigned char *)needle);
     }
     return sv_rtwo_way(hay_sz, hay, needle_sz, needle);
@@ -1659,12 +1665,12 @@ sv_rstrnchr(size_t n, const char s[static const n], const char c)
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_twobyte_strnstrn(size_t sz, const unsigned char h[1],
+sv_twobyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
                     const unsigned char n[1])
 #else
 static inline size_t
 sv_twobyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                    const unsigned char n[static const 1])
+                    const size_t n_sz, const unsigned char n[static const n_sz])
 #endif
 {
     uint16_t nw = n[0] << 8 | n[1];
@@ -1677,12 +1683,13 @@ sv_twobyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[1],
+sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
                      const unsigned char n[1])
 #else
 static inline size_t
 sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                     const unsigned char n[static const 1])
+                     const size_t n_sz,
+                     const unsigned char n[static const n_sz])
 #endif
 {
     h = h + sz - 2;
@@ -1699,12 +1706,13 @@ sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_threebyte_strnstrn(size_t sz, const unsigned char h[1],
+sv_threebyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
                       const unsigned char n[1])
 #else
 static inline size_t
 sv_threebyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                      const unsigned char n[static const 1])
+                      const size_t n_sz,
+                      const unsigned char n[static const n_sz])
 #endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
@@ -1717,12 +1725,13 @@ sv_threebyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[1],
+sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
                        const unsigned char n[1])
 #else
 static inline size_t
 sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                       const unsigned char n[static const 1])
+                       const size_t n_sz,
+                       const unsigned char n[static const n_sz])
 #endif
 {
     h = h + sz - 3;
@@ -1739,12 +1748,13 @@ sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_fourbyte_strnstrn(size_t sz, const unsigned char h[1],
+sv_fourbyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
                      const unsigned char n[1])
 #else
 static inline size_t
 sv_fourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                     const unsigned char n[static const 1])
+                     const size_t n_sz,
+                     const unsigned char n[static const n_sz])
 #endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
@@ -1757,12 +1767,13 @@ sv_fourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[1],
+sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
                       const unsigned char n[1])
 #else
 static inline size_t
 sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                      const unsigned char n[static const 1])
+                      const size_t n_sz,
+                      const unsigned char n[static const n_sz])
 #endif
 {
     h = h + sz - 4;
