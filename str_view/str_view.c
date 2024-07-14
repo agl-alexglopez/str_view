@@ -956,7 +956,7 @@ static size_t
 sv_strcspn(size_t str_sz, char const str[1], size_t set_sz, char const set[1])
 #else
 static size_t
-sv_strcspn(size_t str_sz, char const str[static str_sz const], size_t set_sz,
+sv_strcspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
            char const set[static set_sz])
 #endif
 {
@@ -994,7 +994,7 @@ static size_t
 sv_strspn(size_t str_sz, char const str[1], size_t set_sz, char const set[1])
 #else
 static size_t
-sv_strspn(size_t str_sz, char const str[static str_sz const], size_t set_sz,
+sv_strspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
           char const set[static set_sz])
 #endif
 {
@@ -1031,8 +1031,8 @@ sv_strnstrn(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
             char const needle[1])
 #else
 static size_t
-sv_strnstrn(ssize_t hay_sz, char const hay[static hay_sz const],
-            ssize_t needle_sz, char const needle[static needle_sz const])
+sv_strnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
+            char const needle[static needle_sz])
 #endif
 {
     if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
@@ -1072,8 +1072,8 @@ sv_rstrnstrn(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
              char const needle[1])
 #else
 static size_t
-sv_rstrnstrn(ssize_t hay_sz, char const hay[static hay_sz const],
-             ssize_t needle_sz, char const needle[static needle_sz const])
+sv_rstrnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
+             char const needle[static needle_sz])
 #endif
 {
     if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
@@ -1135,8 +1135,8 @@ sv_two_way(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
            char const needle[1])
 #else
 static inline size_t
-sv_two_way(ssize_t hay_sz, char const hay[static hay_sz const],
-           ssize_t needle_sz, char const needle[static needle_sz const])
+sv_two_way(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
+           char const needle[static needle_sz])
 #endif
 {
     /* ssize_t is used throughout. Is this the best choice? The two-way
@@ -1176,9 +1176,8 @@ sv_two_way_memoization(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
                        ssize_t critical_pos)
 #else
 static size_t
-sv_two_way_memoization(ssize_t hay_sz, char const hay[static hay_sz const],
-                       ssize_t needle_sz,
-                       char const needle[static needle_sz const],
+sv_two_way_memoization(ssize_t hay_sz, char const hay[static hay_sz],
+                       ssize_t needle_sz, char const needle[static needle_sz],
                        ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1226,8 +1225,8 @@ sv_two_way_normal(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
                   ssize_t critical_pos)
 #else
 static size_t
-sv_two_way_normal(ssize_t hay_sz, char const hay[static hay_sz const],
-                  ssize_t needle_sz, char const needle[static needle_sz const],
+sv_two_way_normal(ssize_t hay_sz, char const hay[static hay_sz],
+                  ssize_t needle_sz, char const needle[static needle_sz],
                   ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1271,7 +1270,7 @@ static inline struct sv_factorization
 sv_maximal_suffix(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
-sv_maximal_suffix(ssize_t needle_sz, char const needle[static needle_sz const])
+sv_maximal_suffix(ssize_t needle_sz, char const needle[static needle_sz])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1319,8 +1318,7 @@ static inline struct sv_factorization
 sv_maximal_suffix_rev(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
-sv_maximal_suffix_rev(ssize_t needle_sz,
-                      char const needle[static needle_sz const])
+sv_maximal_suffix_rev(ssize_t needle_sz, char const needle[static needle_sz])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1402,8 +1400,8 @@ sv_rtwo_way(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
             char const needle[1])
 #else
 static inline size_t
-sv_rtwo_way(ssize_t hay_sz, char const hay[static hay_sz const],
-            ssize_t needle_sz, char const needle[static needle_sz const])
+sv_rtwo_way(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
+            char const needle[static needle_sz])
 #endif
 {
     ssize_t critical_pos = 0;
@@ -1437,9 +1435,8 @@ sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
                         ssize_t critical_pos)
 #else
 static size_t
-sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[static hay_sz const],
-                        ssize_t needle_sz,
-                        char const needle[static needle_sz const],
+sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[static hay_sz],
+                        ssize_t needle_sz, char const needle[static needle_sz],
                         ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1488,8 +1485,8 @@ sv_rtwo_way_normal(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
                    ssize_t critical_pos)
 #else
 static size_t
-sv_rtwo_way_normal(ssize_t hay_sz, char const hay[static hay_sz const],
-                   ssize_t needle_sz, char const needle[static needle_sz const],
+sv_rtwo_way_normal(ssize_t hay_sz, char const hay[static hay_sz],
+                   ssize_t needle_sz, char const needle[static needle_sz],
                    ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1535,7 +1532,7 @@ static inline struct sv_factorization
 sv_rmaximal_suffix(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
-sv_rmaximal_suffix(ssize_t needle_sz, char const needle[static needle_sz const])
+sv_rmaximal_suffix(ssize_t needle_sz, char const needle[static needle_sz])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1581,8 +1578,7 @@ static inline struct sv_factorization
 sv_rmaximal_suffix_rev(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
-sv_rmaximal_suffix_rev(ssize_t needle_sz,
-                       char const needle[static needle_sz const])
+sv_rmaximal_suffix_rev(ssize_t needle_sz, char const needle[static needle_sz])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1653,7 +1649,7 @@ static inline size_t
 sv_rstrnchr(size_t n, char const s[1], char const c)
 #else
 static inline size_t
-sv_rstrnchr(size_t n, char const s[static n const], char const c)
+sv_rstrnchr(size_t n, char const s[static n], char const c)
 #endif
 {
     char const *x = s + n - 1;
@@ -1670,7 +1666,7 @@ sv_twobyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
 #else
 static inline size_t
 sv_twobyte_strnstrn(size_t sz, unsigned char const h[static sz],
-                    size_t const n_sz, unsigned char const n[static n_sz const])
+                    size_t const n_sz, unsigned char const n[static n_sz])
 #endif
 {
     uint16_t nw = n[0] << 8 | n[1];
@@ -1688,8 +1684,7 @@ sv_rtwobyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
 #else
 static inline size_t
 sv_rtwobyte_strnstrn(size_t sz, unsigned char const h[static sz],
-                     size_t const n_sz,
-                     unsigned char const n[static n_sz const])
+                     size_t const n_sz, unsigned char const n[static n_sz])
 #endif
 {
     h = h + sz - 2;
@@ -1711,8 +1706,7 @@ sv_threebyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
 #else
 static inline size_t
 sv_threebyte_strnstrn(size_t sz, unsigned char const h[static sz],
-                      size_t const n_sz,
-                      unsigned char const n[static n_sz const])
+                      size_t const n_sz, unsigned char const n[static n_sz])
 #endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
@@ -1730,8 +1724,7 @@ sv_rthreebyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
 #else
 static inline size_t
 sv_rthreebyte_strnstrn(size_t sz, unsigned char const h[static sz],
-                       size_t const n_sz,
-                       unsigned char const n[static n_sz const])
+                       size_t const n_sz, unsigned char const n[static n_sz])
 #endif
 {
     h = h + sz - 3;
@@ -1753,8 +1746,7 @@ sv_fourbyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
 #else
 static inline size_t
 sv_fourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
-                     size_t const n_sz,
-                     unsigned char const n[static n_sz const])
+                     size_t const n_sz, unsigned char const n[static n_sz])
 #endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
@@ -1772,8 +1764,7 @@ sv_rfourbyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
 #else
 static inline size_t
 sv_rfourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
-                      size_t const n_sz,
-                      unsigned char const n[static n_sz const])
+                      size_t const n_sz, unsigned char const n[static n_sz])
 #endif
 {
     h = h + sz - 4;
