@@ -33,7 +33,7 @@ struct sv_factorization
    empty, null, invalid, not found etc. Used on cases by case basis.
    It is usually better to justify giving back the user pointer in a
    str_view even if it sized 0 and pointing to null terminator. */
-static const str_view nil = {.s = "", .sz = 0};
+static str_view const nil = {.s = "", .sz = 0};
 
 /* =========================   Prototypes   =============================== */
 
@@ -44,111 +44,111 @@ static sv_threeway_cmp sv_char_cmp(char, char);
 static ssize_t sv_ssizet_max(ssize_t, ssize_t);
 
 #if defined(_MSC_VER)
-static size_t sv_two_way_memoization(ssize_t hay_sz, const char[1],
-                                     ssize_t needle_sz, const char[1], ssize_t,
+static size_t sv_two_way_memoization(ssize_t hay_sz, char const[1],
+                                     ssize_t needle_sz, char const[1], ssize_t,
                                      ssize_t);
-static size_t sv_two_way_normal(ssize_t hay_sz, const char[1],
-                                ssize_t needle_sz, const char[1], ssize_t,
+static size_t sv_two_way_normal(ssize_t hay_sz, char const[1],
+                                ssize_t needle_sz, char const[1], ssize_t,
                                 ssize_t);
-static size_t sv_rtwo_way_memoization(ssize_t hay_sz, const char[1],
-                                      ssize_t needle_sz, const char[1], ssize_t,
+static size_t sv_rtwo_way_memoization(ssize_t hay_sz, char const[1],
+                                      ssize_t needle_sz, char const[1], ssize_t,
                                       ssize_t);
-static size_t sv_rtwo_way_normal(ssize_t hay_sz, const char[1],
-                                 ssize_t needle_sz, const char[1], ssize_t,
+static size_t sv_rtwo_way_normal(ssize_t hay_sz, char const[1],
+                                 ssize_t needle_sz, char const[1], ssize_t,
                                  ssize_t);
-static size_t sv_two_way(ssize_t hay_sz, const char[1], ssize_t needle_sz,
-                         const char[1]);
-static size_t sv_rtwo_way(ssize_t hay_sz, const char[1], ssize_t needle_sz,
-                          const char[1]);
+static size_t sv_two_way(ssize_t hay_sz, char const[1], ssize_t needle_sz,
+                         char const[1]);
+static size_t sv_rtwo_way(ssize_t hay_sz, char const[1], ssize_t needle_sz,
+                          char const[1]);
 static struct sv_factorization sv_maximal_suffix(ssize_t needle_sz,
-                                                 const char[1]);
+                                                 char const[1]);
 static struct sv_factorization sv_maximal_suffix_rev(ssize_t needle_sz,
-                                                     const char[1]);
+                                                     char const[1]);
 static struct sv_factorization sv_rmaximal_suffix(ssize_t needle_sz,
-                                                  const char[1]);
+                                                  char const[1]);
 static struct sv_factorization sv_rmaximal_suffix_rev(ssize_t needle_sz,
-                                                      const char[1]);
-static size_t sv_twobyte_strnstrn(size_t hay_sz, const unsigned char[1],
-                                  size_t n_sz, const unsigned char[1]);
-static size_t sv_threebyte_strnstrn(size_t sz, const unsigned char[1],
-                                    size_t n_sz, const unsigned char[1]);
-static size_t sv_fourbyte_strnstrn(size_t sz, const unsigned char[1],
-                                   size_t n_sz, const unsigned char[1]);
-static size_t sv_strcspn(size_t str_sz, const char[1], size_t set_sz,
-                         const char[1]);
-static size_t sv_strspn(size_t str_sz, const char[1], size_t set_sz,
-                        const char[1]);
-static size_t sv_strnstrn(ssize_t hay_sz, const char[1], ssize_t needle_sz,
-                          const char[1]);
-static size_t sv_strnchr(size_t n, const char[1], char);
-static size_t sv_rstrnchr(size_t n, const char[1], char);
-static size_t sv_rstrnstrn(ssize_t hay_sz, const char[1], ssize_t needle_sz,
-                           const char[1]);
-static size_t sv_rtwobyte_strnstrn(size_t sz, const unsigned char[1],
-                                   size_t n_sz, const unsigned char[1]);
-static size_t sv_rthreebyte_strnstrn(size_t sz, const unsigned char[1],
-                                     size_t n_sz, const unsigned char[1]);
-static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[1],
-                                    size_t n_sz, const unsigned char[1]);
+                                                      char const[1]);
+static size_t sv_twobyte_strnstrn(size_t hay_sz, unsigned char const[1],
+                                  size_t n_sz, unsigned char const[1]);
+static size_t sv_threebyte_strnstrn(size_t sz, unsigned char const[1],
+                                    size_t n_sz, unsigned char const[1]);
+static size_t sv_fourbyte_strnstrn(size_t sz, unsigned char const[1],
+                                   size_t n_sz, unsigned char const[1]);
+static size_t sv_strcspn(size_t str_sz, char const[1], size_t set_sz,
+                         char const[1]);
+static size_t sv_strspn(size_t str_sz, char const[1], size_t set_sz,
+                        char const[1]);
+static size_t sv_strnstrn(ssize_t hay_sz, char const[1], ssize_t needle_sz,
+                          char const[1]);
+static size_t sv_strnchr(size_t n, char const[1], char);
+static size_t sv_rstrnchr(size_t n, char const[1], char);
+static size_t sv_rstrnstrn(ssize_t hay_sz, char const[1], ssize_t needle_sz,
+                           char const[1]);
+static size_t sv_rtwobyte_strnstrn(size_t sz, unsigned char const[1],
+                                   size_t n_sz, unsigned char const[1]);
+static size_t sv_rthreebyte_strnstrn(size_t sz, unsigned char const[1],
+                                     size_t n_sz, unsigned char const[1]);
+static size_t sv_rfourbyte_strnstrn(size_t sz, unsigned char const[1],
+                                    size_t n_sz, unsigned char const[1]);
 
 #else
 
-static size_t sv_two_way_memoization(ssize_t hay_sz, const char[static hay_sz],
+static size_t sv_two_way_memoization(ssize_t hay_sz, char const[static hay_sz],
                                      ssize_t needle_sz,
-                                     const char[static needle_sz], ssize_t,
+                                     char const[static needle_sz], ssize_t,
                                      ssize_t);
-static size_t sv_two_way_normal(ssize_t hay_sz, const char[static hay_sz],
-                                ssize_t needle_sz, const char[static needle_sz],
+static size_t sv_two_way_normal(ssize_t hay_sz, char const[static hay_sz],
+                                ssize_t needle_sz, char const[static needle_sz],
                                 ssize_t, ssize_t);
-static size_t sv_rtwo_way_memoization(ssize_t hay_sz, const char[static hay_sz],
+static size_t sv_rtwo_way_memoization(ssize_t hay_sz, char const[static hay_sz],
                                       ssize_t needle_sz,
-                                      const char[static needle_sz], ssize_t,
+                                      char const[static needle_sz], ssize_t,
                                       ssize_t);
-static size_t sv_rtwo_way_normal(ssize_t hay_sz, const char[static hay_sz],
+static size_t sv_rtwo_way_normal(ssize_t hay_sz, char const[static hay_sz],
                                  ssize_t needle_sz,
-                                 const char[static needle_sz], ssize_t,
+                                 char const[static needle_sz], ssize_t,
                                  ssize_t);
-static size_t sv_two_way(ssize_t hay_sz, const char[static hay_sz],
-                         ssize_t needle_sz, const char[static needle_sz]);
-static size_t sv_rtwo_way(ssize_t hay_sz, const char[static hay_sz],
-                          ssize_t needle_sz, const char[static needle_sz]);
+static size_t sv_two_way(ssize_t hay_sz, char const[static hay_sz],
+                         ssize_t needle_sz, char const[static needle_sz]);
+static size_t sv_rtwo_way(ssize_t hay_sz, char const[static hay_sz],
+                          ssize_t needle_sz, char const[static needle_sz]);
 static struct sv_factorization sv_maximal_suffix(ssize_t needle_sz,
-                                                 const char[static needle_sz]);
+                                                 char const[static needle_sz]);
 static struct sv_factorization
-sv_maximal_suffix_rev(ssize_t needle_sz, const char[static needle_sz]);
+sv_maximal_suffix_rev(ssize_t needle_sz, char const[static needle_sz]);
 static struct sv_factorization sv_rmaximal_suffix(ssize_t needle_sz,
-                                                  const char[static needle_sz]);
+                                                  char const[static needle_sz]);
 static struct sv_factorization
-sv_rmaximal_suffix_rev(ssize_t needle_sz, const char[static needle_sz]);
+sv_rmaximal_suffix_rev(ssize_t needle_sz, char const[static needle_sz]);
 static size_t sv_twobyte_strnstrn(size_t hay_sz,
-                                  const unsigned char[static hay_sz],
+                                  unsigned char const[static hay_sz],
                                   size_t n_sz,
-                                  const unsigned char[static n_sz]);
-static size_t sv_threebyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                  unsigned char const[static n_sz]);
+static size_t sv_threebyte_strnstrn(size_t sz, unsigned char const[static sz],
                                     size_t n_sz,
-                                    const unsigned char[static n_sz]);
-static size_t sv_fourbyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                    unsigned char const[static n_sz]);
+static size_t sv_fourbyte_strnstrn(size_t sz, unsigned char const[static sz],
                                    size_t n_sz,
-                                   const unsigned char[static n_sz]);
-static size_t sv_strcspn(size_t str_sz, const char[static str_sz],
-                         size_t set_sz, const char[static set_sz]);
-static size_t sv_strspn(size_t str_sz, const char[static str_sz], size_t set_sz,
-                        const char[static set_sz]);
-static size_t sv_strnstrn(ssize_t hay_sz, const char[static hay_sz],
-                          ssize_t needle_sz, const char[static needle_sz]);
-static size_t sv_strnchr(size_t n, const char[static n], char);
-static size_t sv_rstrnchr(size_t n, const char[static n], char);
-static size_t sv_rstrnstrn(ssize_t hay_sz, const char[static hay_sz],
-                           ssize_t needle_sz, const char[static needle_sz]);
-static size_t sv_rtwobyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                   unsigned char const[static n_sz]);
+static size_t sv_strcspn(size_t str_sz, char const[static str_sz],
+                         size_t set_sz, char const[static set_sz]);
+static size_t sv_strspn(size_t str_sz, char const[static str_sz], size_t set_sz,
+                        char const[static set_sz]);
+static size_t sv_strnstrn(ssize_t hay_sz, char const[static hay_sz],
+                          ssize_t needle_sz, char const[static needle_sz]);
+static size_t sv_strnchr(size_t n, char const[static n], char);
+static size_t sv_rstrnchr(size_t n, char const[static n], char);
+static size_t sv_rstrnstrn(ssize_t hay_sz, char const[static hay_sz],
+                           ssize_t needle_sz, char const[static needle_sz]);
+static size_t sv_rtwobyte_strnstrn(size_t sz, unsigned char const[static sz],
                                    size_t n_sz,
-                                   const unsigned char[static n_sz]);
-static size_t sv_rthreebyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                   unsigned char const[static n_sz]);
+static size_t sv_rthreebyte_strnstrn(size_t sz, unsigned char const[static sz],
                                      size_t n_sz,
-                                     const unsigned char[static n_sz]);
-static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[static sz],
+                                     unsigned char const[static n_sz]);
+static size_t sv_rfourbyte_strnstrn(size_t sz, unsigned char const[static sz],
                                     size_t n_sz,
-                                    const unsigned char[static n_sz]);
+                                    unsigned char const[static n_sz]);
 
 #endif
 
@@ -156,10 +156,10 @@ static size_t sv_rfourbyte_strnstrn(size_t sz, const unsigned char[static sz],
 
 #if defined(_MSC_VER)
 str_view
-sv(const char str[1])
+sv(char const str[1])
 #else
 str_view
-sv(const char str[static const 1])
+sv(char const str[static const 1])
 #endif
 {
     if (!str)
@@ -171,10 +171,10 @@ sv(const char str[static const 1])
 
 #if defined(_MSC_VER)
 str_view
-sv_n(size_t n, const char str[1])
+sv_n(size_t n, char const str[1])
 #else
 str_view
-sv_n(size_t n, const char str[static const 1])
+sv_n(size_t n, char const str[static const 1])
 #endif
 {
     if (!str || !n)
@@ -186,10 +186,10 @@ sv_n(size_t n, const char str[static const 1])
 
 #if defined(_MSC_VER)
 str_view
-sv_delim(const char str[1], const char delim[1])
+sv_delim(char const str[1], char const delim[1])
 #else
 str_view
-sv_delim(const char str[static const 1], const char delim[static const 1])
+sv_delim(char const str[static const 1], char const delim[static const 1])
 #endif
 {
     if (!str)
@@ -225,10 +225,10 @@ sv_print(FILE *f, str_view sv)
 
 #if defined(_MSC_VER)
 str_view
-sv_copy(const size_t str_sz, const char src_str[1])
+sv_copy(size_t const str_sz, char const src_str[1])
 #else
 str_view
-sv_copy(const size_t str_sz, const char src_str[static const 1])
+sv_copy(size_t const str_sz, char const src_str[static const 1])
 #endif
 {
     return sv_n(str_sz, src_str);
@@ -246,14 +246,14 @@ sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
     {
         return 0;
     }
-    const size_t bytes = sv_min(dest_sz, sv_size(src));
+    size_t const bytes = sv_min(dest_sz, sv_size(src));
     memmove(dest_buf, src.s, bytes);
     dest_buf[bytes - 1] = '\0';
     return bytes;
 }
 
 bool
-sv_empty(const str_view sv)
+sv_empty(str_view const sv)
 {
     return !sv.s || !sv.sz;
 }
@@ -272,10 +272,10 @@ sv_size(str_view sv)
 
 #if defined(_MSC_VER)
 size_t
-sv_strsize(const char str[1])
+sv_strsize(char const str[1])
 #else
 size_t
-sv_strsize(const char str[static const 1])
+sv_strsize(char const str[static const 1])
 #endif
 {
     if (!str)
@@ -287,10 +287,10 @@ sv_strsize(const char str[static const 1])
 
 #if defined(_MSC_VER)
 size_t
-sv_minlen(const char str[1], size_t n)
+sv_minlen(char const str[1], size_t n)
 #else
 size_t
-sv_minlen(const char str[static const 1], size_t n)
+sv_minlen(char const str[static const 1], size_t n)
 #endif
 {
     if (!str)
@@ -310,7 +310,7 @@ sv_at(str_view sv, size_t i)
     return sv.s[i];
 }
 
-const char *
+char const *
 sv_null(void)
 {
     return nil.s;
@@ -323,7 +323,7 @@ sv_swap(str_view *a, str_view *b)
     {
         return;
     }
-    const str_view tmp_b = (str_view){.s = b->s, .sz = b->sz};
+    str_view const tmp_b = (str_view){.s = b->s, .sz = b->sz};
     b->s = a->s;
     b->sz = a->sz;
     a->s = tmp_b.s;
@@ -337,7 +337,7 @@ sv_cmp(str_view lhs, str_view rhs)
     {
         return SV_ERR;
     }
-    const size_t sz = sv_min(lhs.sz, rhs.sz);
+    size_t const sz = sv_min(lhs.sz, rhs.sz);
     size_t i = 0;
     for (; i < sz && lhs.s[i] == rhs.s[i]; ++i)
     {}
@@ -354,17 +354,17 @@ sv_cmp(str_view lhs, str_view rhs)
 
 #if defined(_MSC_VER)
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char rhs[1])
+sv_strcmp(str_view lhs, char const rhs[1])
 #else
 sv_threeway_cmp
-sv_strcmp(str_view lhs, const char rhs[static const 1])
+sv_strcmp(str_view lhs, char const rhs[static const 1])
 #endif
 {
     if (!lhs.s || !rhs)
     {
         return SV_ERR;
     }
-    const size_t sz = lhs.sz;
+    size_t const sz = lhs.sz;
     size_t i = 0;
     for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
     {}
@@ -381,17 +381,17 @@ sv_strcmp(str_view lhs, const char rhs[static const 1])
 
 #if defined(_MSC_VER)
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char rhs[1], const size_t n)
+sv_strncmp(str_view lhs, char const rhs[1], size_t const n)
 #else
 sv_threeway_cmp
-sv_strncmp(str_view lhs, const char rhs[static const 1], const size_t n)
+sv_strncmp(str_view lhs, char const rhs[static const 1], size_t const n)
 #endif
 {
     if (!lhs.s || !rhs)
     {
         return SV_ERR;
     }
-    const size_t sz = sv_min(lhs.sz, n);
+    size_t const sz = sv_min(lhs.sz, n);
     size_t i = 0;
     for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
     {}
@@ -427,8 +427,8 @@ sv_back(str_view sv)
     return sv.s[sv.sz - 1];
 }
 
-const char *
-sv_begin(const str_view sv)
+char const *
+sv_begin(str_view const sv)
 {
     if (!sv.s)
     {
@@ -437,8 +437,8 @@ sv_begin(const str_view sv)
     return sv.s;
 }
 
-const char *
-sv_end(const str_view sv)
+char const *
+sv_end(str_view const sv)
 {
     if (!sv.s || sv.s == nil.s)
     {
@@ -448,11 +448,11 @@ sv_end(const str_view sv)
 }
 
 #if defined(_MSC_VER)
-const char *
-sv_next(const char c[1])
+char const *
+sv_next(char const c[1])
 #else
-const char *
-sv_next(const char c[static 1])
+char const *
+sv_next(char const c[static 1])
 #endif
 {
     if (!c)
@@ -462,7 +462,7 @@ sv_next(const char c[static 1])
     return ++c;
 }
 
-const char *
+char const *
 sv_rbegin(str_view sv)
 {
     if (!sv.s)
@@ -476,7 +476,7 @@ sv_rbegin(str_view sv)
     return sv.s + sv.sz - 1;
 }
 
-const char *
+char const *
 sv_rend(str_view sv)
 {
     if (!sv.s || sv.s == nil.s)
@@ -491,11 +491,11 @@ sv_rend(str_view sv)
 }
 
 #if defined(_MSC_VER)
-const char *
-sv_rnext(const char c[1])
+char const *
+sv_rnext(char const c[1])
 #else
-const char *
-sv_rnext(const char c[static 1])
+char const *
+sv_rnext(char const c[static 1])
 #endif
 {
     if (!c)
@@ -505,7 +505,7 @@ sv_rnext(const char c[static 1])
     return --c;
 }
 
-const char *
+char const *
 sv_pos(str_view sv, size_t i)
 {
     if (!sv.s)
@@ -530,8 +530,8 @@ sv_begin_tok(str_view src, str_view delim)
     {
         return (str_view){.s = src.s + src.sz, 0};
     }
-    const char *const begin = src.s;
-    const size_t sv_not = sv_after_find(src, delim);
+    char const *const begin = src.s;
+    size_t const sv_not = sv_after_find(src, delim);
     src.s += sv_not;
     if (begin + src.sz == src.s)
     {
@@ -542,13 +542,13 @@ sv_begin_tok(str_view src, str_view delim)
 }
 
 bool
-sv_end_tok(const str_view src, const str_view tok)
+sv_end_tok(str_view const src, str_view const tok)
 {
     return !tok.sz || tok.s >= (src.s + src.sz);
 }
 
 str_view
-sv_next_tok(const str_view src, str_view tok, str_view delim)
+sv_next_tok(str_view const src, str_view tok, str_view delim)
 {
     if (!tok.s)
     {
@@ -567,14 +567,14 @@ sv_next_tok(const str_view src, str_view tok, str_view delim)
     next.sz = src.sz - (next.s - src.s);
     /* There is a cheap easy way to skip repeating delimiters before the
        next search that should be faster than string comparison. */
-    const size_t after_delim = sv_after_find(next, delim);
+    size_t const after_delim = sv_after_find(next, delim);
     next.s += after_delim;
     next.sz -= after_delim;
     if (next.s >= src.s + src.sz)
     {
         return (str_view){.s = src.s + src.sz, .sz = 0};
     }
-    const size_t found
+    size_t const found
         = sv_strnstrn((ssize_t)next.sz, next.s, (ssize_t)delim.sz, delim.s);
     return (str_view){.s = next.s, .sz = found};
 }
@@ -602,7 +602,7 @@ sv_rbegin_tok(str_view src, str_view delim)
 }
 
 str_view
-sv_rnext_tok(const str_view src, str_view tok, str_view delim)
+sv_rnext_tok(str_view const src, str_view tok, str_view delim)
 {
     if (!tok.s)
     {
@@ -612,11 +612,11 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
     {
         return (str_view){.s = src.s, .sz = 0};
     }
-    const str_view shorter = {.s = src.s, .sz = (tok.s - delim.sz) - src.s};
+    str_view const shorter = {.s = src.s, .sz = (tok.s - delim.sz) - src.s};
     /* Same as in the forward version, this method is a quick way to skip
        any number of repeating delimiters before starting the next search
        for a delimiter before a token. */
-    const size_t before_delim = sv_before_rfind(shorter, delim);
+    size_t const before_delim = sv_before_rfind(shorter, delim);
     if (before_delim == shorter.sz)
     {
         return shorter;
@@ -632,7 +632,7 @@ sv_rnext_tok(const str_view src, str_view tok, str_view delim)
 }
 
 bool
-sv_rend_tok(const str_view src, const str_view tok)
+sv_rend_tok(str_view const src, str_view const tok)
 {
     return !tok.sz && tok.s == src.s;
 }
@@ -644,7 +644,7 @@ sv_extend(str_view sv)
     {
         return nil;
     }
-    const char *i = sv.s;
+    char const *i = sv.s;
     while (*i++)
     {}
     sv.sz = i - sv.s - 1;
@@ -662,9 +662,9 @@ sv_starts_with(str_view sv, str_view prefix)
 }
 
 str_view
-sv_remove_prefix(const str_view sv, const size_t n)
+sv_remove_prefix(str_view const sv, size_t const n)
 {
-    const size_t remove = sv_min(sv.sz, n);
+    size_t const remove = sv_min(sv.sz, n);
     return (str_view){.s = sv.s + remove, .sz = sv.sz - remove};
 }
 
@@ -680,7 +680,7 @@ sv_ends_with(str_view sv, str_view suffix)
 }
 
 str_view
-sv_remove_suffix(const str_view sv, const size_t n)
+sv_remove_suffix(str_view const sv, size_t const n)
 {
     if (!sv.s)
     {
@@ -729,7 +729,7 @@ sv_match(str_view hay, str_view needle)
     {
         return (str_view){.s = hay.s + hay.sz, .sz = 0};
     }
-    const size_t found
+    size_t const found
         = sv_strnstrn((ssize_t)hay.sz, hay.s, (ssize_t)needle.sz, needle.s);
     return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
                            : (str_view){.s = hay.s + found, .sz = needle.sz};
@@ -746,7 +746,7 @@ sv_rmatch(str_view hay, str_view needle)
     {
         return (str_view){.s = hay.s + hay.sz, .sz = 0};
     }
-    const size_t found
+    size_t const found
         = sv_rstrnstrn((ssize_t)hay.sz, hay.s, (ssize_t)needle.sz, needle.s);
     return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
                            : (str_view){.s = hay.s + found, .sz = needle.sz};
@@ -775,7 +775,7 @@ sv_rfind(str_view h, size_t pos, str_view n)
     {
         pos = h.sz - 1;
     }
-    const size_t found
+    size_t const found
         = sv_rstrnstrn((ssize_t)pos + 1, h.s, (ssize_t)n.sz, n.s);
     return found == pos + 1 ? h.sz : found;
 }
@@ -936,10 +936,10 @@ sv_char_cmp(char a, char b)
    the forward version expects the same. However, the comparison
    moves backward from the location provided for n bytes. */
 static int
-sv_rmemcmp(const void *const vl, const void *const vr, size_t n)
+sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
 {
-    const unsigned char *l = vl;
-    const unsigned char *r = vr;
+    unsigned char const *l = vl;
+    unsigned char const *r = vr;
     for (; n && *l == *r; n--, l--, r--)
     {}
     return n ? *l - *r : 0;
@@ -953,14 +953,14 @@ sv_rmemcmp(const void *const vl, const void *const vr, size_t n)
    efficient and only within the range specified. */
 #if defined(_MSC_VER)
 static size_t
-sv_strcspn(size_t str_sz, const char str[1], size_t set_sz, const char set[1])
+sv_strcspn(size_t str_sz, char const str[1], size_t set_sz, char const set[1])
 #else
 static size_t
-sv_strcspn(size_t str_sz, const char str[static const str_sz], size_t set_sz,
-           const char set[static set_sz])
+sv_strcspn(size_t str_sz, char const str[static str_sz const], size_t set_sz,
+           char const set[static set_sz])
 #endif
 {
-    const char *a = str;
+    char const *a = str;
     size_t byteset[32 / sizeof(size_t)];
     if (!set[0])
     {
@@ -991,14 +991,14 @@ sv_strcspn(size_t str_sz, const char str[static const str_sz], size_t set_sz,
    efficient and only within the range specified. */
 #if defined(_MSC_VER)
 static size_t
-sv_strspn(size_t str_sz, const char str[1], size_t set_sz, const char set[1])
+sv_strspn(size_t str_sz, char const str[1], size_t set_sz, char const set[1])
 #else
 static size_t
-sv_strspn(size_t str_sz, const char str[static const str_sz], size_t set_sz,
-          const char set[static set_sz])
+sv_strspn(size_t str_sz, char const str[static str_sz const], size_t set_sz,
+          char const set[static set_sz])
 #endif
 {
-    const char *a = str;
+    char const *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
     if (!set[0])
     {
@@ -1027,12 +1027,12 @@ sv_strspn(size_t str_sz, const char str[static const str_sz], size_t set_sz,
    hay if it can be found, otherwise the hay size is returned. */
 #if defined(_MSC_VER)
 static size_t
-sv_strnstrn(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-            const char needle[1])
+sv_strnstrn(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+            char const needle[1])
 #else
 static size_t
-sv_strnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
-            ssize_t needle_sz, const char needle[static const needle_sz])
+sv_strnstrn(ssize_t hay_sz, char const hay[static hay_sz const],
+            ssize_t needle_sz, char const needle[static needle_sz const])
 #endif
 {
     if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
@@ -1068,12 +1068,12 @@ sv_strnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
    a clean way exists. */
 #if defined(_MSC_VER)
 static size_t
-sv_rstrnstrn(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-             const char needle[1])
+sv_rstrnstrn(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+             char const needle[1])
 #else
 static size_t
-sv_rstrnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
-             ssize_t needle_sz, const char needle[static const needle_sz])
+sv_rstrnstrn(ssize_t hay_sz, char const hay[static hay_sz const],
+             ssize_t needle_sz, char const needle[static needle_sz const])
 #endif
 {
     if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
@@ -1131,12 +1131,12 @@ sv_rstrnstrn(ssize_t hay_sz, const char hay[static const hay_sz],
    and the size of the hay stack if not found. */
 #if defined(_MSC_VER)
 static inline size_t
-sv_two_way(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-           const char needle[1])
+sv_two_way(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+           char const needle[1])
 #else
 static inline size_t
-sv_two_way(ssize_t hay_sz, const char hay[static const hay_sz],
-           ssize_t needle_sz, const char needle[static const needle_sz])
+sv_two_way(ssize_t hay_sz, char const hay[static hay_sz const],
+           ssize_t needle_sz, char const needle[static needle_sz const])
 #endif
 {
     /* ssize_t is used throughout. Is this the best choice? The two-way
@@ -1145,8 +1145,8 @@ sv_two_way(ssize_t hay_sz, const char hay[static const hay_sz],
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
-    const struct sv_factorization s = sv_maximal_suffix(needle_sz, needle);
-    const struct sv_factorization r = sv_maximal_suffix_rev(needle_sz, needle);
+    struct sv_factorization const s = sv_maximal_suffix(needle_sz, needle);
+    struct sv_factorization const r = sv_maximal_suffix_rev(needle_sz, needle);
     if (s.start_critical_pos > r.start_critical_pos)
     {
         critical_pos = s.start_critical_pos;
@@ -1171,14 +1171,14 @@ sv_two_way(ssize_t hay_sz, const char hay[static const hay_sz],
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 #if defined(_MSC_VER)
 static size_t
-sv_two_way_memoization(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-                       const char needle[1], ssize_t period_dist,
+sv_two_way_memoization(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+                       char const needle[1], ssize_t period_dist,
                        ssize_t critical_pos)
 #else
 static size_t
-sv_two_way_memoization(ssize_t hay_sz, const char hay[static const hay_sz],
+sv_two_way_memoization(ssize_t hay_sz, char const hay[static hay_sz const],
                        ssize_t needle_sz,
-                       const char needle[static const needle_sz],
+                       char const needle[static needle_sz const],
                        ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1221,13 +1221,13 @@ sv_two_way_memoization(ssize_t hay_sz, const char hay[static const hay_sz],
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 #if defined(_MSC_VER)
 static size_t
-sv_two_way_normal(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-                  const char needle[1], ssize_t period_dist,
+sv_two_way_normal(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+                  char const needle[1], ssize_t period_dist,
                   ssize_t critical_pos)
 #else
 static size_t
-sv_two_way_normal(ssize_t hay_sz, const char hay[static const hay_sz],
-                  ssize_t needle_sz, const char needle[static const needle_sz],
+sv_two_way_normal(ssize_t hay_sz, char const hay[static hay_sz const],
+                  ssize_t needle_sz, char const needle[static needle_sz const],
                   ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1268,10 +1268,10 @@ sv_two_way_normal(ssize_t hay_sz, const char hay[static const hay_sz],
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 #if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_maximal_suffix(ssize_t needle_sz, const char needle[1])
+sv_maximal_suffix(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
-sv_maximal_suffix(ssize_t needle_sz, const char needle[static const needle_sz])
+sv_maximal_suffix(ssize_t needle_sz, char const needle[static needle_sz const])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1316,11 +1316,11 @@ sv_maximal_suffix(ssize_t needle_sz, const char needle[static const needle_sz])
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 #if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_maximal_suffix_rev(ssize_t needle_sz, const char needle[1])
+sv_maximal_suffix_rev(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
 sv_maximal_suffix_rev(ssize_t needle_sz,
-                      const char needle[static const needle_sz])
+                      char const needle[static needle_sz const])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1398,18 +1398,18 @@ while (last_rest + rest < needle_sz)
    the position of the start of the strig if found and string size if not. */
 #if defined(_MSC_VER)
 static inline size_t
-sv_rtwo_way(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-            const char needle[1])
+sv_rtwo_way(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+            char const needle[1])
 #else
 static inline size_t
-sv_rtwo_way(ssize_t hay_sz, const char hay[static const hay_sz],
-            ssize_t needle_sz, const char needle[static const needle_sz])
+sv_rtwo_way(ssize_t hay_sz, char const hay[static hay_sz const],
+            ssize_t needle_sz, char const needle[static needle_sz const])
 #endif
 {
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
-    const struct sv_factorization s = sv_rmaximal_suffix(needle_sz, needle);
-    const struct sv_factorization r = sv_rmaximal_suffix_rev(needle_sz, needle);
+    struct sv_factorization const s = sv_rmaximal_suffix(needle_sz, needle);
+    struct sv_factorization const r = sv_rmaximal_suffix_rev(needle_sz, needle);
     if (s.start_critical_pos > r.start_critical_pos)
     {
         critical_pos = s.start_critical_pos;
@@ -1432,14 +1432,14 @@ sv_rtwo_way(ssize_t hay_sz, const char hay[static const hay_sz],
 
 #if defined(_MSC_VER)
 static size_t
-sv_rtwo_way_memoization(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-                        const char needle[1], ssize_t period_dist,
+sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+                        char const needle[1], ssize_t period_dist,
                         ssize_t critical_pos)
 #else
 static size_t
-sv_rtwo_way_memoization(ssize_t hay_sz, const char hay[static const hay_sz],
+sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[static hay_sz const],
                         ssize_t needle_sz,
-                        const char needle[static const needle_sz],
+                        char const needle[static needle_sz const],
                         ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1483,13 +1483,13 @@ sv_rtwo_way_memoization(ssize_t hay_sz, const char hay[static const hay_sz],
 
 #if defined(_MSC_VER)
 static size_t
-sv_rtwo_way_normal(ssize_t hay_sz, const char hay[1], ssize_t needle_sz,
-                   const char needle[1], ssize_t period_dist,
+sv_rtwo_way_normal(ssize_t hay_sz, char const hay[1], ssize_t needle_sz,
+                   char const needle[1], ssize_t period_dist,
                    ssize_t critical_pos)
 #else
 static size_t
-sv_rtwo_way_normal(ssize_t hay_sz, const char hay[static const hay_sz],
-                   ssize_t needle_sz, const char needle[static const needle_sz],
+sv_rtwo_way_normal(ssize_t hay_sz, char const hay[static hay_sz const],
+                   ssize_t needle_sz, char const needle[static needle_sz const],
                    ssize_t period_dist, ssize_t critical_pos)
 #endif
 {
@@ -1532,10 +1532,10 @@ sv_rtwo_way_normal(ssize_t hay_sz, const char hay[static const hay_sz],
 
 #if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_rmaximal_suffix(ssize_t needle_sz, const char needle[1])
+sv_rmaximal_suffix(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
-sv_rmaximal_suffix(ssize_t needle_sz, const char needle[static const needle_sz])
+sv_rmaximal_suffix(ssize_t needle_sz, char const needle[static needle_sz const])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1578,11 +1578,11 @@ sv_rmaximal_suffix(ssize_t needle_sz, const char needle[static const needle_sz])
 
 #if defined(_MSC_VER)
 static inline struct sv_factorization
-sv_rmaximal_suffix_rev(ssize_t needle_sz, const char needle[1])
+sv_rmaximal_suffix_rev(ssize_t needle_sz, char const needle[1])
 #else
 static inline struct sv_factorization
 sv_rmaximal_suffix_rev(ssize_t needle_sz,
-                       const char needle[static const needle_sz])
+                       char const needle[static needle_sz const])
 #endif
 {
     ssize_t suff_pos = -1;
@@ -1636,10 +1636,10 @@ sv_rmaximal_suffix_rev(ssize_t needle_sz,
    on right to left brute force searches. */
 #if defined(_MSC_VER)
 static inline size_t
-sv_strnchr(size_t n, const char s[1], const char c)
+sv_strnchr(size_t n, char const s[1], char const c)
 #else
 static inline size_t
-sv_strnchr(size_t n, const char s[static n], const char c)
+sv_strnchr(size_t n, char const s[static n], char const c)
 #endif
 {
     size_t i = 0;
@@ -1650,13 +1650,13 @@ sv_strnchr(size_t n, const char s[static n], const char c)
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rstrnchr(size_t n, const char s[1], const char c)
+sv_rstrnchr(size_t n, char const s[1], char const c)
 #else
 static inline size_t
-sv_rstrnchr(size_t n, const char s[static const n], const char c)
+sv_rstrnchr(size_t n, char const s[static n const], char const c)
 #endif
 {
-    const char *x = s + n - 1;
+    char const *x = s + n - 1;
     size_t i = n;
     for (; i && *x != c; x--, --i)
     {}
@@ -1665,12 +1665,12 @@ sv_rstrnchr(size_t n, const char s[static const n], const char c)
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_twobyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
-                    const unsigned char n[1])
+sv_twobyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
+                    unsigned char const n[1])
 #else
 static inline size_t
-sv_twobyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                    const size_t n_sz, const unsigned char n[static const n_sz])
+sv_twobyte_strnstrn(size_t sz, unsigned char const h[static sz],
+                    size_t const n_sz, unsigned char const n[static n_sz const])
 #endif
 {
     uint16_t nw = n[0] << 8 | n[1];
@@ -1683,13 +1683,13 @@ sv_twobyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
-                     const unsigned char n[1])
+sv_rtwobyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
+                     unsigned char const n[1])
 #else
 static inline size_t
-sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                     const size_t n_sz,
-                     const unsigned char n[static const n_sz])
+sv_rtwobyte_strnstrn(size_t sz, unsigned char const h[static sz],
+                     size_t const n_sz,
+                     unsigned char const n[static n_sz const])
 #endif
 {
     h = h + sz - 2;
@@ -1706,13 +1706,13 @@ sv_rtwobyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_threebyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
-                      const unsigned char n[1])
+sv_threebyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
+                      unsigned char const n[1])
 #else
 static inline size_t
-sv_threebyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                      const size_t n_sz,
-                      const unsigned char n[static const n_sz])
+sv_threebyte_strnstrn(size_t sz, unsigned char const h[static sz],
+                      size_t const n_sz,
+                      unsigned char const n[static n_sz const])
 #endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
@@ -1725,13 +1725,13 @@ sv_threebyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
-                       const unsigned char n[1])
+sv_rthreebyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
+                       unsigned char const n[1])
 #else
 static inline size_t
-sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                       const size_t n_sz,
-                       const unsigned char n[static const n_sz])
+sv_rthreebyte_strnstrn(size_t sz, unsigned char const h[static sz],
+                       size_t const n_sz,
+                       unsigned char const n[static n_sz const])
 #endif
 {
     h = h + sz - 3;
@@ -1748,13 +1748,13 @@ sv_rthreebyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_fourbyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
-                     const unsigned char n[1])
+sv_fourbyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
+                     unsigned char const n[1])
 #else
 static inline size_t
-sv_fourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                     const size_t n_sz,
-                     const unsigned char n[static const n_sz])
+sv_fourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
+                     size_t const n_sz,
+                     unsigned char const n[static n_sz const])
 #endif
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
@@ -1767,13 +1767,13 @@ sv_fourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
 
 #if defined(_MSC_VER)
 static inline size_t
-sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[1], const size_t n_sz,
-                      const unsigned char n[1])
+sv_rfourbyte_strnstrn(size_t sz, unsigned char const h[1], size_t const n_sz,
+                      unsigned char const n[1])
 #else
 static inline size_t
-sv_rfourbyte_strnstrn(size_t sz, const unsigned char h[static sz],
-                      const size_t n_sz,
-                      const unsigned char n[static const n_sz])
+sv_rfourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
+                      size_t const n_sz,
+                      unsigned char const n[static n_sz const])
 #endif
 {
     h = h + sz - 4;

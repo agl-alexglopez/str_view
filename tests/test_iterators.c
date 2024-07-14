@@ -36,7 +36,7 @@ static enum test_result test_tokenize_three_views(void);
 static enum test_result test_rtokenize_three_views(void);
 
 #define NUM_TESTS (size_t)31
-const test_fn all_tests[NUM_TESTS] = {
+static test_fn const all_tests[NUM_TESTS] = {
     test_iter,
     test_iter2,
     test_riter,
@@ -76,7 +76,7 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i]();
+        enum test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -88,10 +88,10 @@ main()
 static enum test_result
 test_iter(void)
 {
-    const char *const reference = "A B C D E G H I J K L M N O P";
+    char const *const reference = "A B C D E G H I J K L M N O P";
     str_view chars = sv(reference);
     size_t i = 0;
-    for (const char *cur = sv_begin(chars); cur != sv_end(chars);
+    for (char const *cur = sv_begin(chars); cur != sv_end(chars);
          cur = sv_next(cur))
     {
         CHECK(*cur, reference[i], char, "%c");
@@ -117,15 +117,15 @@ test_iter(void)
 static enum test_result
 test_iter2(void)
 {
-    const char *const reference = " A B C D E G H I J K L M N O P ";
-    const size_t size = 15;
-    const char *const toks[15] = {
+    char const *const reference = " A B C D E G H I J K L M N O P ";
+    size_t const size = 15;
+    char const *const toks[15] = {
         "A", "B", "C", "D", "E", "G", "H", "I",
         "J", "K", "L", "M", "N", "O", "P",
     };
     str_view chars = sv(reference);
     size_t i = 0;
-    for (const char *cur = sv_begin(chars);
+    for (char const *cur = sv_begin(chars);
          cur != sv_end(chars) && i < sv_len(chars); cur = sv_next(cur))
     {
         CHECK(*cur, reference[i], char, "%c");
@@ -156,7 +156,7 @@ test_iter2(void)
 static enum test_result
 test_riter(void)
 {
-    const str_view ref = SV("A B C D E G H I J K L M N O P");
+    str_view const ref = SV("A B C D E G H I J K L M N O P");
     size_t i = sv_len(ref) - 1;
     str_view cur = sv_rbegin_tok(ref, SV(" "));
     for (; !sv_rend_tok(ref, cur); cur = sv_rnext_tok(ref, cur, SV(" ")))
@@ -177,14 +177,14 @@ test_riter(void)
 static enum test_result
 test_riter2(void)
 {
-    const str_view ref = SV(" A B C D E G H I J K L M N O P ");
-    const size_t size = 15;
-    const char *const toks[15] = {
+    str_view const ref = SV(" A B C D E G H I J K L M N O P ");
+    size_t const size = 15;
+    char const *const toks[15] = {
         "A", "B", "C", "D", "E", "G", "H", "I",
         "J", "K", "L", "M", "N", "O", "P",
     };
     size_t character = sv_len(ref);
-    for (const char *c = sv_rbegin(ref); character && c != sv_rend(ref);
+    for (char const *c = sv_rbegin(ref); character && c != sv_rend(ref);
          c = sv_rnext(c))
     {
         --character;
@@ -217,15 +217,15 @@ test_riter2(void)
 static enum test_result
 test_riter_multi(void)
 {
-    const str_view ref = SV("//A//B//C//D//E//G//H//I//J//K//L//M//N//O//P//");
-    const str_view delim = SV("//");
-    const size_t size = 15;
-    const char *const toks[15] = {
+    str_view const ref = SV("//A//B//C//D//E//G//H//I//J//K//L//M//N//O//P//");
+    str_view const delim = SV("//");
+    size_t const size = 15;
+    char const *const toks[15] = {
         "A", "B", "C", "D", "E", "G", "H", "I",
         "J", "K", "L", "M", "N", "O", "P",
     };
     size_t i = size;
-    const size_t last_delim_pos = sv_rfind(ref, sv_len(ref), delim);
+    size_t const last_delim_pos = sv_rfind(ref, sv_len(ref), delim);
     CHECK(last_delim_pos, sv_len(ref) - 2, size_t, "%zu");
     str_view cur = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, cur) && i; cur = sv_rnext_tok(ref, cur, delim))
@@ -252,8 +252,8 @@ static enum test_result
 test_min_delim(void)
 {
     str_view ref = SV("/0");
-    const str_view delim = SV("/");
-    const str_view tok = SV("0");
+    str_view const delim = SV("/");
+    str_view const tok = SV("0");
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
@@ -327,8 +327,8 @@ static enum test_result
 test_min_delim_two_byte(void)
 {
     str_view ref = SV("//0");
-    const str_view delim = SV("//");
-    const str_view tok = SV("0");
+    str_view const delim = SV("//");
+    str_view const tok = SV("0");
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
@@ -402,8 +402,8 @@ static enum test_result
 test_min_delim_three_byte(void)
 {
     str_view ref = SV("///0");
-    const str_view delim = SV("///");
-    const str_view tok = SV("0");
+    str_view const delim = SV("///");
+    str_view const tok = SV("0");
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
@@ -477,8 +477,8 @@ static enum test_result
 test_min_delim_four_byte(void)
 {
     str_view ref = SV("////0");
-    const str_view delim = SV("////");
-    const str_view tok = SV("0");
+    str_view const delim = SV("////");
+    str_view const tok = SV("0");
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
@@ -552,8 +552,8 @@ static enum test_result
 test_min_delim_five_byte(void)
 {
     str_view ref = SV("/////0");
-    const str_view delim = SV("/////");
-    const str_view tok = SV("0");
+    str_view const delim = SV("/////");
+    str_view const tok = SV("0");
     str_view i = sv_begin_tok(ref, delim);
     for (; !sv_end_tok(ref, i); i = sv_next_tok(ref, i, delim))
     {
@@ -627,8 +627,8 @@ static enum test_result
 test_rmin_delim(void)
 {
     str_view ref = SV("/0");
-    const str_view delim = SV("/");
-    const str_view tok = SV("0");
+    str_view const delim = SV("/");
+    str_view const tok = SV("0");
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
@@ -702,8 +702,8 @@ static enum test_result
 test_rmin_delim_two_byte(void)
 {
     str_view ref = SV("//0");
-    const str_view delim = SV("//");
-    const str_view tok = SV("0");
+    str_view const delim = SV("//");
+    str_view const tok = SV("0");
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
@@ -777,8 +777,8 @@ static enum test_result
 test_rmin_delim_three_byte(void)
 {
     str_view ref = SV("///0");
-    const str_view delim = SV("///");
-    const str_view tok = SV("0");
+    str_view const delim = SV("///");
+    str_view const tok = SV("0");
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
@@ -852,8 +852,8 @@ static enum test_result
 test_rmin_delim_four_byte(void)
 {
     str_view ref = SV("////0");
-    const str_view delim = SV("////");
-    const str_view tok = SV("0");
+    str_view const delim = SV("////");
+    str_view const tok = SV("0");
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
@@ -927,8 +927,8 @@ static enum test_result
 test_rmin_delim_five_byte(void)
 {
     str_view ref = SV("/////0");
-    const str_view delim = SV("/////");
-    const str_view tok = SV("0");
+    str_view const delim = SV("/////");
+    str_view const tok = SV("0");
     str_view i = sv_rbegin_tok(ref, delim);
     for (; !sv_rend_tok(ref, i); i = sv_rnext_tok(ref, i, delim))
     {
@@ -1001,12 +1001,12 @@ test_rmin_delim_five_byte(void)
 static enum test_result
 test_simple_delim(void)
 {
-    const char *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
-    const char *const toks[11] = {
+    char const *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
+    char const *const toks[11] = {
         "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
     };
-    const str_view ref_view = sv(reference);
-    const str_view delim = SV("/");
+    str_view const ref_view = sv(reference);
+    str_view const delim = SV("/");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok) && i < sizeof(toks) / sizeof(toks[0]);
@@ -1023,13 +1023,13 @@ test_simple_delim(void)
 static enum test_result
 test_rsimple_delim(void)
 {
-    const char *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
-    const char *const toks[11] = {
+    char const *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
+    char const *const toks[11] = {
         "0", "1", "2", "2", "3", "3", "3", "4", "4", "4", "4",
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view ref_view = sv(reference);
-    const str_view delim = SV("/");
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    str_view const ref_view = sv(reference);
+    str_view const delim = SV("/");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok) && i;
@@ -1046,12 +1046,12 @@ test_rsimple_delim(void)
 static enum test_result
 test_tail_delim(void)
 {
-    const char *const reference = "0/1//2//2//3//3////3//4//4//4///////4578";
-    const char *const toks[10] = {
+    char const *const reference = "0/1//2//2//3//3////3//4//4//4///////4578";
+    char const *const toks[10] = {
         "0/1", "2", "2", "3", "3", "3", "4", "4", "4", "/4578",
     };
-    const str_view ref_view = sv(reference);
-    const str_view delim = SV("//");
+    str_view const ref_view = sv(reference);
+    str_view const delim = SV("//");
     size_t i = 0;
     for (str_view tok = sv_begin_tok(ref_view, delim);
          !sv_end_tok(ref_view, tok); tok = sv_next_tok(ref_view, tok, delim))
@@ -1067,13 +1067,13 @@ test_tail_delim(void)
 static enum test_result
 test_rtail_delim(void)
 {
-    const char *const reference = "0/1//2//2//3//3////3//4//4//4///4578";
-    const char *const toks[10] = {
+    char const *const reference = "0/1//2//2//3//3////3//4//4//4///4578";
+    char const *const toks[10] = {
         "0/1", "2", "2", "3", "3", "3", "4", "4", "4/", "4578",
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view ref_view = sv(reference);
-    const str_view delim = SV("//");
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    str_view const ref_view = sv(reference);
+    str_view const delim = SV("//");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
@@ -1089,14 +1089,14 @@ test_rtail_delim(void)
 static enum test_result
 test_rtriple_delim(void)
 {
-    const char *const reference
+    char const *const reference
         = "!!0/1!!!2!!!2!!!3!3!!!!!!3!!!4!!!4!!4!!!4578";
-    const char *const toks[8] = {
+    char const *const toks[8] = {
         "!!0/1", "2", "2", "3!3", "3", "4", "4!!4", "4578",
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view ref_view = sv(reference);
-    const str_view delim = SV("!!!");
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    str_view const ref_view = sv(reference);
+    str_view const delim = SV("!!!");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
@@ -1112,14 +1112,14 @@ test_rtriple_delim(void)
 static enum test_result
 test_rquad_delim(void)
 {
-    const char *const reference
+    char const *const reference
         = "!!!0/1!!!!2!!!!2!!!!3!!3!!!!!!!!3!!!!4!!!!4!!4!!!!4578";
-    const char *const toks[8] = {
+    char const *const toks[8] = {
         "!!!0/1", "2", "2", "3!!3", "3", "4", "4!!4", "4578",
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view ref_view = sv(reference);
-    const str_view delim = SV("!!!!");
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    str_view const ref_view = sv(reference);
+    str_view const delim = SV("!!!!");
     size_t i = size;
     for (str_view tok = sv_rbegin_tok(ref_view, delim);
          !sv_rend_tok(ref_view, tok); tok = sv_rnext_tok(ref_view, tok, delim))
@@ -1135,13 +1135,13 @@ test_rquad_delim(void)
 static enum test_result
 test_iter_repeating_delim(void)
 {
-    const char *toks[14] = {
+    char const *toks[14] = {
         "A",  "B", "C", "D",   "E", "F",  "G",
         "HI", "J", "K", "LMN", "O", "Pi", "\\(*.*)/",
     };
-    const char *const reference
+    char const *const reference
         = " A   B  C     D  E F G HI J   K LMN O   Pi  \\(*.*)/  ";
-    const str_view ref_view = sv(reference);
+    str_view const ref_view = sv(reference);
     size_t i = 0;
     str_view cur = sv_begin_tok(ref_view, SV(" "));
     for (; !sv_end_tok(ref_view, cur);
@@ -1166,16 +1166,16 @@ test_iter_repeating_delim(void)
 static enum test_result
 test_iter_multichar_delim(void)
 {
-    const char *toks[14] = {
+    char const *toks[14] = {
         "A",     "B", "C", "D",      "E", "F",  "G",
         "HacbI", "J", "K", "LcbaMN", "O", "Pi", "\\(*.*)/",
     };
-    const char *const reference
+    char const *const reference
         = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
           "abcOabcabcPiabcabc\\(*.*)/abc";
     size_t i = 0;
-    const str_view delim = SV("abc");
-    const str_view ref_view = sv(reference);
+    str_view const delim = SV("abc");
+    str_view const ref_view = sv(reference);
     str_view cur = sv_begin_tok(ref_view, delim);
     for (; !sv_end_tok(ref_view, cur); cur = sv_next_tok(ref_view, cur, delim))
     {
@@ -1198,16 +1198,16 @@ test_iter_multichar_delim(void)
 static enum test_result
 test_riter_multichar_delim(void)
 {
-    const char *toks[14] = {
+    char const *toks[14] = {
         "A",     "B", "C", "D",      "E", "F",  "G",
         "HacbI", "J", "K", "LcbaMN", "O", "Pi", "\\(*.*)/",
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const char *const reference
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    char const *const reference
         = "abcAabcBabcCabcabcabcDabcEabcFabcGabcHacbIabcJabcabcabcabcKabcLcbaMN"
           "abcOabcabcPiabcabc\\(*.*)/abc";
-    const str_view delim = SV("abc");
-    const str_view ref_view = sv(reference);
+    str_view const delim = SV("abc");
+    str_view const ref_view = sv(reference);
     str_view cur = sv_rbegin_tok(ref_view, delim);
     size_t i = size;
     for (; !sv_rend_tok(ref_view, cur) && i;
@@ -1233,16 +1233,16 @@ test_riter_multichar_delim(void)
 static enum test_result
 test_iter_multichar_delim_short(void)
 {
-    const char *toks[14] = {
+    char const *toks[14] = {
         "A",     "B", "C", "D",      "E",   "F",  "G",
         "H---I", "J", "K", "L-M--N", "--O", "Pi", "\\(*.*)/",
     };
-    const char *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
+    char const *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
                                   "---H---I-----J-----K-----L-M--N"
                                   "-------O-----Pi-----\\(*.*)/-----";
     size_t i = 0;
-    const str_view delim = SV("-----");
-    const str_view ref_view = sv(reference);
+    str_view const delim = SV("-----");
+    str_view const ref_view = sv(reference);
     str_view cur = sv_begin_tok(ref_view, delim);
     for (; !sv_end_tok(ref_view, cur); cur = sv_next_tok(ref_view, cur, delim))
     {
@@ -1265,17 +1265,17 @@ test_iter_multichar_delim_short(void)
 static enum test_result
 test_riter_multichar_delim_short(void)
 {
-    const char *toks[14] = {
+    char const *toks[14] = {
         "A",     "B", "C", "D",        "E", "F",  "G",
         "H---I", "J", "K", "L-M--N--", "O", "Pi", "\\(*.*)/",
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const char *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    char const *const reference = "-----A-----B-----C-----D-----E-----F-----G--"
                                   "---H---I-----J-----K-----L-M--N"
                                   "-------O-----Pi-----\\(*.*)/-----";
     size_t i = size;
-    const str_view delim = SV("-----");
-    const str_view ref_view = sv(reference);
+    str_view const delim = SV("-----");
+    str_view const ref_view = sv(reference);
     str_view cur = sv_rbegin_tok(ref_view, delim);
     for (; !sv_rend_tok(ref_view, cur);
          cur = sv_rnext_tok(ref_view, cur, delim))
@@ -1300,10 +1300,10 @@ test_riter_multichar_delim_short(void)
 static enum test_result
 test_iter_delim_larger_than_str(void)
 {
-    const char *const ref = "A-B";
-    const char *const delim = "-----";
-    const str_view delim_view = sv(delim);
-    const str_view ref_view = sv(ref);
+    char const *const ref = "A-B";
+    char const *const delim = "-----";
+    str_view const delim_view = sv(delim);
+    str_view const ref_view = sv(ref);
     str_view constructed = sv_delim(ref, delim);
     str_view cur = sv_begin_tok(ref_view, delim_view);
     CHECK(sv_cmp(constructed, cur), SV_EQL, sv_threeway_cmp, "%d");
@@ -1323,10 +1323,10 @@ test_iter_delim_larger_than_str(void)
 static enum test_result
 test_riter_delim_larger_than_str(void)
 {
-    const char *const ref = "A-B";
-    const char *const delim = "-----";
-    const str_view delim_view = sv(delim);
-    const str_view ref_view = sv(ref);
+    char const *const ref = "A-B";
+    char const *const delim = "-----";
+    str_view const delim_view = sv(delim);
+    str_view const ref_view = sv(ref);
     str_view constructed = sv_delim(ref, delim);
     str_view cur = sv_rbegin_tok(ref_view, delim_view);
     CHECK(sv_cmp(constructed, cur), SV_EQL, sv_threeway_cmp, "%d");
@@ -1346,13 +1346,13 @@ test_riter_delim_larger_than_str(void)
 static enum test_result
 test_tokenize_not_terminated(void)
 {
-    const char *const path_str = "this/path/will/be/missing/its/child";
-    const char *const toks[6] = {
+    char const *const path_str = "this/path/will/be/missing/its/child";
+    char const *const toks[6] = {
         "this", "path", "will", "be", "missing", "its",
     };
-    const str_view path = sv(path_str);
-    const str_view delim = SV("/");
-    const str_view childless_path
+    str_view const path = sv(path_str);
+    str_view const delim = SV("/");
+    str_view const childless_path
         = sv_remove_suffix(path, sv_len(path) - sv_find_last_of(path, delim));
     size_t i = 0;
     for (str_view tok = sv_begin_tok(childless_path, delim);
@@ -1370,20 +1370,20 @@ test_tokenize_not_terminated(void)
 static enum test_result
 test_tokenize_three_views(void)
 {
-    const char *const path_str = "all/of/these/paths/are/unique/and/split/up";
-    const char *const toks[3][3] = {
+    char const *const path_str = "all/of/these/paths/are/unique/and/split/up";
+    char const *const toks[3][3] = {
         {"all", "of", "these"},
         {"paths", "are", "unique"},
         {"and", "split", "up"},
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view path = sv(path_str);
-    const str_view delim = SV("/");
-    const str_view first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
-    const str_view second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    str_view const path = sv(path_str);
+    str_view const delim = SV("/");
+    str_view const first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
+    str_view const second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
                                       sv_find(path, 0, SV("/and/"))
                                           - sv_find(path, 0, SV("/paths/")));
-    const str_view third
+    str_view const third
         = sv_substr(path, sv_find(path, 0, SV("/and/")),
                     sv_len(path) - sv_find(path, 0, SV("/and/")));
     size_t i = 0;
@@ -1411,20 +1411,20 @@ test_tokenize_three_views(void)
 static enum test_result
 test_rtokenize_three_views(void)
 {
-    const char *const path_str = "all/of/these/paths/are/unique/and/split/up";
-    const char *const toks[3][3] = {
+    char const *const path_str = "all/of/these/paths/are/unique/and/split/up";
+    char const *const toks[3][3] = {
         {"all", "of", "these"},
         {"paths", "are", "unique"},
         {"and", "split", "up"},
     };
-    const size_t size = sizeof(toks) / sizeof(toks[0]);
-    const str_view path = sv(path_str);
-    const str_view delim = SV("/");
-    const str_view first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
-    const str_view second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
+    size_t const size = sizeof(toks) / sizeof(toks[0]);
+    str_view const path = sv(path_str);
+    str_view const delim = SV("/");
+    str_view const first = sv_substr(path, 0, sv_find(path, 0, SV("/paths/")));
+    str_view const second = sv_substr(path, sv_find(path, 0, SV("/paths/")),
                                       sv_find(path, 0, SV("/and/"))
                                           - sv_find(path, 0, SV("/paths/")));
-    const str_view third
+    str_view const third
         = sv_substr(path, sv_find(path, 0, SV("/and/")),
                     sv_len(path) - sv_find(path, 0, SV("/and/")));
     size_t i = size;

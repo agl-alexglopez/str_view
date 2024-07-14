@@ -8,7 +8,8 @@ static enum test_result test_length_unterminated(void);
 static enum test_result test_length_innacurate(void);
 
 #define NUM_TESTS (size_t)3
-const test_fn all_tests[NUM_TESTS] = {
+
+static test_fn const all_tests[NUM_TESTS] = {
     test_length_terminated,
     test_length_unterminated,
     test_length_innacurate,
@@ -20,7 +21,7 @@ main()
     enum test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        const enum test_result t_res = all_tests[i]();
+        enum test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -32,11 +33,11 @@ main()
 static enum test_result
 test_length_terminated(void)
 {
-    const char ref[6] = {
+    char const ref[6] = {
         [0] = 'H', [1] = 'e', [2] = 'l', [3] = 'l', [4] = 'l', [5] = '\0',
     };
-    const size_t len = strlen(ref);
-    const size_t bytes = sizeof ref;
+    size_t const len = strlen(ref);
+    size_t const bytes = sizeof ref;
     CHECK(len, strlen(ref), size_t, "%zu");
     CHECK(len, sv_len(sv(ref)), size_t, "%zu");
     CHECK(bytes, sv_strsize(ref), size_t, "%zu");
@@ -49,14 +50,14 @@ test_length_terminated(void)
 static enum test_result
 test_length_unterminated(void)
 {
-    const char ref[12] = {
+    char const ref[12] = {
         [0] = 'H', [1] = 'e', [2] = 'l', [3] = 'l', [4] = 'l',  [5] = ' ',
         [6] = 's', [7] = 'n', [8] = 'i', [9] = 'p', [10] = '!', [11] = '\0',
     };
-    const char snip[5] = "snip\0";
-    const size_t len = strlen(snip);
-    const size_t bytes = sizeof snip;
-    const str_view snip_view = sv_n(len, ref + 6);
+    char const snip[5] = "snip\0";
+    size_t const len = strlen(snip);
+    size_t const bytes = sizeof snip;
+    str_view const snip_view = sv_n(len, ref + 6);
     CHECK(strlen(snip), len, size_t, "%zu");
     CHECK(sv_len(snip_view), len, size_t, "%zu");
     CHECK(sv_strsize(snip), bytes, size_t, "%zu");
@@ -69,21 +70,21 @@ test_length_unterminated(void)
 static enum test_result
 test_length_innacurate(void)
 {
-    const char ref[18]
+    char const ref[18]
         = {[0] = 'H',  [1] = 'e',   [2] = 'l',  [3] = 'l',  [4] = 'l',
            [5] = ' ',  [6] = 's',   [7] = 'n',  [8] = 'i',  [9] = 'p',
            [10] = '!', [11] = '\0', [12] = 's', [13] = 'n', [14] = 'i',
            [15] = 'p', [16] = '!',  [17] = '\0'};
-    const size_t len = strlen(ref);
-    const size_t bytes = len + 1;
-    const str_view view = sv_n(sizeof(ref), ref);
+    size_t const len = strlen(ref);
+    size_t const bytes = len + 1;
+    str_view const view = sv_n(sizeof(ref), ref);
     CHECK(len, strlen(ref), size_t, "%zu");
     CHECK(len, sv_len(view), size_t, "%zu");
     CHECK(bytes, sv_strsize(ref), size_t, "%zu");
     CHECK(bytes, sv_size(view), size_t, "%zu");
     CHECK(len, sv_npos(view), size_t, "%zu");
     CHECK(len, sv_minlen(ref, sizeof(ref)), size_t, "%zu");
-    const str_view view2 = sv_n(sizeof(ref), ref);
+    str_view const view2 = sv_n(sizeof(ref), ref);
     CHECK(len, strlen(ref), size_t, "%zu");
     CHECK(len, sv_len(view2), size_t, "%zu");
     CHECK(bytes, sv_strsize(ref), size_t, "%zu");

@@ -54,12 +54,12 @@ enum io_method
 
 struct file_buf
 {
-    const char *const buf;
+    char const *const buf;
     size_t size;
 };
 
-const str_view mmap_flag = SV("--mmap");
-const str_view read_flag = SV("--read");
+str_view const mmap_flag = SV("--mmap");
+str_view const read_flag = SV("--read");
 
 static int run(char * [static 1], size_t);
 static bool match_file_mmap(str_view, str_view);
@@ -104,7 +104,7 @@ run(char *args[static 1], size_t argc)
             (void)fprintf(stderr, "Could not open directory.\n");
             return 1;
         }
-        const str_view dir_view = sv(args[start]);
+        str_view const dir_view = sv(args[start]);
         for (size_t i = start + 1; i < argc; ++i)
         {
             search_directory(dir_view, d, io_style, sv(args[i]));
@@ -114,7 +114,7 @@ run(char *args[static 1], size_t argc)
     else
     {
         bool opened_file = true;
-        const str_view filename = sv(args[start]);
+        str_view const filename = sv(args[start]);
         FILE *f = fopen(sv_begin(filename), "r");
         if (!f)
         {
@@ -145,7 +145,7 @@ run(char *args[static 1], size_t argc)
 static void
 search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
 {
-    const struct dirent *de;
+    struct dirent const *de;
     char path_buf[FILESYS_MAX_PATH];
     while ((de = readdir(d)))
     {
@@ -159,7 +159,7 @@ search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
         {
             continue;
         }
-        const str_view path_view = sv(path_buf);
+        str_view const path_view = sv(path_buf);
         bool match_res = false;
         if (io == READ)
         {
@@ -209,7 +209,7 @@ match_file_read(FILE *f, str_view needle)
 }
 
 static bool
-match_file_mmap(const str_view filename, str_view needle)
+match_file_mmap(str_view const filename, str_view needle)
 {
     FILE *f = fopen(sv_begin(filename), "r");
     if (!f)
@@ -218,7 +218,7 @@ match_file_mmap(const str_view filename, str_view needle)
                       sv_begin(filename));
         return false;
     }
-    const struct file_buf fb = get_file_buf(f);
+    struct file_buf const fb = get_file_buf(f);
     if (fclose(f))
     {
         (void)fprintf(stderr, "Error closing file.\n");
@@ -286,7 +286,7 @@ static bool
 fill_path(char path_buf[static FILESYS_MAX_PATH], str_view tests_dir,
           str_view entry)
 {
-    const size_t dir_bytes = sv_fill(FILESYS_MAX_PATH, path_buf, tests_dir);
+    size_t const dir_bytes = sv_fill(FILESYS_MAX_PATH, path_buf, tests_dir);
     if (FILESYS_MAX_PATH - dir_bytes < sv_size(entry))
     {
         (void)fprintf(stderr, "Relative path exceeds FILESYS_MAX_PATH?\n%s",
@@ -306,13 +306,13 @@ get_file_buf(FILE *f)
         (void)fprintf(stderr, "error seeking in file.\n");
         return (struct file_buf){0};
     }
-    const size_t size = ftell(f);
+    size_t const size = ftell(f);
     if (fseek(f, 0L, SEEK_SET) < 0)
     {
         (void)fprintf(stderr, "error seeking in file.\n");
         return (struct file_buf){0};
     }
-    const char *const buf
+    char const *const buf
         = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fileno(f), 0);
     if (buf == MAP_FAILED)
     {
