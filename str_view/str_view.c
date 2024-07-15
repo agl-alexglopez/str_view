@@ -1163,24 +1163,26 @@ sv_maximal_suffix_rev(ssize_t needle_sz, char const needle[static needle_sz])
    these functions into one with the following formula
    (using the suffix calculation as an example):
 
-ssize_t suff_pos = -1;
-ssize_t period = 1;
-ssize_t last_rest = 0;
-ssize_t rest = 1;
-ssize_t negate_sz = 0;
-ssize_t negate_one = 0;
-if (direction == FORWARD)
-{
-    negation_sz = needle_sz;
-    negate_one = 1;
-}
-while (last_rest + rest < needle_sz)
-{
-    switch (sv_char_cmp(
-        needle[needle_sz - (last_rest + rest) - 1 + negation_sz + negate_one],
-        needle[needle_sz - (suff_pos + rest) - 1 + negation_sz + negate_one]))
-    {
-    ...
+        ssize_t suff_pos = -1;
+        ssize_t period = 1;
+        ssize_t last_rest = 0;
+        ssize_t rest = 1;
+        ssize_t negate_sz = 0;
+        ssize_t negate_one = 0;
+        if (direction == FORWARD)
+        {
+            negate_sz = needle_sz;
+            negate_one = 1;
+        }
+        while (last_rest + rest < needle_sz)
+        {
+            switch (sv_char_cmp(
+                needle[needle_sz
+                        - (last_rest + rest) - 1 + negate_sz + negate_one],
+                needle[needle_sz
+                        - (suff_pos + rest) - 1 + negate_sz + negate_one]))
+            {
+            ...
 
    That would save the code repitition across all of the following
    functions but probably would make the code even harder to read and
