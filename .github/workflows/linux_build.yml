@@ -1,12 +1,6 @@
 name: Linux Build
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '*/*.c'
-      - '*/*.h'
   pull_request:
     branches:
       - main
