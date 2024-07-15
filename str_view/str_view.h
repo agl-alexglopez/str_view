@@ -93,74 +93,6 @@ typedef enum
    However saving the str_view in a constant may be more convenient. */
 #define SV(str) ((str_view){"" str "", sizeof(str) - 1})
 
-/* MSVC does not implement static array or n sized array string params. */
-#if defined(_MSC_VER)
-
-/* Constructs and returns a string view from a NULL TERMINATED string.
-   It is undefined to construct a str_view from a non terminated string. */
-str_view sv(char const str[1]);
-
-/* Constructs and returns a string view from a sequence of valid n bytes
-   or string length, whichever comes first. The resulting str_view may
-   or may not be null terminated at the index of its size. */
-str_view sv_n(size_t n, char const str[1]);
-
-/* Constructs and returns a string view from a NULL TERMINATED string
-   broken on the first ocurrence of delimeter if found or null
-   terminator if delim cannot be found. This constructor will also
-   skip the delimeter if that delimeter starts the string. This is similar
-   to the tokenizing function in the iteration section. */
-str_view sv_delim(char const str[1], char const delim[1]);
-
-/* Returns the bytes of the string pointer to, null terminator included. */
-size_t sv_strsize(char const str[1]);
-
-/* Copies the max of str_sz or src_str length into a view, whichever
-   ends first. This is the same as sv_n. */
-str_view sv_copy(size_t str_sz, char const src_str[1]);
-
-/* Fills the destination buffer with the minimum between
-   destination size and source view size, null terminating
-   the string. This may cut off src data if dest_sz < src.sz.
-   Returns how many bytes were written to the buffer. */
-size_t sv_fill(size_t dest_sz, char dest_buf[1], str_view src);
-
-/* Returns the standard C threeway comparison between cmp(lhs, rhs)
-   between a str_view and the first n bytes (inclusive) of str
-   or stops at the null terminator if that is encountered first.
-   str_view LES( -1  ) rhs (str_view is less than str)
-   str_view EQL(  0  ) rhs (str_view is equal to str)
-   str_view GRT(  1  ) rhs (str_view is greater than str)
-   Comparison is bounded by the shorter str_view length. ERR is
-   returned if bad input is provided such as a str_view with a
-   NULL pointer field. */
-sv_threeway_cmp sv_strncmp(str_view lhs, char const rhs[1], size_t n);
-
-/* Returns the standard C threeway comparison between cmp(lhs, rhs)
-   between a str_view and a c-string.
-   str_view LES( -1  ) rhs (str_view is less than str)
-   str_view EQL(  0  ) rhs (str_view is equal to str)
-   str_view GRT(  1  ) rhs (str_view is greater than str)
-   Comparison is bounded by the shorter str_view length. ERR is
-   returned if bad input is provided such as a str_view with a
-   NULL pointer field. */
-sv_threeway_cmp sv_strcmp(str_view lhs, char const *rhs);
-
-/* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(char const str[1], size_t n);
-
-/* Advances the iterator to the next character in the str_view
-   being iterated through in reverse. It is undefined behavior
-   to change the str_view one is iterating through during
-   iteration. If the char pointer is null, sv_null() is returned. */
-char const *sv_rnext(char const c[1]);
-
-/* Advances the pointer from its previous position. If NULL is provided
-   sv_null() is returned. */
-char const *sv_next(char const c[1]);
-
-#else /* GCC, Clang, and Intel-LLVM should have no trouble with this. */
-
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
 str_view sv(char const str[static 1]) ATTRIB_NONNULL(1)
@@ -233,8 +165,6 @@ char const *sv_next(char const c[static 1]) ATTRIB_NONNULL(1)
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
 char const *sv_rnext(char const c[static 1]) ATTRIB_NONNULL(1) ATTRIB_PURE;
-
-#endif
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (length - pos). If an invalid
