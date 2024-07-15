@@ -24,7 +24,7 @@ jobs:
       - name: Create Release Zip
         run: |
           VERSION=$(git describe --tags --abbrev=0)
-          echo "TAG=$VERSION" >> $GITHUB_ENV
+          echo "TAG=${VERSION}" >> $GITHUB_ENV
           git archive --format=zip --output=str_view-${VERSION}.zip release
           echo "ZIP_FILE=str_view-${VERSION}.zip" >> $GITHUB_ENV 
 
