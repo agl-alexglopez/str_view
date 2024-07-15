@@ -7,12 +7,22 @@ on:
     paths:
       - '*/*.c'
       - '*/*.h'
+      - '*.cmake'
+      - '*/*.cmake'
+      - 'CMakeLists.txt'
+      - '*/CMakeLists.txt'
+      - 'Config.cmake.in'
   pull_request:
     branches:
       - main
     paths:
       - '*/*.c'
       - '*/*.h'
+      - '*.cmake'
+      - '*/*.cmake'
+      - 'CMakeLists.txt'
+      - '*/CMakeLists.txt'
+      - 'Config.cmake.in'
   workflow_dispatch:
 
 jobs:
