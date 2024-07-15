@@ -7,9 +7,20 @@ project("str_view"
     DESCRIPTION "Robust read-only string handling, tokenization, and matching in C."
 )
 
-add_subdirectory(tests EXCLUDE_FROM_ALL)
-add_subdirectory(samples EXCLUDE_FROM_ALL)
-include(etc/scanners.cmake)
+# The goal of this section is to allow the tagged releases to run an
+# automatic script that deletes the samples and test folders and any
+# work that is intended for development only. The user should
+# be able to download or clone the absolute bare minimum for this
+# library to work.
+if (EXISTS "${PROJECT_SOURCE_DIR}/samples")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/samples" EXCLUDE_FROM_ALL)
+endif()
+if (EXISTS "${PROJECT_SOURCE_DIR}/tests")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/tests" EXCLUDE_FROM_ALL)
+endif()
+if (EXISTS "${PROJECT_SOURCE_DIR}/tests" AND EXISTS "${PROJECT_SOURCE_DIR}/samples")
+    include(etc/scanners.cmake)
+endif()
 
 if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     message(STATUS "This project has a top-level one called [${CMAKE_PROJECT_NAME}]")
