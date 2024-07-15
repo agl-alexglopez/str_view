@@ -1,4 +1,4 @@
-name: Clang Tidy Review
+name: clang-tidy-review
 
 # You can be more specific, but it currently only works on pull requests
 on: 
@@ -6,7 +6,6 @@ on:
     paths:
       - '*/*.c'
       - '*/*.h'
-  workflow_dispatch:
 
 jobs:
   clang-review:
@@ -16,17 +15,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Get CMake
-      uses: lukka/get-cmake@latest 
-
-    - name: Generate Compile Commands
-      run: cmake --preset=clang-deb
-
     - name: Review
       uses: ZedThree/clang-tidy-review@v0.14.0
       id: review
       with:
         split_workflow: true
+        build_dir: build
+        cmake_command: cmake --preset=clang-deb
 
     - name: Upload artifacts
       uses: ZedThree/clang-tidy-review/upload@v0.14.0
