@@ -1,3 +1,4 @@
+/* Author: Alexander G. Lopez */
 #ifndef STR_VIEW
 #define STR_VIEW
 
