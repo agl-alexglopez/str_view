@@ -3,7 +3,7 @@ name: Post Clang Tidy Review Comments
 on:
   workflow_run:
     # The name field of the lint action
-    workflows: ["Clang Tidy Review"]
+    workflows: ["clang-review"]
     types:
       - completed
 
