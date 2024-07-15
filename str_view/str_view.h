@@ -81,7 +81,7 @@ typedef enum
    constructing an inline or const str_view. The input must be a string
    literal. For example:
 
-      static const str_view prefix = SV("test_");
+      static str_view const prefix = SV("test_");
 
    One can even use this in code when string literals are used rather than
    saved constants to avoid errors in str_view constructions.
