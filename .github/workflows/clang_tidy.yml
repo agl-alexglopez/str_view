@@ -15,21 +15,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Optionally generate compile_commands.json
-    - name: Get CMake
-      uses: lukka/get-cmake@latest 
-
-    - name: Generate Compile Commands
-      run: |
-        make clang-deb
-        cmake --build build --target tests
-        cmake --build build --target samples
-
     - name: Review
       uses: ZedThree/clang-tidy-review@v0.14.0
       id: review
       with:
         split_workflow: true
+        cmake_command: cmake --preset=clang-deb
 
     - name: Upload artifacts
       uses: ZedThree/clang-tidy-review/upload@v0.14.0
