@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: 'release'
+          fetch-tags: true
 
       - name: Create Release Zip
         run: |
