@@ -1,17 +1,6 @@
 name: Linux Build
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '*/*.c'
-      - '*/*.h'
-      - '*.cmake'
-      - '*/*.cmake'
-      - 'CMakeLists.txt'
-      - '*/CMakeLists.txt'
-      - 'Config.cmake.in'
   pull_request:
     branches:
       - main
