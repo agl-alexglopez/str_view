@@ -16,8 +16,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build-mac:
+    runs-on: macos-latest
 
     steps:
     - name: Checkout code
