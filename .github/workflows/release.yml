@@ -1,6 +1,5 @@
 name: Tag Release Branch
 
-# ONLY TAG WHILE ON THE RELEASE BRANCH
 on:
   push:
     tags:
@@ -16,16 +15,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: 'release'
-          fetch-depth: 0
 
       - name: Create Release Zip
         run: |
-          VERSION=$(git describe --tags --abbrev=0)
-          echo "TAG=${VERSION}" >> $GITHUB_ENV
-          git archive --format=zip --output=str_view-${VERSION}.zip release
-          echo "ZIP_FILE=str_view-${VERSION}.zip" >> $GITHUB_ENV 
+          git rm -rf --cached tests samples images res etc .gitmodules .github
+          git rm --cached .clang-format .clang-tidy .pre-commit-config.yaml README.md
+          git archive $( git write-tree ) --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip
+          echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
         id: create_release
@@ -33,8 +29,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ env.TAG }}
-          release_name: ${{ env.TAG }}
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
           body: |
             Release Notes:
           draft: false
