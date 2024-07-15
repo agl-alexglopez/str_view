@@ -6,7 +6,7 @@ on:
     paths:
       - '*/*.c'
       - '*/*.h'
-  workflow_run:
+  workflow_dispatch:
 
 jobs:
   clang-review:
