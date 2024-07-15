@@ -42,13 +42,13 @@ add_test(test_string_searching)
 add_test(test_view_editing)
 
 # Create a custom target that will depend on all targets in the subdirectory
-add_custom_target(all_tests)
+add_custom_target(tests)
 # Function to add dependencies on all targets from the subdirectory
 function(add_all_subdirectory_targets)
     # Get the list of all targets
     get_property(test_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
     foreach(target IN LISTS test_targets)
-        add_dependencies(all_tests ${target})
+        add_dependencies(tests ${target})
     endforeach()
 endfunction()
 # Call the function to populate the custom target with dependencies
