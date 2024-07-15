@@ -22,9 +22,9 @@ jobs:
 
       - name: Create Release Zip
         run: |
-          TAG=$(git describe --tags)
+          TAG=$(git describe --tags --abrev=0)
           git archive --format=zip --output=str_view-${TAG}.zip release
-          echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
+          echo "ZIP_FILE=str_view-${TAG}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
         id: create_release
