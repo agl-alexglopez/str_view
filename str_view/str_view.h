@@ -1,4 +1,6 @@
-/* Author: Alexander G. Lopez */
+/* Author: Alexander G. Lopez
+   -------------------------
+   See LINCENSE in the root of the repository for details. */
 #ifndef STR_VIEW
 #define STR_VIEW
 
