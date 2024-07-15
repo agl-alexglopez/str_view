@@ -4,7 +4,7 @@ on:
   pull_request:
     workflow_run:
       # The name field of the lint action
-      workflows: ["clang-review"]
+      workflows: ["Clang Tidy Review"]
       types:
         - completed
 
