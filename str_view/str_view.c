@@ -184,15 +184,8 @@ str_view
 sv_delim(char const str[static const 1], char const delim[static const 1])
 #endif
 {
-    return sv_begin_tok(
-        (str_view){
-            .s = str,
-            .sz = strlen(str),
-        },
-        (str_view){
-            .s = delim,
-            .sz = strlen(delim),
-        });
+    return sv_begin_tok((str_view){.s = str, .sz = strlen(str)},
+                        (str_view){.s = delim, .sz = strlen(delim)});
 }
 
 void
@@ -928,12 +921,12 @@ sv_strcspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
            char const set[static set_sz])
 #endif
 {
-    char const *a = str;
-    size_t byteset[32 / sizeof(size_t)];
-    if (!set[0])
+    if (!set_sz)
     {
         return str_sz;
     }
+    char const *a = str;
+    size_t byteset[32 / sizeof(size_t)];
     if (!set[1])
     {
         for (size_t i = 0; i < str_sz && *a && *a != *set; a++)
@@ -1003,7 +996,7 @@ sv_strnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
             char const needle[static needle_sz])
 #endif
 {
-    if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
+    if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
         return hay_sz;
     }
@@ -1044,7 +1037,7 @@ sv_rstrnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
              char const needle[static needle_sz])
 #endif
 {
-    if (!hay || !needle || !needle_sz || !*needle || needle_sz > hay_sz)
+    if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
         return hay_sz;
     }
