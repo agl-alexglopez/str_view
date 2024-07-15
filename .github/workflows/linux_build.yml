@@ -7,6 +7,11 @@ on:
     paths:
       - '*/*.c'
       - '*/*.h'
+      - '*.cmake'
+      - '*/*.cmake'
+      - 'CMakeLists.txt'
+      - '*/CMakeLists.txt'
+      - 'Config.cmake.in'
   workflow_dispatch:
 
 jobs:
