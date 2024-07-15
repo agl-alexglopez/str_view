@@ -2,6 +2,8 @@ name: Create Tagged Release
 
 on:
   push:
+    branches:
+      - release
     tags:
       - 'v*'
 
@@ -15,12 +17,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: 'release'
 
       - name: Create Release Zip
         run: |
-          git rm -r --cached tests samples images res etc .gitmodules .github
-          git rm --cached .clang-format .clang-tidy .pre-commit-config.yaml README.md
-          git archive $( git write-tree ) --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip
+          git archive --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip
           echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
