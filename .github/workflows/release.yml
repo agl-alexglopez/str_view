@@ -1,4 +1,4 @@
-name: Create Tagged Release
+name: Tag Release Branch
 
 on:
   push:
