@@ -30,13 +30,14 @@ jobs:
         rm -rf samples/
         rm -rf tests/
 
-    - name: Build with Makefile Generator
+    - name: Build with Clang and Ninja Generator
       run: |
+        make clang-deb
+        make install
+
+    - name: Build with GCC and Makefile Generator
+      run: |
+        make clean
         make gcc-deb
         make install
 
-    - name: Build with Ninja Generator
-      run: |
-        make clean
-        make clang-deb
-        make install
