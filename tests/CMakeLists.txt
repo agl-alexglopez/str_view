@@ -1,5 +1,12 @@
-add_library(test INTERFACE test.h)
+cmake_minimum_required(VERSION 3.15)
+project("str_view tests"
+    VERSION 0.1.0
+    LANGUAGES C
+    DESCRIPTION "Testing the str_view library."
+)
 
+add_library(test INTERFACE test.h)
+include_directories("../str_view")
 add_executable(run_tests run_tests.c)
 target_link_libraries(run_tests str_view test)
 
@@ -33,3 +40,16 @@ add_test(test_iterators)
 add_test(test_comparisons)
 add_test(test_string_searching)
 add_test(test_view_editing)
+
+# Create a custom target that will depend on all targets in the subdirectory
+add_custom_target(all_tests)
+# Function to add dependencies on all targets from the subdirectory
+function(add_all_subdirectory_targets)
+    # Get the list of all targets
+    get_property(test_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(target IN LISTS test_targets)
+        add_dependencies(all_tests ${target})
+    endforeach()
+endfunction()
+# Call the function to populate the custom target with dependencies
+add_all_subdirectory_targets()
