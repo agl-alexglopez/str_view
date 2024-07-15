@@ -2,10 +2,10 @@ name: Tag Release Branch
 
 on:
   push:
-    branches:
-      - release
     tags:
       - 'v*'
+    branches-ignore:
+      - main
 
 jobs:
   create-release:
