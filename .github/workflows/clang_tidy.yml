@@ -13,24 +13,24 @@ jobs:
 
     steps:
     - name: Checkout
-    - uses: actions/checkout@v4
+      uses: actions/checkout@v4
 
     # Optionally generate compile_commands.json
     - name: Generate compile commands
-    - uses: lukka/get-cmake@latest 
+      uses: lukka/get-cmake@latest 
       run: |
         make clang-deb
         cmake --build build --target tests
         cmake --build build --target samples
 
     - name: Review
-    - uses: ZedThree/clang-tidy-review@v0.14.0
+      uses: ZedThree/clang-tidy-review@v0.14.0
       id: review
       with:
         split_workflow: true
 
     - name: Upload artifacts
-    - uses: ZedThree/clang-tidy-review/upload@v0.14.0
+      uses: ZedThree/clang-tidy-review/upload@v0.14.0
       id: upload-review
 
     # If there are any comments, fail the check
