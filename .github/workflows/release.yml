@@ -22,7 +22,7 @@ jobs:
 
       - name: Create Release Zip
         run: |
-          git archive --format zip --output str_view-${GITHUB_REF#refs/tags/}.zip release
+          git archive --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip release
           echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
