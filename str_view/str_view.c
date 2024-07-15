@@ -162,10 +162,6 @@ str_view
 sv(char const str[static const 1])
 #endif
 {
-    if (!str)
-    {
-        return nil;
-    }
     return (str_view){.s = str, .sz = strlen(str)};
 }
 
@@ -177,10 +173,6 @@ str_view
 sv_n(size_t n, char const str[static const 1])
 #endif
 {
-    if (!str || !n)
-    {
-        return nil;
-    }
     return (str_view){.s = str, .sz = strnlen(str, n)};
 }
 
@@ -192,14 +184,6 @@ str_view
 sv_delim(char const str[static const 1], char const delim[static const 1])
 #endif
 {
-    if (!str)
-    {
-        return nil;
-    }
-    if (!delim)
-    {
-        return (str_view){.s = str, .sz = strlen(str)};
-    }
     return sv_begin_tok(
         (str_view){
             .s = str,
@@ -242,7 +226,7 @@ size_t
 sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
 #endif
 {
-    if (!dest_buf || !dest_sz || !src.s || !src.sz)
+    if (!dest_sz || !src.s || !src.sz)
     {
         return 0;
     }
@@ -278,10 +262,6 @@ size_t
 sv_strsize(char const str[static const 1])
 #endif
 {
-    if (!str)
-    {
-        return 0;
-    }
     return strlen(str) + 1;
 }
 
@@ -293,10 +273,6 @@ size_t
 sv_minlen(char const str[static const 1], size_t n)
 #endif
 {
-    if (!str)
-    {
-        return 0;
-    }
     return strnlen(str, n);
 }
 
@@ -319,7 +295,7 @@ sv_null(void)
 void
 sv_swap(str_view *a, str_view *b)
 {
-    if (a == b || !a || !b)
+    if (a == b)
     {
         return;
     }
@@ -360,7 +336,7 @@ sv_threeway_cmp
 sv_strcmp(str_view lhs, char const rhs[static const 1])
 #endif
 {
-    if (!lhs.s || !rhs)
+    if (!lhs.s)
     {
         return SV_ERR;
     }
@@ -387,7 +363,7 @@ sv_threeway_cmp
 sv_strncmp(str_view lhs, char const rhs[static const 1], size_t const n)
 #endif
 {
-    if (!lhs.s || !rhs)
+    if (!lhs.s)
     {
         return SV_ERR;
     }
@@ -455,10 +431,6 @@ char const *
 sv_next(char const c[static 1])
 #endif
 {
-    if (!c)
-    {
-        return nil.s;
-    }
     return ++c;
 }
 
@@ -498,10 +470,6 @@ char const *
 sv_rnext(char const c[static 1])
 #endif
 {
-    if (!c)
-    {
-        return nil.s;
-    }
     return --c;
 }
 
