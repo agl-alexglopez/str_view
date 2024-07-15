@@ -8,23 +8,27 @@ on:
       - '*/*.h'
 
 jobs:
-  clang-review:
+  build:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Get CMake
+      uses: lukka/get-cmake@latest 
+
+    - name: Generate Compile Commands
+      run: cmake --preset=clang-deb
+
     - name: Review
-      uses: ZedThree/clang-tidy-review@v0.14.0
+      uses: ZedThree/clang-tidy-review@v0.19.0
       id: review
       with:
         split_workflow: true
-        build_dir: build
-        cmake_command: cmake --preset=clang-deb
 
     - name: Upload artifacts
-      uses: ZedThree/clang-tidy-review/upload@v0.14.0
+      uses: ZedThree/clang-tidy-review/upload@v0.19.0
       id: upload-review
 
     # If there are any comments, fail the check
