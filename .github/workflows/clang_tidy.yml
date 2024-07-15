@@ -8,7 +8,7 @@ on:
       - '*/*.h'
 
 jobs:
-  build:
+  clang-review:
     runs-on: ubuntu-latest
 
     steps:
