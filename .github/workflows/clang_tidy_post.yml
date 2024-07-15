@@ -1,11 +1,12 @@
 name: Post Clang Tidy Review Comments
 
 on:
-  workflow_run:
-    # The name field of the lint action
-    workflows: ["clang-review"]
-    types:
-      - completed
+  pull_request:
+    workflow_run:
+      # The name field of the lint action
+      workflows: ["clang-review"]
+      types:
+        - completed
 
 jobs:
   clang-post:
