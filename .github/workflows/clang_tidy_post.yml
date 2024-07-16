@@ -18,6 +18,7 @@ jobs:
         # lgtm_comment_body, max_comments, and annotations need to be set on the posting workflow in a split setup
         with:
           # adjust options as necessary
+          token: ${{ secrets.GITHUB_TOKEN }}
           lgtm_comment_body: ''
           annotations: false
           max_comments: 10
