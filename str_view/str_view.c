@@ -84,7 +84,7 @@ static size_t sv_rstrnstrn(ssize_t hay_sz, char const[static hay_sz],
                            ssize_t needle_sz, char const[static needle_sz]);
 static size_t sv_rtwobyte_strnstrn(size_t sz, unsigned char const[static sz],
                                    size_t n_sz,
-                                   unsigned const char[static n_sz]);
+                                   unsigned char const[static n_sz]);
 static size_t sv_rthreebyte_strnstrn(size_t sz, unsigned char const[static sz],
                                      size_t n_sz,
                                      unsigned char const[static n_sz]);
