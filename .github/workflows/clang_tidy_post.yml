@@ -6,6 +6,9 @@ on:
     workflows: ["clang-tidy-review"]
     types: [completed, skipped]
 
+permissions:
+  pull-requests: write
+
 jobs:
 
   post:
