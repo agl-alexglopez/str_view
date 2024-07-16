@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 set(namespace "str_view")
 project("str_view"
-    VERSION 0.1.0
+    VERSION 0.3.9
     LANGUAGES C
     DESCRIPTION "Robust read-only string handling, tokenization, and matching in C."
 )
