@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   check-diff:
     runs-on: ubuntu-latest
     outputs: 
@@ -35,7 +36,7 @@ jobs:
 
     steps:
     -name: Sanity Check
-      run echo "${{ needs.check-diff.outputs.handle }}"
+      run: echo "${{ needs.check-diff.outputs.handle }}"
   
     - name: Checkout code
       uses: actions/checkout@v4
