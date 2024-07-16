@@ -3,7 +3,7 @@
    This file implements the str_view interface as an interpretation of C++
    string_view type. There are some minor differences and C flavor thrown
    in. Additionally, there is a provided reimplementation of the Two-Way
-   String-Searching algorithm, similar to glibc that is under development. */
+   String-Searching algorithm, similar to glibc. */
 #include "str_view.h"
 
 #include <stdbool.h>
@@ -114,7 +114,7 @@ sv_delim(char const str[static const 1], char const delim[static const 1])
 }
 
 void
-sv_print(FILE *f, str_view sv)
+sv_print(FILE *f, str_view const sv)
 {
     if (!sv.s || nil.s == sv.s || !sv.sz || !f)
     {
@@ -132,7 +132,7 @@ sv_copy(size_t const str_sz, char const src_str[static const 1])
 }
 
 size_t
-sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
+sv_fill(size_t const dest_sz, char dest_buf[dest_sz], str_view const src)
 {
     if (!dest_sz || !src.s || !src.sz)
     {
@@ -151,13 +151,13 @@ sv_empty(str_view const sv)
 }
 
 size_t
-sv_len(str_view sv)
+sv_len(str_view const sv)
 {
     return sv.sz;
 }
 
 size_t
-sv_size(str_view sv)
+sv_size(str_view const sv)
 {
     return sv.sz + 1;
 }
@@ -175,7 +175,7 @@ sv_minlen(char const str[static const 1], size_t n)
 }
 
 char
-sv_at(str_view sv, size_t i)
+sv_at(str_view const sv, size_t const i)
 {
     if (i >= sv.sz)
     {
@@ -205,7 +205,7 @@ sv_swap(str_view *a, str_view *b)
 }
 
 sv_threeway_cmp
-sv_cmp(str_view lhs, str_view rhs)
+sv_cmp(str_view const lhs, str_view const rhs)
 {
     if (!lhs.s || !rhs.s)
     {
@@ -227,7 +227,7 @@ sv_cmp(str_view lhs, str_view rhs)
 }
 
 sv_threeway_cmp
-sv_strcmp(str_view lhs, char const rhs[static const 1])
+sv_strcmp(str_view const lhs, char const rhs[static const 1])
 {
     if (!lhs.s)
     {
@@ -249,7 +249,7 @@ sv_strcmp(str_view lhs, char const rhs[static const 1])
 }
 
 sv_threeway_cmp
-sv_strncmp(str_view lhs, char const rhs[static const 1], size_t const n)
+sv_strncmp(str_view const lhs, char const rhs[static const 1], size_t const n)
 {
     if (!lhs.s)
     {
@@ -272,7 +272,7 @@ sv_strncmp(str_view lhs, char const rhs[static const 1], size_t const n)
 }
 
 char
-sv_front(str_view sv)
+sv_front(str_view const sv)
 {
     if (!sv.s || !sv.sz)
     {
@@ -282,7 +282,7 @@ sv_front(str_view sv)
 }
 
 char
-sv_back(str_view sv)
+sv_back(str_view const sv)
 {
     if (!sv.s || !sv.sz)
     {
@@ -318,7 +318,7 @@ sv_next(char const c[static 1])
 }
 
 char const *
-sv_rbegin(str_view sv)
+sv_rbegin(str_view const sv)
 {
     if (!sv.s)
     {
@@ -332,7 +332,7 @@ sv_rbegin(str_view sv)
 }
 
 char const *
-sv_rend(str_view sv)
+sv_rend(str_view const sv)
 {
     if (!sv.s || sv.s == nil.s)
     {
@@ -352,7 +352,7 @@ sv_rnext(char const c[static 1])
 }
 
 char const *
-sv_pos(str_view sv, size_t i)
+sv_pos(str_view const sv, size_t const i)
 {
     if (!sv.s)
     {
@@ -366,7 +366,7 @@ sv_pos(str_view sv, size_t i)
 }
 
 str_view
-sv_begin_tok(str_view src, str_view delim)
+sv_begin_tok(str_view src, str_view const delim)
 {
     if (!src.s)
     {
@@ -394,7 +394,7 @@ sv_end_tok(str_view const src, str_view const tok)
 }
 
 str_view
-sv_next_tok(str_view const src, str_view tok, str_view delim)
+sv_next_tok(str_view const src, str_view const tok, str_view const delim)
 {
     if (!tok.s)
     {
@@ -426,7 +426,7 @@ sv_next_tok(str_view const src, str_view tok, str_view delim)
 }
 
 str_view
-sv_rbegin_tok(str_view src, str_view delim)
+sv_rbegin_tok(str_view src, str_view const delim)
 {
     if (!src.s)
     {
@@ -448,7 +448,7 @@ sv_rbegin_tok(str_view src, str_view delim)
 }
 
 str_view
-sv_rnext_tok(str_view const src, str_view tok, str_view delim)
+sv_rnext_tok(str_view const src, str_view const tok, str_view const delim)
 {
     if (!tok.s)
     {
@@ -498,7 +498,7 @@ sv_extend(str_view sv)
 }
 
 bool
-sv_starts_with(str_view sv, str_view prefix)
+sv_starts_with(str_view const sv, str_view const prefix)
 {
     if (prefix.sz > sv.sz)
     {
@@ -515,7 +515,7 @@ sv_remove_prefix(str_view const sv, size_t const n)
 }
 
 bool
-sv_ends_with(str_view sv, str_view suffix)
+sv_ends_with(str_view const sv, str_view const suffix)
 {
     if (suffix.sz > sv.sz)
     {
@@ -536,7 +536,7 @@ sv_remove_suffix(str_view const sv, size_t const n)
 }
 
 str_view
-sv_substr(str_view sv, size_t pos, size_t count)
+sv_substr(str_view const sv, size_t const pos, size_t const count)
 {
     if (pos > sv.sz)
     {
@@ -546,7 +546,7 @@ sv_substr(str_view sv, size_t pos, size_t count)
 }
 
 bool
-sv_contains(str_view hay, str_view needle)
+sv_contains(str_view const hay, str_view const needle)
 {
     if (needle.sz > hay.sz)
     {
@@ -565,7 +565,7 @@ sv_contains(str_view hay, str_view needle)
 }
 
 str_view
-sv_match(str_view hay, str_view needle)
+sv_match(str_view const hay, str_view const needle)
 {
     if (!hay.s || !needle.s)
     {
@@ -582,7 +582,7 @@ sv_match(str_view hay, str_view needle)
 }
 
 str_view
-sv_rmatch(str_view hay, str_view needle)
+sv_rmatch(str_view const hay, str_view const needle)
 {
     if (!hay.s)
     {
@@ -599,7 +599,7 @@ sv_rmatch(str_view hay, str_view needle)
 }
 
 size_t
-sv_find(str_view hay, size_t pos, str_view needle)
+sv_find(str_view const hay, size_t const pos, str_view const needle)
 {
     if (needle.sz > hay.sz || pos > hay.sz)
     {
@@ -611,7 +611,7 @@ sv_find(str_view hay, size_t pos, str_view needle)
 }
 
 size_t
-sv_rfind(str_view h, size_t pos, str_view n)
+sv_rfind(str_view const h, size_t pos, str_view const n)
 {
     if (!h.sz || n.sz > h.sz)
     {
@@ -627,7 +627,7 @@ sv_rfind(str_view h, size_t pos, str_view n)
 }
 
 size_t
-sv_find_first_of(str_view hay, str_view set)
+sv_find_first_of(str_view const hay, str_view const set)
 {
     if (!hay.s || !hay.sz)
     {
@@ -641,7 +641,7 @@ sv_find_first_of(str_view hay, str_view set)
 }
 
 size_t
-sv_find_last_of(str_view hay, str_view set)
+sv_find_last_of(str_view const hay, str_view const set)
 {
     if (!hay.s || !hay.sz)
     {
@@ -651,6 +651,9 @@ sv_find_last_of(str_view hay, str_view set)
     {
         return hay.sz;
     }
+    /* It may be tempting to go right to left but consider if that really
+       would be reliably faster across every possible string one encounters.
+       The last occurence of a set char could be anywhere in the string. */
     size_t last_pos = hay.sz;
     for (size_t in = 0, prev = 0;
          (in += sv_strspn(hay.sz - in, hay.s + in, set.sz, set.s)) != hay.sz;
@@ -665,7 +668,7 @@ sv_find_last_of(str_view hay, str_view set)
 }
 
 size_t
-sv_find_first_not_of(str_view hay, str_view set)
+sv_find_first_not_of(str_view const hay, str_view const set)
 {
     if (!hay.s || !hay.sz)
     {
@@ -679,7 +682,7 @@ sv_find_first_not_of(str_view hay, str_view set)
 }
 
 size_t
-sv_find_last_not_of(str_view hay, str_view set)
+sv_find_last_not_of(str_view const hay, str_view const set)
 {
     if (!hay.s || !hay.sz)
     {
@@ -703,7 +706,7 @@ sv_find_last_not_of(str_view hay, str_view set)
 }
 
 size_t
-sv_npos(str_view sv)
+sv_npos(str_view const sv)
 {
     return sv.sz;
 }
@@ -711,7 +714,7 @@ sv_npos(str_view sv)
 /* ======================   Static Helpers    ============================= */
 
 static size_t
-sv_after_find(str_view hay, str_view needle)
+sv_after_find(str_view const hay, str_view const needle)
 {
     if (needle.sz > hay.sz)
     {
@@ -729,7 +732,7 @@ sv_after_find(str_view hay, str_view needle)
 }
 
 static size_t
-sv_before_rfind(str_view hay, str_view needle)
+sv_before_rfind(str_view const hay, str_view const needle)
 {
     if (needle.sz > hay.sz || !needle.sz || !hay.sz)
     {
@@ -749,19 +752,19 @@ sv_before_rfind(str_view hay, str_view needle)
 }
 
 static inline size_t
-sv_min(size_t a, size_t b)
+sv_min(size_t const a, size_t const b)
 {
     return a < b ? a : b;
 }
 
 static inline ssize_t
-sv_ssizet_max(ssize_t a, ssize_t b)
+sv_ssizet_max(ssize_t const a, ssize_t const b)
 {
     return a > b ? a : b;
 }
 
 static inline sv_threeway_cmp
-sv_char_cmp(char a, char b)
+sv_char_cmp(char const a, char const b)
 {
     return (a > b) - (a < b);
 }
@@ -798,8 +801,8 @@ sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
 static size_t
-sv_strcspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
-           char const set[static set_sz])
+sv_strcspn(size_t const str_sz, char const str[static str_sz],
+           size_t const set_sz, char const set[static set_sz])
 {
     if (!set_sz)
     {
@@ -831,8 +834,8 @@ sv_strcspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
 static size_t
-sv_strspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
-          char const set[static set_sz])
+sv_strspn(size_t const str_sz, char const str[static str_sz],
+          size_t const set_sz, char const set[static set_sz])
 {
     char const *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
@@ -862,8 +865,8 @@ sv_strspn(size_t str_sz, char const str[static str_sz], size_t set_sz,
    hay length. Returns 0 based index position at which needle begins in
    hay if it can be found, otherwise the hay size is returned. */
 static size_t
-sv_strnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
-            char const needle[static needle_sz])
+sv_strnstrn(ssize_t const hay_sz, char const hay[static hay_sz],
+            ssize_t const needle_sz, char const needle[static needle_sz])
 {
     if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
@@ -897,8 +900,8 @@ sv_strnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
    the start of the reverse two-way algorithm for more. May unite if
    a clean way exists. */
 static size_t
-sv_rstrnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
-             char const needle[static needle_sz])
+sv_rstrnstrn(ssize_t const hay_sz, char const hay[static hay_sz],
+             ssize_t const needle_sz, char const needle[static needle_sz])
 {
     if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
@@ -954,8 +957,8 @@ sv_rstrnstrn(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
    an entire string. Returns the position at which needle begins if found
    and the size of the hay stack if not found. */
 static inline size_t
-sv_two_way(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
-           char const needle[static needle_sz])
+sv_two_way(ssize_t const hay_sz, char const hay[static hay_sz],
+           ssize_t const needle_sz, char const needle[static needle_sz])
 {
     /* ssize_t is used throughout. Is this the best choice? The two-way
        algo relies on negative numbers. This fits with size_t capabilities
@@ -988,9 +991,10 @@ sv_two_way(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_two_way_memoization(ssize_t hay_sz, char const hay[static hay_sz],
-                       ssize_t needle_sz, char const needle[static needle_sz],
-                       ssize_t period_dist, ssize_t critical_pos)
+sv_two_way_memoization(ssize_t const hay_sz, char const hay[static hay_sz],
+                       ssize_t const needle_sz,
+                       char const needle[static needle_sz],
+                       ssize_t const period_dist, ssize_t const critical_pos)
 {
     ssize_t lpos = 0;
     ssize_t rpos = 0;
@@ -1030,9 +1034,9 @@ sv_two_way_memoization(ssize_t hay_sz, char const hay[static hay_sz],
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_two_way_normal(ssize_t hay_sz, char const hay[static hay_sz],
-                  ssize_t needle_sz, char const needle[static needle_sz],
-                  ssize_t period_dist, ssize_t critical_pos)
+sv_two_way_normal(ssize_t const hay_sz, char const hay[static hay_sz],
+                  ssize_t const needle_sz, char const needle[static needle_sz],
+                  ssize_t period_dist, ssize_t const critical_pos)
 {
     period_dist
         = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
@@ -1070,7 +1074,7 @@ sv_two_way_normal(ssize_t hay_sz, char const hay[static hay_sz],
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static inline struct sv_factorization
-sv_maximal_suffix(ssize_t needle_sz, char const needle[static needle_sz])
+sv_maximal_suffix(ssize_t const needle_sz, char const needle[static needle_sz])
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1113,7 +1117,8 @@ sv_maximal_suffix(ssize_t needle_sz, char const needle[static needle_sz])
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static inline struct sv_factorization
-sv_maximal_suffix_rev(ssize_t needle_sz, char const needle[static needle_sz])
+sv_maximal_suffix_rev(ssize_t const needle_sz,
+                      char const needle[static needle_sz])
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1191,8 +1196,8 @@ sv_maximal_suffix_rev(ssize_t needle_sz, char const needle[static needle_sz])
 /* Searches a string from right to left with a two-way algorithm. Returns
    the position of the start of the strig if found and string size if not. */
 static inline size_t
-sv_rtwo_way(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
-            char const needle[static needle_sz])
+sv_rtwo_way(ssize_t const hay_sz, char const hay[static hay_sz],
+            ssize_t const needle_sz, char const needle[static needle_sz])
 {
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
@@ -1219,9 +1224,10 @@ sv_rtwo_way(ssize_t hay_sz, char const hay[static hay_sz], ssize_t needle_sz,
 }
 
 static size_t
-sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[static hay_sz],
-                        ssize_t needle_sz, char const needle[static needle_sz],
-                        ssize_t period_dist, ssize_t critical_pos)
+sv_rtwo_way_memoization(ssize_t const hay_sz, char const hay[static hay_sz],
+                        ssize_t const needle_sz,
+                        char const needle[static needle_sz],
+                        ssize_t const period_dist, ssize_t const critical_pos)
 {
     ssize_t lpos = 0;
     ssize_t rpos = 0;
@@ -1262,9 +1268,9 @@ sv_rtwo_way_memoization(ssize_t hay_sz, char const hay[static hay_sz],
 }
 
 static size_t
-sv_rtwo_way_normal(ssize_t hay_sz, char const hay[static hay_sz],
-                   ssize_t needle_sz, char const needle[static needle_sz],
-                   ssize_t period_dist, ssize_t critical_pos)
+sv_rtwo_way_normal(ssize_t const hay_sz, char const hay[static hay_sz],
+                   ssize_t const needle_sz, char const needle[static needle_sz],
+                   ssize_t period_dist, ssize_t const critical_pos)
 {
     period_dist
         = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
@@ -1304,7 +1310,7 @@ sv_rtwo_way_normal(ssize_t hay_sz, char const hay[static hay_sz],
 /* NOLINTEND(*easily-swappable*) */
 
 static inline struct sv_factorization
-sv_rmaximal_suffix(ssize_t needle_sz, char const needle[static needle_sz])
+sv_rmaximal_suffix(ssize_t const needle_sz, char const needle[static needle_sz])
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1345,7 +1351,8 @@ sv_rmaximal_suffix(ssize_t needle_sz, char const needle[static needle_sz])
 }
 
 static inline struct sv_factorization
-sv_rmaximal_suffix_rev(ssize_t needle_sz, char const needle[static needle_sz])
+sv_rmaximal_suffix_rev(ssize_t const needle_sz,
+                       char const needle[static needle_sz])
 {
     ssize_t suff_pos = -1;
     ssize_t period = 1;
@@ -1400,13 +1407,13 @@ static inline size_t
 sv_strnchr(size_t n, char const s[static n], char const c)
 {
     size_t i = 0;
-    for (; n && *s != c; s++, n--, ++i)
+    for (; n && *s != c; s++, --n, ++i)
     {}
     return i;
 }
 
 static inline size_t
-sv_rstrnchr(size_t n, char const s[static n], char const c)
+sv_rstrnchr(size_t const n, char const s[static n], char const c)
 {
     char const *x = s + n - 1;
     size_t i = n;
@@ -1416,7 +1423,7 @@ sv_rstrnchr(size_t n, char const s[static n], char const c)
 }
 
 static inline size_t
-sv_twobyte_strnstrn(size_t sz, unsigned char const h[static sz],
+sv_twobyte_strnstrn(size_t const sz, unsigned char const h[static sz],
                     size_t const n_sz, unsigned char const n[static n_sz])
 {
     uint16_t nw = n[0] << 8 | n[1];
@@ -1428,7 +1435,7 @@ sv_twobyte_strnstrn(size_t sz, unsigned char const h[static sz],
 }
 
 static inline size_t
-sv_rtwobyte_strnstrn(size_t sz, unsigned char const h[static sz],
+sv_rtwobyte_strnstrn(size_t const sz, unsigned char const h[static sz],
                      size_t const n_sz, unsigned char const n[static n_sz])
 {
     h = h + sz - 2;
@@ -1444,7 +1451,7 @@ sv_rtwobyte_strnstrn(size_t sz, unsigned char const h[static sz],
 }
 
 static inline size_t
-sv_threebyte_strnstrn(size_t sz, unsigned char const h[static sz],
+sv_threebyte_strnstrn(size_t const sz, unsigned char const h[static sz],
                       size_t const n_sz, unsigned char const n[static n_sz])
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
@@ -1456,7 +1463,7 @@ sv_threebyte_strnstrn(size_t sz, unsigned char const h[static sz],
 }
 
 static inline size_t
-sv_rthreebyte_strnstrn(size_t sz, unsigned char const h[static sz],
+sv_rthreebyte_strnstrn(size_t const sz, unsigned char const h[static sz],
                        size_t const n_sz, unsigned char const n[static n_sz])
 {
     h = h + sz - 3;
@@ -1472,7 +1479,7 @@ sv_rthreebyte_strnstrn(size_t sz, unsigned char const h[static sz],
 }
 
 static inline size_t
-sv_fourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
+sv_fourbyte_strnstrn(size_t const sz, unsigned char const h[static sz],
                      size_t const n_sz, unsigned char const n[static n_sz])
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
@@ -1484,7 +1491,7 @@ sv_fourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
 }
 
 static inline size_t
-sv_rfourbyte_strnstrn(size_t sz, unsigned char const h[static sz],
+sv_rfourbyte_strnstrn(size_t const sz, unsigned char const h[static sz],
                       size_t const n_sz, unsigned char const n[static n_sz])
 {
     h = h + sz - 4;
