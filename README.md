@@ -10,7 +10,7 @@ A `str_view` is a 16-byte struct and, due to this size, is treated throughout th
 
 ## Install Instructions
 
-> **This `str_view` library does not yet support the Windows platform.**
+> **This library does not yet support the Windows platform.**
 
 Download and extract the latest release `str_view-v[VERSION].zip` from the [Releases](https://github.com/agl-alexglopez/str_view/releases) page.
 
