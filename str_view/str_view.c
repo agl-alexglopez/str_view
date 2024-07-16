@@ -1,7 +1,7 @@
 /* Author: Alexander G. Lopez
    ==========================
    This file implements the str_view interface as an approximation of C++
-   std::string_view type. There are some minor differences and C flavor thrown
+   string_view type. There are some minor differences and C flavor thrown
    in. Additionally, there is a provided reimplementation of the Two-Way
    String-Searching algorithm, similar to glibc that is under development. */
 #include "str_view.h"
