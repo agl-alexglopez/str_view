@@ -4,7 +4,7 @@ on:
   workflow_run:
     # The name field of the lint action
     workflows: ["clang-tidy-review"]
-    types: [completed, skipped]
+    types: [completed]
 
 permissions:
   pull-requests: write
@@ -14,7 +14,7 @@ jobs:
   post:
     runs-on: ubuntu-latest
     # We still want to run this check in case its required to pass even upon skip. 
-    if: ${{ github.event.workflow_run.conclusion != 'skipped' }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
 
     steps:
       - uses: ZedThree/clang-tidy-review/post@v0.19.0
