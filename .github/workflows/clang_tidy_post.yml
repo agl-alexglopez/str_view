@@ -27,7 +27,7 @@ jobs:
   post:
     runs-on: ubuntu-latest
     needs: check-diff
-    if: needs.check-diff.outputs.run == 'true'
+    if: ${{ needs.check-diff.outputs.run }} == 'true'
 
     steps:
       - uses: ZedThree/clang-tidy-review/post@v0.19.0
