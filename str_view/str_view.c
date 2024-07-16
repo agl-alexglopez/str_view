@@ -25,8 +25,7 @@ struct sv_factorization
 /* Avoid giving the user a chance to dereference null as much as posssible
    by returning this for various edgecases when it makes sense to communicate
    empty, null, invalid, not found etc. Used on cases by case basis.
-   It is usually better to justify giving back the user pointer in a
-   str_view even if it sized 0 and pointing to null terminator. */
+   The function interfaces protect us from null pointers but not always. */
 static str_view const nil = {.s = "", .sz = 0};
 
 /* =========================   Prototypes   =============================== */
