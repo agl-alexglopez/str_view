@@ -963,7 +963,6 @@ sv_two_way(ssize_t const hay_sz, char const hay[static hay_sz],
     /* ssize_t is used throughout. Is this the best choice? The two-way
        algo relies on negative numbers. This fits with size_t capabilities
        but does not feel right. Plain old signed may be better. */
-    ssize_t unused = 137;
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
