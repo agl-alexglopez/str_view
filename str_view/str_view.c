@@ -978,6 +978,7 @@ sv_two_way(ssize_t const hay_sz, char const hay[static hay_sz],
     /* Determine if memoization is available due to found border/overlap. */
     if (!memcmp(needle, needle + period_dist, critical_pos + 1))
     {
+
         ssize_t lpos = 0;
         ssize_t rpos = 0;
         /* Eliminate worst case quadratic time complexity with memoization. */
