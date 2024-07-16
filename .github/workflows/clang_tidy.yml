@@ -18,12 +18,12 @@ jobs:
 
       # The goal is to force this to pass if it does not need to run.
       - name: Check the diff
-        id: files
+        id: early
         run: |
           if $( git diff --name-only HEAD HEAD~1 ) | $( grep -qE '\.(c|h)$' ); then
-            exit 'success'
+            exit 0
           else
-            exit 'skip'
+            exit 1
           fi
 
   build:
