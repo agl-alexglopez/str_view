@@ -35,7 +35,7 @@ jobs:
 
     steps:
 
-    -name: Sanity Check
+    - name: Sanity Check
       run: |
         echo "${{ needs.check-diff.outputs.handle }}"
 
