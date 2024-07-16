@@ -42,6 +42,5 @@ jobs:
       id: upload-review
 
     # If there are any comments, fail the check
-    - if: ${{ env.RUN }} == 'true'          
       if: steps.review.outputs.total_comments > 0
       run: exit 1
