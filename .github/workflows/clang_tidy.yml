@@ -3,9 +3,6 @@ name: clang-tidy-review
 # You can be more specific, but it currently only works on pull requests
 on: 
   pull_request:
-    paths:
-      - '*/*.c'
-      - '*/*.h'
 
 jobs:
   build:
@@ -14,6 +11,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Check the diff
+      run: |
+        if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE '\.(c|h)$'; then
+          echo "RUN=true" >> $GITHUB_ENV
+        else
+          echo "RUN=false" >> $GITHUB_ENV
+        fi
+
+    - name: Check for early exit.
+      if: ${{ env.RUN }} == 'false'          
+        run: exit 0
 
     - name: Get CMake
       uses: lukka/get-cmake@latest 
