@@ -23,7 +23,7 @@ jobs:
 
     - name: Check for early exit.
       if: ${{ env.RUN }} == 'false'          
-        run: exit 0
+      run: exit 0
 
     - name: Get CMake
       uses: lukka/get-cmake@latest 
