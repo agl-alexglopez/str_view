@@ -15,32 +15,33 @@ jobs:
     # The goal is to force this to pass if it does not need to run.
     - name: Check the diff
       run: |
-        if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE '\.(c|h)$'; then
+        if git diff --name-only HEAD^ HEAD | grep -qE '\.(c|h)$'; then
           echo "RUN=true" >> $GITHUB_ENV
         else
           echo "RUN=false" >> $GITHUB_ENV
         fi
 
-    - name: Check for early exit.
-      if: ${{ env.RUN }} == 'false'          
-      run: exit 0
-
     - name: Get CMake
+      if: ${{ env.RUN }} == 'true'          
       uses: lukka/get-cmake@latest 
 
     - name: Generate Compile Commands
+      if: ${{ env.RUN }} == 'true'          
       run: cmake --preset=clang-deb
 
     - name: Review
+      if: ${{ env.RUN }} == 'true'          
       uses: ZedThree/clang-tidy-review@v0.19.0
       id: review
       with:
         split_workflow: true
 
     - name: Upload artifacts
+      if: ${{ env.RUN }} == 'true'          
       uses: ZedThree/clang-tidy-review/upload@v0.19.0
       id: upload-review
 
     # If there are any comments, fail the check
-    - if: steps.review.outputs.total_comments > 0
+    - if: ${{ env.RUN }} == 'true'          
+      if: steps.review.outputs.total_comments > 0
       run: exit 1
