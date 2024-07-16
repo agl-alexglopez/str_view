@@ -651,6 +651,9 @@ sv_find_last_of(str_view const hay, str_view const set)
     {
         return hay.sz;
     }
+    /* It may be tempting to go right to left but consider if that really
+       would be reliably faster across every possible string one encounters.
+       The last occurence of a set char could be anywhere in the string. */
     size_t last_pos = hay.sz;
     for (size_t in = 0, prev = 0;
          (in += sv_strspn(hay.sz - in, hay.s + in, set.sz, set.s)) != hay.sz;
