@@ -22,7 +22,7 @@ jobs:
         id: check
         run: |
           echo "Here are the changed C files:"
-          git --no-pager diff --name-only HEAD HEAD~1 | grep -E '\.(c|h)$'
+          echo "$(git --no-pager diff --name-only HEAD HEAD~1 | grep -E '\.(c|h)$')"
           if git --no-pager diff --name-only HEAD HEAD~1 | grep -qE '\.(c|h)$'; then
             echo "run=true" >> $GITHUB_OUTPUT
             echo "C files have changed, reviewing now..."
