@@ -12,6 +12,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    # The goal is to force this to pass if it does not need to run.
     - name: Check the diff
       run: |
         if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE '\.(c|h)$'; then
