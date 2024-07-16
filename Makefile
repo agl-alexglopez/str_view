@@ -1,4 +1,4 @@
-.PHONY: default install build gcc-rel gcc-deb clang-rel clang-deb test-deb test-rel clean
+.PHONY: default install build gcc-rel gcc-deb clang-rel clang-deb tests samples gcc-all-deb gcc-all-rel clang-all-deb clang-all-rel test-deb test-rel clean
 
 MAKE := $(MAKE)
 MAKEFLAGS += --no-print-directory
@@ -40,6 +40,32 @@ format:
 
 tidy:
 	cmake --build $(BUILD_DIR) --target tidy $(JOBS)
+
+tests:
+	cmake --build $(BUILD_DIR) --target tests $(JOBS)
+
+samples:
+	cmake --build $(BUILD_DIR) --target samples $(JOBS)
+
+gcc-all-deb:
+	$(MAKE) gcc-deb
+	$(MAKE) tests
+	$(MAKE) samples
+
+gcc-all-rel:
+	$(MAKE) gcc-rel
+	$(MAKE) tests
+	$(MAKE) samples
+
+clang-all-deb:
+	$(MAKE) clang-deb
+	$(MAKE) tests
+	$(MAKE) samples
+
+clang-all-rel:
+	$(MAKE) clang-rel
+	$(MAKE) tests
+	$(MAKE) samples
 
 test-deb: build
 	$(BUILD_DIR)deb/run_tests $(BUILD_DIR)deb/tests/
