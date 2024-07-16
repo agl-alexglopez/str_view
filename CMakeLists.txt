@@ -2,16 +2,14 @@ cmake_minimum_required(VERSION 3.15)
 
 set(namespace "str_view")
 project("str_view"
-    VERSION 0.1.0
+    VERSION 0.3.9
     LANGUAGES C
     DESCRIPTION "Robust read-only string handling, tokenization, and matching in C."
 )
 
-# The goal of this section is to allow the tagged releases to run an
-# automatic script that deletes the samples and test folders and any
-# work that is intended for development only. The user should
-# be able to download or clone the absolute bare minimum for this
-# library to work.
+# For the sake of vcpkg we will make sure cloning and building from
+# main will only build the minimal files in the all target. I can't
+# protect vcpkg from needlessly downloading 
 if (EXISTS "${PROJECT_SOURCE_DIR}/samples")
     add_subdirectory("${PROJECT_SOURCE_DIR}/samples" EXCLUDE_FROM_ALL)
 endif()
