@@ -28,7 +28,7 @@ jobs:
   review:
     runs-on: ubuntu-latest
     needs: check-diff
-    if: ${{ needs.check-diff.outputs.run }} == true
+    if: ${{ needs.check-diff.outputs.run }} == "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
