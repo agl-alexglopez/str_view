@@ -1,4 +1,4 @@
-name: Tag Release Branch
+name: tag-release-branch
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  create-release:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
