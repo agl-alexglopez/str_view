@@ -14,7 +14,7 @@
 
 /* ========================   Type Definitions   =========================== */
 
-/* Return type for the factorization step of two-way search. */
+/* Return the factorization step of two-way search in precompute phase. */
 struct sv_factorization
 {
     /* Position in the needle at which (local period = period). */
