@@ -8,10 +8,30 @@ on:
       - completed
 
 jobs:
-  build:
+  plan:
      # avoid trying to post comments on a merged PR
     if: github.event.pull_request.merged == false
     runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The goal is to force this to pass if it does not need to run.
+      - name: Check the diff
+        run: |
+          if git diff --name-only HEAD HEAD~1 | grep -qE '\.(c|h)$'; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            echo "run=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    runs-on: ubuntu-latest
+    needs: plan
+    if: needs.plan.outputs.run == 'true'
 
     steps:
       - uses: ZedThree/clang-tidy-review/post@v0.19.0
