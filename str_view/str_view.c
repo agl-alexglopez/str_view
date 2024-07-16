@@ -1,6 +1,5 @@
 /* Author: Alexander G. Lopez
-   File: str_view.c
-   ===================
+   ==========================
    This file implements the str_view interface as an approximation of C++
    std::string_view type. There are some minor differences and C flavor thrown
    in. Additionally, there is a provided reimplementation of the Two-Way
