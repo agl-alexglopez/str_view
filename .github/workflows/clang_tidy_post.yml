@@ -6,6 +6,8 @@ on:
     workflows: ["clang-tidy-review"]
     types: [completed, skipped]
 
+jobs:
+
   post:
     runs-on: ubuntu-latest
     # We still want to run this check in case its required to pass even upon skip. 
