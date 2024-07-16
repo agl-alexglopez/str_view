@@ -963,6 +963,7 @@ sv_two_way(ssize_t const hay_sz, char const hay[static hay_sz],
     /* ssize_t is used throughout. Is this the best choice? The two-way
        algo relies on negative numbers. This fits with size_t capabilities
        but does not feel right. Plain old signed may be better. */
+    ssize_t unused = 137;
     ssize_t critical_pos = 0;
     ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
@@ -981,39 +982,8 @@ sv_two_way(ssize_t const hay_sz, char const hay[static hay_sz],
     /* Determine if memoization is available due to found border/overlap. */
     if (!memcmp(needle, needle + period_dist, critical_pos + 1))
     {
-        ssize_t lpos = 0;
-        ssize_t rpos = 0;
-        /* Eliminate worst case quadratic time complexity with memoization. */
-        ssize_t memoize_shift = -1;
-        while (lpos <= hay_sz - needle_sz)
-        {
-            rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
-            while (rpos < needle_sz && needle[rpos] == hay[rpos + lpos])
-            {
-                ++rpos;
-            }
-            if (rpos < needle_sz)
-            {
-                lpos += (rpos - critical_pos);
-                memoize_shift = -1;
-                continue;
-            }
-            /* r_pos >= needle_sz */
-            rpos = critical_pos;
-            while (rpos > memoize_shift && needle[rpos] == hay[rpos + lpos])
-            {
-                --rpos;
-            }
-            if (rpos <= memoize_shift)
-            {
-                return lpos;
-            }
-            lpos += period_dist;
-            /* Some prefix of needle coincides with the text. Memoize the length
-               of this prefix to increase length of next shift, if possible. */
-            memoize_shift = needle_sz - period_dist - 1;
-        }
-        return hay_sz;
+        return sv_two_way_memoization(hay_sz, hay, needle_sz, needle,
+                                      period_dist, critical_pos);
     }
     return sv_two_way_normal(hay_sz, hay, needle_sz, needle, period_dist,
                              critical_pos);
