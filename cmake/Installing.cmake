@@ -7,6 +7,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers
 set_target_properties(${PROJECT_NAME} PROPERTIES RELEASE_POSTFIX "_release")
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_debug")
 
+# Keeping the project name within a cmake folder helps reduce file clutter
 set(INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" 
     CACHE STRING "Path to ${PROJECT_NAME} CMake files"
 )
