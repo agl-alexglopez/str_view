@@ -17,6 +17,8 @@ build:
 	cmake --build $(BUILD_DIR) $(JOBS)
 
 install:
+	cmake --preset=default-rel -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	$(MAKE) build
 	cmake --build $(BUILD_DIR) --target install $(JOBS)
 
 gcc-rel:
