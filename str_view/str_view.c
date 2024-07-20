@@ -960,16 +960,15 @@ sv_tw_match(ssize_t const hay_sz, char const hay[static hay_sz],
     /* Preprocessing to get critical position and period distance. */
     struct sv_factorization const s = sv_maximal_suffix(needle_sz, needle);
     struct sv_factorization const r = sv_maximal_suffix_rev(needle_sz, needle);
-    struct sv_factorization const *const w
-        = (s.critical_pos > r.critical_pos) ? &s : &r;
+    struct sv_factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
     /* Determine if memoization is available due to found border/overlap. */
-    if (!memcmp(needle, needle + w->period_dist, w->critical_pos + 1))
+    if (!memcmp(needle, needle + w.period_dist, w.critical_pos + 1))
     {
-        return sv_pos_memo(hay_sz, hay, needle_sz, needle, w->period_dist,
-                           w->critical_pos);
+        return sv_pos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
+                           w.critical_pos);
     }
-    return sv_pos_normal(hay_sz, hay, needle_sz, needle, w->period_dist,
-                         w->critical_pos);
+    return sv_pos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+                         w.critical_pos);
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
@@ -1184,17 +1183,15 @@ sv_tw_rmatch(ssize_t const hay_sz, char const hay[static hay_sz],
 {
     struct sv_factorization const s = sv_rmaximal_suffix(needle_sz, needle);
     struct sv_factorization const r = sv_rmaximal_suffix_rev(needle_sz, needle);
-    struct sv_factorization const *const w
-        = (s.critical_pos > r.critical_pos) ? &s : &r;
+    struct sv_factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
     if (!sv_rmemcmp(needle + needle_sz - 1,
-                    needle + needle_sz - w->period_dist - 1,
-                    w->critical_pos + 1))
+                    needle + needle_sz - w.period_dist - 1, w.critical_pos + 1))
     {
-        return sv_rpos_memo(hay_sz, hay, needle_sz, needle, w->period_dist,
-                            w->critical_pos);
+        return sv_rpos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
+                            w.critical_pos);
     }
-    return sv_rpos_normal(hay_sz, hay, needle_sz, needle, w->period_dist,
-                          w->critical_pos);
+    return sv_rpos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+                          w.critical_pos);
 }
 
 static size_t
