@@ -1,0 +1,8 @@
+tests/ export-ignore
+images/ export-ignore
+samples/ export-ignore
+etc/ export-ignore
+res/ export-ignore
+.github/ export-ignore
+.pre-commit-config.yaml export-ignore
+README.md export-ignore
