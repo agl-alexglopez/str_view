@@ -70,7 +70,7 @@ The C code.
 #include "str_view/str_view.h"
 ```
 
-### Alternative Builds
+## Alternative Builds
 
 You may wish to use a different compiler and toolchain than what your system default specifies. Review the `CMakePrests.json` file for different compilers.
 
@@ -85,6 +85,19 @@ Use Clang to compile the library.
 make clang-rel [OPTIONAL/INSTALL/PATH]
 make install
 ```
+
+## Without Make
+
+If your system does not support Makefiles or the `make` command here are the cmake commands one can run that will allow another generator such as `Ninja` to complete building and installation.
+
+```zsh
+# Configure the project cmake files. 
+# Replace this preset with your own if you'd like.
+cmake --preset=clang-rel -DCMAKE_INSTALL_PREFIX=[DESIRED/INSTALL/LOCATION]
+cmake --build build
+cmake --build build --target install
+```
+
 ## User Presets
 
 If you do not like the default presets, create a `CMakeUserPresets.json` in this folder and place your preferred configuration in that file. Here is my preferred configuration to get you started. I like to use a newer gcc version than the default presets specify.
