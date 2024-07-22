@@ -93,7 +93,7 @@ If your system does not support Makefiles or the `make` command here are the cma
 ```zsh
 # Configure the project cmake files. 
 # Replace this preset with your own if you'd like.
-cmake --preset=clang-rel -DCMAKE_INSTALL_PREFIX=[DESIRED/INSTALL/LOCATION]
+cmake --preset=default-rel -DCMAKE_INSTALL_PREFIX=[DESIRED/INSTALL/LOCATION]
 cmake --build build
 cmake --build build --target install
 ```
