@@ -18,9 +18,7 @@ jobs:
 
       - name: Create Release Zip
         run: |
-          git rm -r --cached tests samples images res etc .github
-          git rm --cached .pre-commit-config.yaml README.md
-          git archive $( git write-tree ) --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip
+          git archive --format=zip --output=str_view-${GITHUB_REF#refs/tags/}.zip HEAD
           echo "ZIP_FILE=str_view-${GITHUB_REF#refs/tags/}.zip" >> $GITHUB_ENV 
 
       - name: Create Release
