@@ -1,4 +1,4 @@
-.PHONY: default install build gcc-rel gcc-deb clang-rel clang-deb tests samples gcc-all-deb gcc-all-rel clang-all-deb clang-all-rel test-deb test-rel clean
+.PHONY: default install build gcc-rel gcc-deb clang-rel clang-deb tests samples gcc-all-deb gcc-all-rel clang-all-deb clang-all-rel str_view test-deb test-rel clean
 
 MAKE := $(MAKE)
 MAKEFLAGS += --no-print-directory
@@ -15,6 +15,11 @@ default: build
 
 build:
 	cmake --build $(BUILD_DIR) $(JOBS)
+
+str_view:
+	cmake --preset=default-rel -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	$(MAKE) build
+	cmake --build $(BUILD_DIR) --target install $(JOBS)
 
 install:
 	cmake --build $(BUILD_DIR) --target install $(JOBS)

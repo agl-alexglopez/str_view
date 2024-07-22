@@ -17,7 +17,7 @@
 struct sv_factorization
 {
     /* Position in the needle at which (local period = period). */
-    ssize_t start_critical_pos;
+    ssize_t critical_pos;
     /* A distance in the needle such that two letters always coincide. */
     ssize_t period_dist;
 };
@@ -35,25 +35,22 @@ static size_t sv_before_rfind(str_view, str_view);
 static size_t sv_min(size_t, size_t);
 static sv_threeway_cmp sv_char_cmp(char, char);
 static ssize_t sv_ssizet_max(ssize_t, ssize_t);
-static size_t sv_two_way_memoization(ssize_t hay_sz, char const[static hay_sz],
-                                     ssize_t needle_sz,
-                                     char const[static needle_sz], ssize_t,
-                                     ssize_t);
-static size_t sv_two_way_normal(ssize_t hay_sz, char const[static hay_sz],
-                                ssize_t needle_sz, char const[static needle_sz],
-                                ssize_t, ssize_t);
-static size_t sv_rtwo_way_memoization(ssize_t hay_sz, char const[static hay_sz],
-                                      ssize_t needle_sz,
-                                      char const[static needle_sz], ssize_t,
-                                      ssize_t);
-static size_t sv_rtwo_way_normal(ssize_t hay_sz, char const[static hay_sz],
-                                 ssize_t needle_sz,
-                                 char const[static needle_sz], ssize_t,
-                                 ssize_t);
-static size_t sv_two_way(ssize_t hay_sz, char const[static hay_sz],
-                         ssize_t needle_sz, char const[static needle_sz]);
-static size_t sv_rtwo_way(ssize_t hay_sz, char const[static hay_sz],
+static size_t sv_pos_memo(ssize_t hay_sz, char const[static hay_sz],
+                          ssize_t needle_sz, char const[static needle_sz],
+                          ssize_t, ssize_t);
+static size_t sv_pos_normal(ssize_t hay_sz, char const[static hay_sz],
+                            ssize_t needle_sz, char const[static needle_sz],
+                            ssize_t, ssize_t);
+static size_t sv_rpos_memo(ssize_t hay_sz, char const[static hay_sz],
+                           ssize_t needle_sz, char const[static needle_sz],
+                           ssize_t, ssize_t);
+static size_t sv_rpos_normal(ssize_t hay_sz, char const[static hay_sz],
+                             ssize_t needle_sz, char const[static needle_sz],
+                             ssize_t, ssize_t);
+static size_t sv_tw_match(ssize_t hay_sz, char const[static hay_sz],
                           ssize_t needle_sz, char const[static needle_sz]);
+static size_t sv_tw_rmatch(ssize_t hay_sz, char const[static hay_sz],
+                           ssize_t needle_sz, char const[static needle_sz]);
 static struct sv_factorization sv_maximal_suffix(ssize_t needle_sz,
                                                  char const[static needle_sz]);
 static struct sv_factorization
@@ -891,7 +888,7 @@ sv_strnstrn(ssize_t const hay_sz, char const hay[static hay_sz],
         return sv_fourbyte_strnstrn(hay_sz, (unsigned char *)hay, 4,
                                     (unsigned char *)needle);
     }
-    return sv_two_way(hay_sz, hay, needle_sz, needle);
+    return sv_tw_match(hay_sz, hay, needle_sz, needle);
 }
 
 /* For now reverse logic for backwards searches has been separated into
@@ -926,7 +923,7 @@ sv_rstrnstrn(ssize_t const hay_sz, char const hay[static hay_sz],
         return sv_rfourbyte_strnstrn(hay_sz, (unsigned char *)hay, 4,
                                      (unsigned char *)needle);
     }
-    return sv_rtwo_way(hay_sz, hay, needle_sz, needle);
+    return sv_tw_rmatch(hay_sz, hay, needle_sz, needle);
 }
 
 /*==============   Post-Precomputation Two-Way Search    =================*/
@@ -957,44 +954,29 @@ sv_rstrnstrn(ssize_t const hay_sz, char const hay[static hay_sz],
    an entire string. Returns the position at which needle begins if found
    and the size of the hay stack if not found. */
 static inline size_t
-sv_two_way(ssize_t const hay_sz, char const hay[static hay_sz],
-           ssize_t const needle_sz, char const needle[static needle_sz])
+sv_tw_match(ssize_t const hay_sz, char const hay[static hay_sz],
+            ssize_t const needle_sz, char const needle[static needle_sz])
 {
-    /* ssize_t is used throughout. Is this the best choice? The two-way
-       algo relies on negative numbers. This fits with size_t capabilities
-       but does not feel right. Plain old signed may be better. */
-    ssize_t critical_pos = 0;
-    ssize_t period_dist = 0;
     /* Preprocessing to get critical position and period distance. */
     struct sv_factorization const s = sv_maximal_suffix(needle_sz, needle);
     struct sv_factorization const r = sv_maximal_suffix_rev(needle_sz, needle);
-    if (s.start_critical_pos > r.start_critical_pos)
-    {
-        critical_pos = s.start_critical_pos;
-        period_dist = s.period_dist;
-    }
-    else
-    {
-        critical_pos = r.start_critical_pos;
-        period_dist = r.period_dist;
-    }
+    struct sv_factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
     /* Determine if memoization is available due to found border/overlap. */
-    if (!memcmp(needle, needle + period_dist, critical_pos + 1))
+    if (!memcmp(needle, needle + w.period_dist, w.critical_pos + 1))
     {
-        return sv_two_way_memoization(hay_sz, hay, needle_sz, needle,
-                                      period_dist, critical_pos);
+        return sv_pos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
+                           w.critical_pos);
     }
-    return sv_two_way_normal(hay_sz, hay, needle_sz, needle, period_dist,
-                             critical_pos);
+    return sv_pos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+                         w.critical_pos);
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_two_way_memoization(ssize_t const hay_sz, char const hay[static hay_sz],
-                       ssize_t const needle_sz,
-                       char const needle[static needle_sz],
-                       ssize_t const period_dist, ssize_t const critical_pos)
+sv_pos_memo(ssize_t const hay_sz, char const hay[static hay_sz],
+            ssize_t const needle_sz, char const needle[static needle_sz],
+            ssize_t const period_dist, ssize_t const critical_pos)
 {
     ssize_t lpos = 0;
     ssize_t rpos = 0;
@@ -1034,9 +1016,9 @@ sv_two_way_memoization(ssize_t const hay_sz, char const hay[static hay_sz],
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_two_way_normal(ssize_t const hay_sz, char const hay[static hay_sz],
-                  ssize_t const needle_sz, char const needle[static needle_sz],
-                  ssize_t period_dist, ssize_t const critical_pos)
+sv_pos_normal(ssize_t const hay_sz, char const hay[static hay_sz],
+              ssize_t const needle_sz, char const needle[static needle_sz],
+              ssize_t period_dist, ssize_t const critical_pos)
 {
     period_dist
         = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
@@ -1109,7 +1091,7 @@ sv_maximal_suffix(ssize_t const needle_sz, char const needle[static needle_sz])
             break;
         }
     }
-    return (struct sv_factorization){.start_critical_pos = suff_pos,
+    return (struct sv_factorization){.critical_pos = suff_pos,
                                      .period_dist = period};
 }
 
@@ -1153,7 +1135,7 @@ sv_maximal_suffix_rev(ssize_t const needle_sz,
             break;
         }
     }
-    return (struct sv_factorization){.start_critical_pos = suff_pos,
+    return (struct sv_factorization){.critical_pos = suff_pos,
                                      .period_dist = period};
 }
 
@@ -1196,38 +1178,26 @@ sv_maximal_suffix_rev(ssize_t const needle_sz,
 /* Searches a string from right to left with a two-way algorithm. Returns
    the position of the start of the strig if found and string size if not. */
 static inline size_t
-sv_rtwo_way(ssize_t const hay_sz, char const hay[static hay_sz],
-            ssize_t const needle_sz, char const needle[static needle_sz])
+sv_tw_rmatch(ssize_t const hay_sz, char const hay[static hay_sz],
+             ssize_t const needle_sz, char const needle[static needle_sz])
 {
-    ssize_t critical_pos = 0;
-    ssize_t period_dist = 0;
     struct sv_factorization const s = sv_rmaximal_suffix(needle_sz, needle);
     struct sv_factorization const r = sv_rmaximal_suffix_rev(needle_sz, needle);
-    if (s.start_critical_pos > r.start_critical_pos)
-    {
-        critical_pos = s.start_critical_pos;
-        period_dist = s.period_dist;
-    }
-    else
-    {
-        critical_pos = r.start_critical_pos;
-        period_dist = r.period_dist;
-    }
+    struct sv_factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
     if (!sv_rmemcmp(needle + needle_sz - 1,
-                    needle + needle_sz - period_dist - 1, critical_pos + 1))
+                    needle + needle_sz - w.period_dist - 1, w.critical_pos + 1))
     {
-        return sv_rtwo_way_memoization(hay_sz, hay, needle_sz, needle,
-                                       period_dist, critical_pos);
+        return sv_rpos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
+                            w.critical_pos);
     }
-    return sv_rtwo_way_normal(hay_sz, hay, needle_sz, needle, period_dist,
-                              critical_pos);
+    return sv_rpos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+                          w.critical_pos);
 }
 
 static size_t
-sv_rtwo_way_memoization(ssize_t const hay_sz, char const hay[static hay_sz],
-                        ssize_t const needle_sz,
-                        char const needle[static needle_sz],
-                        ssize_t const period_dist, ssize_t const critical_pos)
+sv_rpos_memo(ssize_t const hay_sz, char const hay[static hay_sz],
+             ssize_t const needle_sz, char const needle[static needle_sz],
+             ssize_t const period_dist, ssize_t const critical_pos)
 {
     ssize_t lpos = 0;
     ssize_t rpos = 0;
@@ -1268,9 +1238,9 @@ sv_rtwo_way_memoization(ssize_t const hay_sz, char const hay[static hay_sz],
 }
 
 static size_t
-sv_rtwo_way_normal(ssize_t const hay_sz, char const hay[static hay_sz],
-                   ssize_t const needle_sz, char const needle[static needle_sz],
-                   ssize_t period_dist, ssize_t const critical_pos)
+sv_rpos_normal(ssize_t const hay_sz, char const hay[static hay_sz],
+               ssize_t const needle_sz, char const needle[static needle_sz],
+               ssize_t period_dist, ssize_t const critical_pos)
 {
     period_dist
         = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
@@ -1346,7 +1316,7 @@ sv_rmaximal_suffix(ssize_t const needle_sz, char const needle[static needle_sz])
             break;
         }
     }
-    return (struct sv_factorization){.start_critical_pos = suff_pos,
+    return (struct sv_factorization){.critical_pos = suff_pos,
                                      .period_dist = period};
 }
 
@@ -1388,7 +1358,7 @@ sv_rmaximal_suffix_rev(ssize_t const needle_sz,
             break;
         }
     }
-    return (struct sv_factorization){.start_critical_pos = suff_pos,
+    return (struct sv_factorization){.critical_pos = suff_pos,
                                      .period_dist = period};
 }
 
