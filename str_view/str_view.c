@@ -232,13 +232,13 @@ sv_strcmp(str_view const lhs, char const rhs[static const 1])
     }
     size_t const sz = lhs.sz;
     size_t i = 0;
-    for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
+    for (; i < sz && rhs[i] && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == lhs.sz && rhs[i] == '\0')
+    if (i == lhs.sz && !rhs[i])
     {
         return SV_EQL;
     }
-    if (i < lhs.sz && rhs[i] != '\0')
+    if (i < lhs.sz && rhs[i])
     {
         return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
     }
@@ -254,7 +254,7 @@ sv_strncmp(str_view const lhs, char const rhs[static const 1], size_t const n)
     }
     size_t const sz = sv_min(lhs.sz, n);
     size_t i = 0;
-    for (; i < sz && rhs[i] != '\0' && lhs.s[i] == rhs[i]; ++i)
+    for (; i < sz && rhs[i] && lhs.s[i] == rhs[i]; ++i)
     {}
     if (i == lhs.sz && sz == n)
     {
@@ -397,7 +397,7 @@ sv_next_tok(str_view const src, str_view const tok, str_view const delim)
     {
         return nil;
     }
-    if (!delim.s || !tok.s || tok.s[tok.sz] == '\0')
+    if (!delim.s || !tok.s || !tok.s[tok.sz])
     {
         return (str_view){.s = tok.s + tok.sz, .sz = 0};
     }
@@ -810,17 +810,17 @@ sv_strcspn(size_t const str_sz, char const str[static str_sz],
     if (!set[1])
     {
         for (size_t i = 0; i < str_sz && *a && *a != *set; a++)
-            ;
+        {}
         return a - str;
     }
     memset(byteset, 0, sizeof byteset);
     for (size_t i = 0;
          i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
          set++, ++i)
-        ;
+    {}
     for (size_t i = 0;
          i < str_sz && *a && !BITOP(byteset, *(unsigned char *)a, &); a++)
-        ;
+    {}
     return a - str;
 }
 
@@ -843,16 +843,16 @@ sv_strspn(size_t const str_sz, char const str[static str_sz],
     if (!set[1])
     {
         for (size_t i = 0; i < str_sz && i < set_sz && *a == *set; a++, ++i)
-            ;
+        {}
         return a - str;
     }
     for (size_t i = 0;
          i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
          set++, ++i)
-        ;
+    {}
     for (size_t i = 0;
          i < str_sz && *a && BITOP(byteset, *(unsigned char *)a, &); a++, ++i)
-        ;
+    {}
     return a - str;
 }
 
