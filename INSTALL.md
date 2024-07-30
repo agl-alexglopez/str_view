@@ -1,6 +1,35 @@
 # Building and Installation
 
-## Quick Start
+## VCPKG
+
+The `str-view` port is available in the vcpkg registry. For a review of how to use ports available in the vcpkg registry review the [vcpkg guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-bash). This library offers the following port name and usage file.
+
+The `vcpkg.json` file.
+
+```json
+{
+    "dependencies": [
+        "str-view"
+    ]
+}
+```
+
+The `usage` file.
+
+```txt
+str_view provides CMake targets:
+
+  find_package(str_view CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE str_view::str_view)
+```
+
+Then, the header in the `.c/.h` files.
+
+```c
+#include "str_view/str_view.h"
+```
+
+## Manual Install Quick Start
 
 1. Use the provided defaults 
 2. Build the library
