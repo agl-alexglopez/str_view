@@ -12,9 +12,9 @@ A `str_view` is a 16-byte struct and, due to this size, is treated throughout th
 
 > **The `str_view` library does not yet support the Windows platform.**
 
-Download and extract the latest release `str_view-v[VERSION].zip` from the [Releases](https://github.com/agl-alexglopez/str_view/releases) page.
+This library offers a manual installation through the [Releases](https://github.com/agl-alexglopez/str_view/releases) page or a port installation through the [vcpkg](https://github.com/microsoft/vcpkg) package manager.
 
-See [INSTALL.md](/INSTALL.md) file provided in this repo or in the downloaded release for full build and installation instructions.
+See [INSTALL.md](/INSTALL.md) file for instructions on how to install the `str-view` port through vcpkg or how to manually download, build, and install the library.
 
 ## Interface
 
