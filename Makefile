@@ -1,6 +1,6 @@
 .PHONY: default install build gcc-rel gcc-deb clang-rel clang-deb tests samples gcc-all-deb gcc-all-rel clang-all-deb clang-all-rel str_view test-deb test-rel clean
 
-MAKE := $(MAKE)
+MAKE := $(MAKE) -f Makefile
 MAKEFLAGS += --no-print-directory
 # Adjust parallel build jobs based on your available cores.
 JOBS ?= $(shell (command -v nproc > /dev/null 2>&1 && echo "-j$$(nproc)") || echo "")
@@ -72,11 +72,11 @@ clang-all-rel:
 	$(MAKE) tests
 	$(MAKE) samples
 
-test-deb: build
+test-deb: tests
 	$(BUILD_DIR)deb/run_tests $(BUILD_DIR)deb/tests/
 	@echo "RAN TESTS"
 
-test-rel: build
+test-rel: tests
 	$(BUILD_DIR)rel/run_tests $(BUILD_DIR)rel/tests/
 	@echo "RAN TESTS"
 

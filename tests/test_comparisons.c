@@ -7,18 +7,22 @@
 static enum test_result test_compare_single(void);
 static enum test_result test_compare_equal(void);
 static enum test_result test_compare_equal_view(void);
+static enum test_result test_compare_view_equals_str(void);
+static enum test_result test_compare_view_off_by_one(void);
 static enum test_result test_compare_terminated(void);
 static enum test_result test_compare_different_lengths_terminated(void);
 static enum test_result test_compare_different_lengths_views(void);
 static enum test_result test_compare_misc(void);
 
-#define NUM_TESTS (size_t)7
+#define NUM_TESTS (size_t)9
 static test_fn const all_tests[NUM_TESTS] = {
     test_compare_single,
     test_compare_equal,
     test_compare_equal_view,
     test_compare_terminated,
     test_compare_different_lengths_terminated,
+    test_compare_view_equals_str,
+    test_compare_view_off_by_one,
     test_compare_different_lengths_views,
     test_compare_misc,
 };
@@ -133,6 +137,65 @@ test_compare_different_lengths_terminated(void)
     CHECK(cmp_res < 0, sv_cmp(less_view, greater_view) < 0, bool, "%d");
     CHECK(cmp_res2 > 0, sv_strcmp(greater_view, lesser) > 0, bool, "%d");
     CHECK(cmp_res2 > 0, sv_cmp(greater_view, less_view) > 0, bool, "%d");
+    return PASS;
+}
+
+static enum test_result
+test_compare_view_equals_str(void)
+{
+    char const *const views
+        = "this string constains substring1, substring2, and substring3";
+    char const *const str1 = "substring1";
+    char const *const str2 = "substring2";
+    char const *const str3 = "substring3";
+    str_view const s1 = sv_match(sv(views), SV("substring1"));
+    str_view const s2 = sv_match(sv(views), SV("substring2"));
+    str_view const s3 = sv_rmatch(sv(views), SV("substring3"));
+    CHECK(sv_strcmp(s1, str1), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(s2, str2), SV_EQL, sv_threeway_cmp, "%d");
+    CHECK(sv_strcmp(s3, str3), SV_EQL, sv_threeway_cmp, "%d");
+    int const cmp_1_2 = strcmp(str1, str2);
+    CHECK(sv_strcmp(s1, str2) < 0, cmp_1_2 < 0, bool, "%d");
+    int const cmp_2_3 = strcmp(str2, str3);
+    CHECK(sv_strcmp(s2, str3) < 0, cmp_2_3 < 0, bool, "%d");
+    int const cmp_3_1 = strcmp(str3, str1);
+    CHECK(sv_strcmp(s3, str1) > 0, cmp_3_1 > 0, bool, "%d");
+    return PASS;
+}
+
+static enum test_result
+test_compare_view_off_by_one(void)
+{
+    char const *const views
+        = "this string constains substring12, substring2, and substring";
+    /* Three views of interest withing the string. */
+    str_view const v1 = sv_match(sv(views), SV("substring12"));
+    str_view const v2 = sv_match(sv(views), SV("substring2"));
+    str_view const v3 = sv_rmatch(sv(views), SV("substring"));
+    /* The null terminated version of those three views. */
+    char const *const s1 = "substring12";
+    char const *const s2 = "substring2";
+    char const *const s3 = "substring";
+    /* These strings will not match the substrings within the string. */
+    char const *const str1 = "substring1";
+    char const *const str2 = "substring22";
+    char const *const str3 = "substring3";
+    int const cmp_1_1 = strcmp(s1, str1);
+    CHECK(sv_strcmp(v1, str1) > 0, cmp_1_1 > 0, bool, "%d");
+    int const cmp_2_2 = strcmp(s2, str2);
+    CHECK(sv_strcmp(v2, str2) < 0, cmp_2_2 < 0, bool, "%d");
+    int const cmp_3_3 = strcmp(s3, str3);
+    CHECK(sv_strcmp(v3, str3) < 0, cmp_3_3 < 0, bool, "%d");
+    /* Now do the same test but the off by one mismatch is other way. */
+    char const *const str1_v2 = "substring121";
+    char const *const str2_v2 = "substring";
+    char const *const str3_v2 = "substrin";
+    int const cmp_1_1_v2 = strcmp(s1, str1_v2);
+    CHECK(sv_strcmp(v1, str1_v2) < 0, cmp_1_1_v2 < 0, bool, "%d");
+    int const cmp_2_2_v2 = strcmp(s2, str2_v2);
+    CHECK(sv_strcmp(v2, str2_v2) > 0, cmp_2_2_v2 > 0, bool, "%d");
+    int const cmp_3_3_v2 = strcmp(s3, str3_v2);
+    CHECK(sv_strcmp(v3, str3_v2) > 0, cmp_3_3_v2 > 0, bool, "%d");
     return PASS;
 }
 
