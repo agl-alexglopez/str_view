@@ -42,11 +42,18 @@
 #        define ATTRIB_NONNULL(...)  /**/
 #        define ATTRIB_NULLTERM(...) /**/
 #    endif
+/* Clang and GCC support static array parameter declarations while
+   MSVC does not. This is how to solve the differing declaration
+   signature requirements. */
+#    define STATIC(SIZE) static SIZE
+#    define STATIC_CONST(SIZE) static const SIZE
 #else
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
 #    define ATTRIB_NONNULL(...)  /**/
 #    define ATTRIB_NULLTERM(...) /**/
+#    define STATIC(SIZE) 1
+#    define STATIC_CONST(SIZE) 1
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
 #include <stdbool.h>
@@ -96,13 +103,13 @@ typedef enum
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
-str_view sv(char const str[static 1]) ATTRIB_NONNULL(1)
+str_view sv(char const str[STATIC(1)]) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-str_view sv_n(size_t n, char const str[static 1]) ATTRIB_NONNULL(2)
+str_view sv_n(size_t n, char const str[STATIC(1)]) ATTRIB_NONNULL(2)
     ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a NULL TERMINATED string
@@ -110,23 +117,23 @@ str_view sv_n(size_t n, char const str[static 1]) ATTRIB_NONNULL(2)
    terminator if delim cannot be found. This constructor will also
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
-str_view sv_delim(char const str[static 1], char const delim[static 1])
+str_view sv_delim(char const str[STATIC(1)], char const delim[STATIC(1)])
     ATTRIB_NONNULL(1, 2) ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
-size_t sv_strsize(char const str[static 1]) ATTRIB_NONNULL(1)
+size_t sv_strsize(char const str[STATIC(1)]) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
-str_view sv_copy(size_t str_sz, char const src_str[static 1]) ATTRIB_NONNULL(2)
+str_view sv_copy(size_t str_sz, char const src_str[STATIC(1)]) ATTRIB_NONNULL(2)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
    the string. This may cut off src data if dest_sz < src.sz.
    Returns how many bytes were written to the buffer. */
-size_t sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
+size_t sv_fill(size_t dest_sz, char dest_buf[STATIC(dest_sz)], str_view src)
     ATTRIB_NONNULL(2);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
@@ -137,7 +144,7 @@ size_t sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[static 1])
+sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[STATIC(1)])
     ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
@@ -149,23 +156,23 @@ sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[static 1])
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strncmp(str_view lhs, char const rhs[static 1], size_t n)
+sv_threeway_cmp sv_strncmp(str_view lhs, char const rhs[STATIC(1)], size_t n)
     ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(char const str[static 1], size_t n) ATTRIB_NONNULL(1)
+size_t sv_minlen(char const str[STATIC(1)], size_t n) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-char const *sv_next(char const c[static 1]) ATTRIB_NONNULL(1)
+char const *sv_next(char const c[STATIC(1)]) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the iterator to the next character in the str_view
    being iterated through in reverse. It is undefined behavior
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
-char const *sv_rnext(char const c[static 1]) ATTRIB_NONNULL(1) ATTRIB_PURE;
+char const *sv_rnext(char const c[STATIC(1)]) ATTRIB_NONNULL(1) ATTRIB_PURE;
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (length - pos). If an invalid
@@ -204,7 +211,7 @@ size_t sv_size(str_view sv) ATTRIB_CONST;
 
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
-void sv_swap(str_view *a, str_view *b) ATTRIB_NONNULL(1, 2);
+void sv_swap(str_view a[STATIC(1)], str_view b[STATIC(1)]) ATTRIB_NONNULL(1, 2);
 
 /* Returns a str_view of the entirety of the underlying string, starting
    at the current view pointer position. This guarantees that the str_view
