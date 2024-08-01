@@ -59,6 +59,11 @@
 #    define STATIC_CONST(SIZE) 1
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
+#if defined(_MSC_VER)
+#    include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
