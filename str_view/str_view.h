@@ -73,7 +73,9 @@
    have at least one element. Compiler warnings may differ from GCC/Clang. */
 #    define STATIC(SIZE) 1
 /* Dummy macro for MSVC compatibility. Specifies a function parameter shall
-   have at least one element. Compiler warnings may differ from GCC/Clang. */
+   have at least one element. MSVC does not allow specification of a const
+   pointer to the begginning of an array function parameter when using array
+   size parameter syntax. Compiler warnings may differ from GCC/Clang. */
 #    define STATIC_CONST(SIZE) 1
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
