@@ -59,6 +59,10 @@
    This declarations adds the additional constraint that the pointer
    to the begginning of the array of types will not move. */
 #    define STATIC_CONST(SIZE) static const SIZE
+/* A helper macro to enforce only string literals for the SV constructor
+   macro. GCC and Clang allow this syntax to create more errors when bad
+   input is provided to the str_view SV constructor.*/
+#    define STR_LITERAL(STR) "" STR ""
 #else
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
@@ -77,6 +81,9 @@
    pointer to the begginning of an array function parameter when using array
    size parameter syntax. Compiler warnings may differ from GCC/Clang. */
 #    define STATIC_CONST(SIZE) 1
+/* MSVC does not allow strong enforcement of string literals to the SV
+   str_view constructor. This is a dummy wrapper for compatibility. */
+#    define STR_LITERAL(STR) STR
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
 #include <stdbool.h>
@@ -122,7 +129,7 @@ typedef enum
        {}
 
    However saving the str_view in a constant may be more convenient. */
-#define SV(str) ((str_view){"" str "", sizeof(str) - 1})
+#define SV(STR) ((str_view){STR_LITERAL(STR), sizeof(STR) - 1})
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
