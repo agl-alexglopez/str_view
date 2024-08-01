@@ -11,6 +11,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(_MSC_VER)
+#    include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 /* ========================   Type Definitions   =========================== */
 
 /* Return the factorization step of two-way search in precompute phase. */
