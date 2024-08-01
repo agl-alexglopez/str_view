@@ -42,20 +42,38 @@
 #        define ATTRIB_NONNULL(...)  /**/
 #        define ATTRIB_NULLTERM(...) /**/
 #    endif
+
 /* Clang and GCC support static array parameter declarations while
    MSVC does not. This is how to solve the differing declaration
    signature requirements. */
+
+/* A static array parameter declaration helper. Function parameters
+   may specify an array of a type of at least SIZE elements large,
+   allowing compiler optimizations and safety errors. Specify
+   a parameter such as `void func(int size, int arr[STATIC(size)])`. */
 #    define STATIC(SIZE) static SIZE
+/* A static array parameter declaration helper. Function parameters
+   may specify an array of a type of at least SIZE elements large,
+   allowing compiler optimizations and safety errors. Specify
+   a parameter such as `void func(int size, int arr[STATIC_CONST(size)])`.
+   This declarations adds the additional constraint that the pointer
+   to the begginning of the array of types will not move. */
 #    define STATIC_CONST(SIZE) static const SIZE
 #else
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
 #    define ATTRIB_NONNULL(...)  /**/
 #    define ATTRIB_NULLTERM(...) /**/
+
 /* MSVC does not support a static array parameter declaration
    so the best it can do is promise arrays of at least one
    element, unlike more dynamic clang and GCC capabilities. */
+
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. Compiler warnings may differ from GCC/Clang. */
 #    define STATIC(SIZE) 1
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. Compiler warnings may differ from GCC/Clang. */
 #    define STATIC_CONST(SIZE) 1
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
