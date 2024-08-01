@@ -116,9 +116,9 @@ sv_delim(char const str[STATIC_CONST(1)], char const delim[STATIC_CONST(1)])
 }
 
 void
-sv_print(FILE *f, str_view const sv)
+sv_print(FILE f[STATIC_CONST(1)], str_view const sv)
 {
-    if (!sv.s || nil.s == sv.s || !sv.sz || !f)
+    if (!sv.s || nil.s == sv.s || !sv.sz)
     {
         return;
     }

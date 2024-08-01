@@ -422,6 +422,6 @@ size_t sv_find_last_not_of(str_view hay, str_view set) ATTRIB_PURE;
 /*============================  Printing  ==================================*/
 
 /* Writes all characters in str_view to specified file such as stdout. */
-void sv_print(FILE *f, str_view sv);
+void sv_print(FILE f[STATIC(1)], str_view sv) ATTRIB_NONNULL(1);
 
 #endif /* STR_VIEW */
