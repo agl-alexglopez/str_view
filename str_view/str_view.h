@@ -52,6 +52,9 @@
 #    define ATTRIB_CONST         /**/
 #    define ATTRIB_NONNULL(...)  /**/
 #    define ATTRIB_NULLTERM(...) /**/
+/* MSVC does not support a static array parameter declaration
+   so the best it can do is promise arrays of at least one
+   element, unlike more dynamic clang and GCC capabilities. */
 #    define STATIC(SIZE) 1
 #    define STATIC_CONST(SIZE) 1
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
