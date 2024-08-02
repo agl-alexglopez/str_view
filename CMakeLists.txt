@@ -29,7 +29,7 @@ endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-add_library(${PROJECT_NAME} STATIC)
+add_library(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
     PRIVATE
