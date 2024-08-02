@@ -18,7 +18,6 @@ build:
 
 str_view:
 	cmake --preset=default-rel -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-	$(MAKE) build
 	cmake --build $(BUILD_DIR) --target install $(JOBS)
 
 install:
