@@ -46,10 +46,8 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
 
     - name: Configure with CMake
-      run: cmake -S . -B build -G "NMake Makefiles"
+      run: cmake -S . -B build -DCMAKE_INSTALL_PREFIX=install/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles"
 
     - name: Build with nmake
       run: |
-        cd build
-        nmake
-        cmake --build . --target install
+        cmake --build build --config Release --target install
