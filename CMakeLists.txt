@@ -29,6 +29,7 @@ endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# This library should not force static or shared. The user chooses.
 add_library(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
