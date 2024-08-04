@@ -42,7 +42,6 @@
 #        define ATTRIB_NONNULL(...)  /**/
 #        define ATTRIB_NULLTERM(...) /**/
 #    endif
-
 /* Clang and GCC support static array parameter declarations while
    MSVC does not. This is how to solve the differing declaration
    signature requirements. */
@@ -68,7 +67,6 @@
 #    define ATTRIB_CONST         /**/
 #    define ATTRIB_NONNULL(...)  /**/
 #    define ATTRIB_NULLTERM(...) /**/
-
 /* MSVC does not support a static array parameter declaration
    so the best it can do is promise arrays of at least one
    element, unlike more dynamic clang and GCC capabilities. */
