@@ -89,10 +89,7 @@
 #if defined(_MSVC_VER)
 #    if defined(SV_BUILD_DLL)
 #        define SV_DLL __declspec(dllexport)
-#    else
-#        define SV_DLL /**/
-#    endif
-#    if defined(SV_CONSUME_DLL)
+#    elif defined(SV_CONSUME_DLL)
 #        define SV_DLL __declspec(dllimport)
 #    else
 #        define SV_DLL /**/

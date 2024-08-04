@@ -26,9 +26,6 @@ else()
     message(STATUS "This project is a top-level one")
 endif()
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
 option(BUILD_SHARED_LIBS "Building str_view as a shared library is OFF by default." OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -47,6 +44,8 @@ target_include_directories(${PROJECT_NAME}
         # where external projects will look for the library's public headers
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>/${PROJECT_NAME}
 )
+
+target_compile_features(${PROJECT_NAME} PUBLIC c_std_11)
 
 if (BUILD_SHARED_LIBS AND WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SV_BUILD_DLL=1)
