@@ -26,6 +26,9 @@ else()
     message(STATUS "This project is a top-level one")
 endif()
 
+# These two options help accomodate installation with vcpkg and windows compatibility
+# for DLLs. Vcpkg expects DLLs on windows to be in the bin folder. This is also
+# the expected behavior to have the dll file in the same directory as the executable.
 option(BUILD_SHARED_LIBS "Building str_view as a shared library is OFF by default." OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
