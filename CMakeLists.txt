@@ -30,6 +30,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Building str_view as a shared library is OFF by default." OFF)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # This library should not force static or shared. The user chooses.
 add_library(${PROJECT_NAME})
@@ -49,7 +50,6 @@ target_include_directories(${PROJECT_NAME}
 
 if (BUILD_SHARED_LIBS AND WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SV_BUILD_DLL=1)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
 # totally optional listing of include directories
