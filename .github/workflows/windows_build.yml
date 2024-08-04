@@ -51,3 +51,13 @@ jobs:
     - name: Build with nmake
       run: |
         cmake --build build --config Release --target install
+
+    - name: Clean the Install
+      run: |
+        Remove-Item -Path install -Recurse
+        Remove-Item -Path build -Recurse
+
+    - name: Build Shared
+      run: |
+        cmake -S . -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=install/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles"
+        cmake --build build --config Release --target install
