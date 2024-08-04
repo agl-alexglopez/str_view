@@ -8,7 +8,6 @@ target_sources(${PROJECT_NAME}
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC c_std_11)
-
 if (BUILD_SHARED_LIBS AND WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SV_BUILD_DLL=1)
 endif()
@@ -16,11 +15,16 @@ endif()
 # set properties for the target. VERSION set the library version to the project
 # version * SOVERSION set the compatibility  version for the library to the
 # major number of the version
-set_target_properties(
-  ${PROJECT_NAME}
-  PROPERTIES 
-      VERSION ${PROJECT_VERSION}
-      SOVERSION ${PROJECT_VERSION_MAJOR}
+# note that ${public_headers} should be in quotes
+set_target_properties(${PROJECT_NAME} 
+    PROPERTIES 
+        PUBLIC_HEADER "${public_headers}"
+        RELEASE_POSTFIX "_release"
+        DEBUG_POSTFIX "_debug"
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        C_VISIBILITY_PRESET "default"
+        VISIBILITY_INLINES_HIDDEN TRUE
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -32,16 +36,6 @@ target_include_directories(${PROJECT_NAME}
 )
 
 include(GenerateExportHeader)
-
-set_property(
-    TARGET ${PROJECT_NAME}
-    PROPERTY C_VISIBILITY_PRESET "default"
-)
-# Hide inlined functions by default, reducing the size of the library
-set_property(
-    TARGET ${PROJECT_NAME}
-    PROPERTY VISIBILITY_INLINES_HIDDEN TRUE
-)
 
 # this command generates a header file in the CMAKE_CURRENT_BINARY_DIR which
 # sets the visibility attributes according to the compiler settings

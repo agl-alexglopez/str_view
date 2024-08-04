@@ -1,12 +1,6 @@
 # for CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_BINDIR, CMAKE_INSTALL_INCLUDEDIR and others
 include(GNUInstallDirs)
 
-# note that ${public_headers} should be in quotes
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers}")
-
-set_target_properties(${PROJECT_NAME} PROPERTIES RELEASE_POSTFIX "_release")
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "_debug")
-
 # Keeping the project name within a cmake folder helps reduce file clutter
 set(INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" 
     CACHE STRING "Path to ${PROJECT_NAME} CMake files"
@@ -17,8 +11,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         EXPORT "${PROJECT_NAME}Targets"
         # these get default values from GNUInstallDirs, no need to set them
         #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} # bin
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/debug
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/debug
         # except for public headers, as we want them to be inside a library folder
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
@@ -28,8 +22,8 @@ else()
         EXPORT "${PROJECT_NAME}Targets"
         # these get default values from GNUInstallDirs, no need to set them
         #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} # bin
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib/
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib/
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
         # except for public headers, as we want them to be inside a library folder
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
