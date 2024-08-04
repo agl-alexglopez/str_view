@@ -29,8 +29,14 @@ endif()
 # These two options help accomodate installation with vcpkg and windows compatibility
 # for DLLs. Vcpkg expects DLLs on windows to be in the bin folder. This is also
 # the expected behavior to have the dll file in the same directory as the executable.
-option(BUILD_SHARED_LIBS "Building str_view as a shared library is OFF by default." OFF)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+option(BUILD_SHARED_LIBS "Building str_view as a shared library is available, but OFF by default." OFF)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/debug/bin)
+else()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
+
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}")
 

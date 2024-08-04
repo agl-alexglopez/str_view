@@ -12,16 +12,29 @@ set(INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     CACHE STRING "Path to ${PROJECT_NAME} CMake files"
 )
 
-install(TARGETS ${PROJECT_NAME}
-    EXPORT "${PROJECT_NAME}Targets"
-    # these get default values from GNUInstallDirs, no need to set them
-    #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} # bin
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME} # lib/str_view
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME} # lib/str_view
-    # except for public headers, as we want them to be inside a library folder
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
-)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    install(TARGETS ${PROJECT_NAME}
+        EXPORT "${PROJECT_NAME}Targets"
+        # these get default values from GNUInstallDirs, no need to set them
+        #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} # bin
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/
+        # except for public headers, as we want them to be inside a library folder
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
+    )
+else()
+    install(TARGETS ${PROJECT_NAME}
+        EXPORT "${PROJECT_NAME}Targets"
+        # these get default values from GNUInstallDirs, no need to set them
+        #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} # bin
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib/
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib/
+        # except for public headers, as we want them to be inside a library folder
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
+    )
+endif()
 
 # generate and install export file
 install(EXPORT "${PROJECT_NAME}Targets"
