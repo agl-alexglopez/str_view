@@ -2,17 +2,12 @@
 #ifndef STR_VIEW
 #define STR_VIEW
 
-/* All functions labelled ATTRIB_PURE have no side effects and if given the
-   same arguments with the same underlying data, produce the same
-   return value. Importantly, these cannot be marked with the const attribute
-   as str_view points to char const * data which cannot promise to remain
-   unchanged even if str_view is a read only type. The str_view only promises
-   that it will not alter data not that the program will not alter the string
-   data to which a str_view points. The ATTRIB_CONST applies only in rare
-   cases where no pointers are accessed or dereferenced. The attributes
-   relating to null terminators provide stronger compiler warnings if
-   supported to ensure that safe string handling occurs on non null and
-   null terminated strings. Credit Harith on Code Review Stack Exchange. */
+/* ATTRIB_PURE has no side effects when given the same arguments with the
+   same data, producing the same return value. A str_view points to char
+   const * data which may change in between str_view calls. ATTRIB_CONST
+   applies only where no pointers are accessed or dereferenced. Other
+   attributes provide more string safety and opportunities to optimize.
+   Credit Harith on Code Review Stack Exchange. */
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
 #    if defined __has_attribute
 #        if __has_attribute(pure)
