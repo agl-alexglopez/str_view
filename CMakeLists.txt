@@ -1,3 +1,4 @@
+# File sets are available in 3.23 onward. Valuable tool.
 cmake_minimum_required(VERSION 3.23)
 
 set(namespace "str_view")
