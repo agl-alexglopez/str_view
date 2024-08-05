@@ -26,6 +26,7 @@ else()
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
         # except for public headers, as we want them to be inside a library folder
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
+        FILE_SET public_headers
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
     )
 endif()
