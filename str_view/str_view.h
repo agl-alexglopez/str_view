@@ -42,12 +42,59 @@
 #        define ATTRIB_NONNULL(...)  /**/
 #        define ATTRIB_NULLTERM(...) /**/
 #    endif
+/* Clang and GCC support static array parameter declarations while
+   MSVC does not. This is how to solve the differing declaration
+   signature requirements. */
+
+/* A static array parameter declaration helper. Function parameters
+   may specify an array of a type of at least SIZE elements large,
+   allowing compiler optimizations and safety errors. Specify
+   a parameter such as `void func(int size, int arr[STATIC(size)])`. */
+#    define STATIC(SIZE) static SIZE
+/* A static array parameter declaration helper. Function parameters
+   may specify an array of a type of at least SIZE elements large,
+   allowing compiler optimizations and safety errors. Specify
+   a parameter such as `void func(int size, int arr[STATIC_CONST(size)])`.
+   This declarations adds the additional constraint that the pointer
+   to the begginning of the array of types will not move. */
+#    define STATIC_CONST(SIZE) static const SIZE
+/* A helper macro to enforce only string literals for the SV constructor
+   macro. GCC and Clang allow this syntax to create more errors when bad
+   input is provided to the str_view SV constructor.*/
+#    define STR_LITERAL(STR) "" STR ""
 #else
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
 #    define ATTRIB_NONNULL(...)  /**/
 #    define ATTRIB_NULLTERM(...) /**/
+/* MSVC does not support a static array parameter declaration
+   so the best it can do is promise arrays of at least one
+   element, unlike more dynamic clang and GCC capabilities. */
+
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. Compiler warnings may differ from GCC/Clang. */
+#    define STATIC(SIZE) 1
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. MSVC does not allow specification of a const
+   pointer to the begginning of an array function parameter when using array
+   size parameter syntax. Compiler warnings may differ from GCC/Clang. */
+#    define STATIC_CONST(SIZE) 1
+/* MSVC does not allow strong enforcement of string literals to the SV
+   str_view constructor. This is a dummy wrapper for compatibility. */
+#    define STR_LITERAL(STR) STR
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
+
+#if defined(_MSVC_VER)
+#    if defined(SV_BUILD_DLL)
+#        define SV_API __declspec(dllexport)
+#    elif defined(SV_CONSUME_DLL)
+#        define SV_API __declspec(dllimport)
+#    else
+#        define SV_API /**/
+#    endif
+#else
+#    define SV_API /**/
+#endif             /* _MSVC_VER */
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -92,17 +139,17 @@ typedef enum
        {}
 
    However saving the str_view in a constant may be more convenient. */
-#define SV(str) ((str_view){"" str "", sizeof(str) - 1})
+#define SV(STR) ((str_view){STR_LITERAL(STR), sizeof(STR) - 1})
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
-str_view sv(char const str[static 1]) ATTRIB_NONNULL(1)
+SV_API str_view sv(char const str[STATIC(1)]) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-str_view sv_n(size_t n, char const str[static 1]) ATTRIB_NONNULL(2)
+SV_API str_view sv_n(size_t n, char const str[STATIC(1)]) ATTRIB_NONNULL(2)
     ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a NULL TERMINATED string
@@ -110,24 +157,24 @@ str_view sv_n(size_t n, char const str[static 1]) ATTRIB_NONNULL(2)
    terminator if delim cannot be found. This constructor will also
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
-str_view sv_delim(char const str[static 1], char const delim[static 1])
+SV_API str_view sv_delim(char const str[STATIC(1)], char const delim[STATIC(1)])
     ATTRIB_NONNULL(1, 2) ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
-size_t sv_strsize(char const str[static 1]) ATTRIB_NONNULL(1)
+SV_API size_t sv_strsize(char const str[STATIC(1)]) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
-str_view sv_copy(size_t str_sz, char const src_str[static 1]) ATTRIB_NONNULL(2)
-    ATTRIB_NULLTERM(1) ATTRIB_PURE;
+SV_API str_view sv_copy(size_t str_sz, char const src_str[STATIC(1)])
+    ATTRIB_NONNULL(2) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
    the string. This may cut off src data if dest_sz < src.sz.
    Returns how many bytes were written to the buffer. */
-size_t sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
-    ATTRIB_NONNULL(2);
+SV_API size_t sv_fill(size_t dest_sz, char dest_buf[STATIC(dest_sz)],
+                      str_view src) ATTRIB_NONNULL(2);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
@@ -137,7 +184,7 @@ size_t sv_fill(size_t dest_sz, char dest_buf[dest_sz], str_view src)
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[static 1])
+SV_API sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[STATIC(1)])
     ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
@@ -149,62 +196,65 @@ sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[static 1])
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_strncmp(str_view lhs, char const rhs[static 1], size_t n)
-    ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
+SV_API sv_threeway_cmp sv_strncmp(str_view lhs, char const rhs[STATIC(1)],
+                                  size_t n) ATTRIB_NONNULL(2)
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the minimum between the string size vs n bytes. */
-size_t sv_minlen(char const str[static 1], size_t n) ATTRIB_NONNULL(1)
+SV_API size_t sv_minlen(char const str[STATIC(1)], size_t n) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-char const *sv_next(char const c[static 1]) ATTRIB_NONNULL(1)
+SV_API char const *sv_next(char const c[STATIC(1)]) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the iterator to the next character in the str_view
    being iterated through in reverse. It is undefined behavior
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
-char const *sv_rnext(char const c[static 1]) ATTRIB_NONNULL(1) ATTRIB_PURE;
+SV_API char const *sv_rnext(char const c[STATIC(1)])
+    ATTRIB_NONNULL(1) ATTRIB_PURE;
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (length - pos). If an invalid
    position is given greater than str_view length an empty view is returned
    positioned at the end of str_view. This position may or may not hold the
    null terminator. */
-str_view sv_substr(str_view sv, size_t pos, size_t count) ATTRIB_PURE;
+SV_API str_view sv_substr(str_view sv, size_t pos, size_t count) ATTRIB_PURE;
 
 /* A sentinel empty string. Safely dereferenced to view a null terminator.
    This may be returned from various functions when bad input is given
    such as NULL as the underlying str_view string pointer. */
-char const *sv_null(void) ATTRIB_PURE;
+SV_API char const *sv_null(void) ATTRIB_PURE;
 
 /* The end of a str_view guaranteed to be greater than or equal to size.
    May be used for the idiomatic check for most string searching function
    return values when something is not found. If a size is returned from
    a searching function it is possible to check it against npos. */
-size_t sv_npos(str_view sv) ATTRIB_CONST;
+SV_API size_t sv_npos(str_view sv) ATTRIB_CONST;
 
 /* Returns true if the provided str_view is empty, false otherwise.
    This is a useful function to check for str_view searches that yield
    an empty view at the end of a str_view when an element cannot be
    found. */
-bool sv_empty(str_view sv) ATTRIB_CONST;
+SV_API bool sv_empty(str_view sv) ATTRIB_CONST;
 
 /* Returns the length of the str_view in O(1) time. The position at
    str_view size is interpreted as the null terminator and not
    counted toward length of a str_view. */
-size_t sv_len(str_view sv) ATTRIB_CONST;
+SV_API size_t sv_len(str_view sv) ATTRIB_CONST;
 
 /* Returns the bytes of str_view including null terminator. Note that
    string views may not actually be null terminated but the position at
    str_view[str_view.sz] is interpreted as the null terminator and thus
    counts towards the byte count. */
-size_t sv_size(str_view sv) ATTRIB_CONST;
+SV_API size_t sv_size(str_view sv) ATTRIB_CONST;
 
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
-void sv_swap(str_view *a, str_view *b) ATTRIB_NONNULL(1, 2);
+SV_API void sv_swap(str_view a[STATIC(1)], str_view b[STATIC(1)])
+    ATTRIB_NONNULL(1, 2);
 
 /* Returns a str_view of the entirety of the underlying string, starting
    at the current view pointer position. This guarantees that the str_view
@@ -212,7 +262,7 @@ void sv_swap(str_view *a, str_view *b) ATTRIB_NONNULL(1, 2);
    strings used with str_views are assumed to be null terminated. It is
    undefined behavior to provide non null terminated strings to any
    str_view code. */
-str_view sv_extend(str_view sv) ATTRIB_PURE;
+SV_API str_view sv_extend(str_view sv) ATTRIB_PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between two string views.
@@ -222,7 +272,7 @@ str_view sv_extend(str_view sv) ATTRIB_PURE;
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-sv_threeway_cmp sv_cmp(str_view lhs, str_view rhs) ATTRIB_PURE;
+SV_API sv_threeway_cmp sv_cmp(str_view lhs, str_view rhs) ATTRIB_PURE;
 
 /* Finds the first tokenized position in the string view given any length
    delim str_view. Skips leading delimeters in construction. If the
@@ -231,13 +281,13 @@ sv_threeway_cmp sv_cmp(str_view lhs, str_view rhs) ATTRIB_PURE;
    character or empty string and the size zero substring at the final position
    in the str_view is returned wich may or may not be the null termiator. If no
    delim is found the entire str_view is returned. */
-str_view sv_begin_tok(str_view src, str_view delim) ATTRIB_PURE;
+SV_API str_view sv_begin_tok(str_view src, str_view delim) ATTRIB_PURE;
 
 /* Returns true if no further tokens are found and position is at the end
    position, meaning a call to sv_next_tok has yielded a size 0 str_view
    that points at the end of the src str_view which may or may not be null
    terminated. */
-bool sv_end_tok(str_view src, str_view tok) ATTRIB_PURE;
+SV_API bool sv_end_tok(str_view src, str_view tok) ATTRIB_PURE;
 
 /* Advances to the next token in the remaining view seperated by the delim.
    Repeating delimter patterns will be skipped until the next token or end
@@ -246,7 +296,8 @@ bool sv_end_tok(str_view src, str_view tok) ATTRIB_PURE;
    is returned which may or may not be the null terminator. The tok is
    bounded by the length of the view between two delimeters or the length
    from a delimeter to the end of src, whichever comes first. */
-str_view sv_next_tok(str_view src, str_view tok, str_view delim) ATTRIB_PURE;
+SV_API str_view sv_next_tok(str_view src, str_view tok,
+                            str_view delim) ATTRIB_PURE;
 
 /* Obtains the last token in a string in preparation for reverse tokenized
    iteration. Any delimeters that end the string are skipped, as in the
@@ -254,12 +305,12 @@ str_view sv_next_tok(str_view src, str_view tok, str_view delim) ATTRIB_PURE;
    the entire src view is returned. Though the str_view is tokenized in
    reverse, the token view will start at the first character and be the
    length of the token found. */
-str_view sv_rbegin_tok(str_view src, str_view delim) ATTRIB_PURE;
+SV_API str_view sv_rbegin_tok(str_view src, str_view delim) ATTRIB_PURE;
 
 /* Given the current str_view being iterated through and the current token
    in the iteration returns true if the ending state of a reverse tokenization
    has been reached, false otherwise. */
-bool sv_rend_tok(str_view src, str_view tok) ATTRIB_PURE;
+SV_API bool sv_rend_tok(str_view src, str_view tok) ATTRIB_PURE;
 
 /* Advances the token in src to the next token between two delimeters provided
    by delim. Repeating delimiters are skipped until the next token is found.
@@ -271,54 +322,55 @@ bool sv_rend_tok(str_view src, str_view tok) ATTRIB_PURE;
    parsed from right to left. However, the token returned starts at the first
    character and is read from left to right between two delimeters as in the
    forward tokenization.  */
-str_view sv_rnext_tok(str_view src, str_view tok, str_view delim) ATTRIB_PURE;
+SV_API str_view sv_rnext_tok(str_view src, str_view tok,
+                             str_view delim) ATTRIB_PURE;
 
 /* Returns a read only pointer to the beginning of the string view,
    the first valid character in the view. If the view stores NULL,
    the placeholder sv_null() is returned. */
-char const *sv_begin(str_view sv) ATTRIB_PURE;
+SV_API char const *sv_begin(str_view sv) ATTRIB_PURE;
 
 /* Returns a read only pointer to the end of the string view. This
    may or may not be a null terminated character depending on the
    view. If the view stores NULL, the placeholder sv_null() is returned. */
-char const *sv_end(str_view sv) ATTRIB_PURE;
+SV_API char const *sv_end(str_view sv) ATTRIB_PURE;
 
 /* Returns the reverse iterator beginning, the last character of the
    current view. If the view is null sv_null() is returned. If the
    view is sized zero with a valid pointer that pointer in the
    view is returned. */
-char const *sv_rbegin(str_view sv) ATTRIB_PURE;
+SV_API char const *sv_rbegin(str_view sv) ATTRIB_PURE;
 
 /* The ending position of a reverse iteration. It is undefined
    behavior to access or use rend. It is undefined behavior to
    pass in any str_view not being iterated through as started
    with rbegin. */
-char const *sv_rend(str_view sv) ATTRIB_PURE;
+SV_API char const *sv_rend(str_view sv) ATTRIB_PURE;
 
 /* Returns the character pointer at the minimum between the indicated
    position and the end of the string view. If NULL is stored by the
    str_view then sv_null() is returned. */
-char const *sv_pos(str_view sv, size_t i) ATTRIB_PURE;
+SV_API char const *sv_pos(str_view sv, size_t i) ATTRIB_PURE;
 
 /* The characer in the string at position i with bounds checking.
    If i is greater than or equal to the size of str_view the null
    terminator character is returned. */
-char sv_at(str_view sv, size_t i) ATTRIB_PURE;
+SV_API char sv_at(str_view sv, size_t i) ATTRIB_PURE;
 
 /* The character at the first position of str_view. An empty
    str_view or NULL pointer is valid and will return '\0'. */
-char sv_front(str_view sv) ATTRIB_PURE;
+SV_API char sv_front(str_view sv) ATTRIB_PURE;
 
 /* The character at the last position of str_view. An empty
    str_view or NULL pointer is valid and will return '\0'. */
-char sv_back(str_view sv) ATTRIB_PURE;
+SV_API char sv_back(str_view sv) ATTRIB_PURE;
 
 /*============================  Searching  =================================*/
 
 /* Searches for needle in hay starting from pos. If the needle
    is larger than the hay, or position is greater than hay length,
    then hay length is returned. */
-size_t sv_find(str_view hay, size_t pos, str_view needle) ATTRIB_PURE;
+SV_API size_t sv_find(str_view hay, size_t pos, str_view needle) ATTRIB_PURE;
 
 /* Searches for the last occurence of needle in hay starting from pos
    from right to left. If found the starting position of the string
@@ -326,10 +378,10 @@ size_t sv_find(str_view hay, size_t pos, str_view needle) ATTRIB_PURE;
    The only difference from find is the search direction. If needle
    is larger than hay, hay length is returned. If the position is
    larger than the hay, the entire hay is searched. */
-size_t sv_rfind(str_view hay, size_t pos, str_view needle) ATTRIB_PURE;
+SV_API size_t sv_rfind(str_view hay, size_t pos, str_view needle) ATTRIB_PURE;
 
 /* Returns true if the needle is found in the hay, false otherwise. */
-bool sv_contains(str_view hay, str_view needle) ATTRIB_PURE;
+SV_API bool sv_contains(str_view hay, str_view needle) ATTRIB_PURE;
 
 /* Returns a view of the needle found in hay at the first found
    position. If the needle cannot be found the empty view at the
@@ -337,7 +389,7 @@ bool sv_contains(str_view hay, str_view needle) ATTRIB_PURE;
    terminated at that position. If needle is greater than
    hay length an empty view at the end of hay is returned. If
    hay is NULL, sv_null is returned (modeled after strstr). */
-str_view sv_match(str_view hay, str_view needle) ATTRIB_PURE;
+SV_API str_view sv_match(str_view hay, str_view needle) ATTRIB_PURE;
 
 /* Returns a view of the needle found in hay at the last found
    position. If the needle cannot be found the empty view at the
@@ -345,53 +397,53 @@ str_view sv_match(str_view hay, str_view needle) ATTRIB_PURE;
    terminated at that position. If needle is greater than
    hay length an empty view at hay size is returned. If hay is
    NULL, sv_null is returned (modeled after strstr). */
-str_view sv_rmatch(str_view hay, str_view needle) ATTRIB_PURE;
+SV_API str_view sv_rmatch(str_view hay, str_view needle) ATTRIB_PURE;
 
 /* Returns true if a prefix shorter than or equal in length to
    the str_view is present, false otherwise. */
-bool sv_starts_with(str_view sv, str_view prefix) ATTRIB_PURE;
+SV_API bool sv_starts_with(str_view sv, str_view prefix) ATTRIB_PURE;
 
 /* Removes the minimum between str_view length and n from the start
    of the str_view. It is safe to provide n larger than str_view
    size as that will result in a size 0 view to the end of the
    current view which may or may not be the null terminator. */
-str_view sv_remove_prefix(str_view sv, size_t n) ATTRIB_PURE;
+SV_API str_view sv_remove_prefix(str_view sv, size_t n) ATTRIB_PURE;
 
 /* Returns true if a suffix less or equal in length to str_view is
    present, false otherwise. */
-bool sv_ends_with(str_view sv, str_view suffix) ATTRIB_PURE;
+SV_API bool sv_ends_with(str_view sv, str_view suffix) ATTRIB_PURE;
 
 /* Removes the minimum between str_view length and n from the end. It
    is safe to provide n larger than str_view and that will result in
    a size 0 view to the end of the current view which may or may not
    be the null terminator. */
-str_view sv_remove_suffix(str_view sv, size_t n) ATTRIB_PURE;
+SV_API str_view sv_remove_suffix(str_view sv, size_t n) ATTRIB_PURE;
 
 /* Finds the first position of an occurence of any character in set.
    If no occurence is found hay size is returned. An empty set (NULL)
    is valid and will return position at hay size. An empty hay
    returns 0. */
-size_t sv_find_first_of(str_view hay, str_view set) ATTRIB_PURE;
+SV_API size_t sv_find_first_of(str_view hay, str_view set) ATTRIB_PURE;
 
 /* Finds the first position at which no characters in set can be found.
    If the string is all characters in set hay length is returned.
    An empty set (NULL) is valid and will return position 0. An empty
    hay returns 0. */
-size_t sv_find_first_not_of(str_view hay, str_view set) ATTRIB_PURE;
+SV_API size_t sv_find_first_not_of(str_view hay, str_view set) ATTRIB_PURE;
 
 /* Finds the last position of any character in set in hay. If
    no position is found hay size is returned. An empty set (NULL)
    is valid and returns hay size. An empty hay returns 0. */
-size_t sv_find_last_of(str_view hay, str_view set) ATTRIB_PURE;
+SV_API size_t sv_find_last_of(str_view hay, str_view set) ATTRIB_PURE;
 
 /* Finds the last position at which no character in set can be found.
    An empty set (NULL) is valid and will return the final character
    in the str_view. An empty hay will return 0. */
-size_t sv_find_last_not_of(str_view hay, str_view set) ATTRIB_PURE;
+SV_API size_t sv_find_last_not_of(str_view hay, str_view set) ATTRIB_PURE;
 
 /*============================  Printing  ==================================*/
 
 /* Writes all characters in str_view to specified file such as stdout. */
-void sv_print(FILE *f, str_view sv);
+SV_API void sv_print(FILE f[STATIC(1)], str_view sv) ATTRIB_NONNULL(1);
 
 #endif /* STR_VIEW */

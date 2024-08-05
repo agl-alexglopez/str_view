@@ -26,49 +26,24 @@ else()
     message(STATUS "This project is a top-level one")
 endif()
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+# These two options help accomodate installation with vcpkg and windows compatibility
+# for DLLs. Vcpkg expects DLLs on windows to be in the bin folder. This is also
+# the expected behavior to have the dll file in the same directory as the executable.
+option(BUILD_SHARED_LIBS "Building str_view as a shared library is available, but OFF by default." OFF)
 
-add_library(${PROJECT_NAME} STATIC)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/debug/bin)
+else()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
 
-target_sources(${PROJECT_NAME}
-    PRIVATE
-        str_view/str_view.c
-)
 
-target_include_directories(${PROJECT_NAME}
-    PRIVATE
-        # where the library itself will look for its internal headers
-        ${CMAKE_CURRENT_SOURCE_DIR}/str_view
-    PUBLIC
-        # where top-level project will look for the library's public headers
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        # where external projects will look for the library's public headers
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-
-# totally optional listing of include directories
-get_property(inclds
-    TARGET ${PROJECT_NAME}
-    PROPERTY INCLUDE_DIRECTORIES
-)
-message(STATUS "Listing include directories for ${PROJECT_NAME}...")
-# "dumb" listing with "raw" generator expressions on configuration
-foreach(pth ${inclds})
-    message(STATUS "  ${pth}")
-endforeach()
-# actually evaluated generator expressions printed to file on generation
-string(JOIN "\n" includeDirectories ${inclds})
-file(GENERATE
-    OUTPUT "${CMAKE_BINARY_DIR}/include-directories.txt"
-    CONTENT ${includeDirectories}
-)
+add_subdirectory("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}")
 
 # without it public headers won't get installed
 set(public_headers
-    str_view/str_view.h
+    ${PROJECT_NAME}/${PROJECT_NAME}.h
 )
-
 # where to find our CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 #message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")

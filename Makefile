@@ -18,7 +18,6 @@ build:
 
 str_view:
 	cmake --preset=default-rel -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-	$(MAKE) build
 	cmake --build $(BUILD_DIR) --target install $(JOBS)
 
 install:
@@ -73,11 +72,11 @@ clang-all-rel:
 	$(MAKE) samples
 
 test-deb: tests
-	$(BUILD_DIR)deb/run_tests $(BUILD_DIR)deb/tests/
+	$(BUILD_DIR)debug/bin/run_tests $(BUILD_DIR)debug/bin/tests/
 	@echo "RAN TESTS"
 
 test-rel: tests
-	$(BUILD_DIR)rel/run_tests $(BUILD_DIR)rel/tests/
+	$(BUILD_DIR)bin/run_tests $(BUILD_DIR)bin/tests/
 	@echo "RAN TESTS"
 
 clean:
