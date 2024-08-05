@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.23)
 
 set(namespace "str_view")
 project("str_view"
@@ -40,10 +40,6 @@ endif()
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}")
 
-# without it public headers won't get installed
-set(public_headers
-    ${PROJECT_NAME}/${PROJECT_NAME}.h
-)
 # where to find our CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 #message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
