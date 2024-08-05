@@ -37,6 +37,38 @@
 #        define ATTRIB_NONNULL(...)  /**/
 #        define ATTRIB_NULLTERM(...) /**/
 #    endif
+#else
+#    define ATTRIB_PURE          /**/
+#    define ATTRIB_CONST         /**/
+#    define ATTRIB_NONNULL(...)  /**/
+#    define ATTRIB_NULLTERM(...) /**/
+#endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
+
+#if defined(_MSVC_VER) || defined(_WIN32) || defined(__CYGWIN__)
+#    if defined(SV_BUILD_DLL)
+#        define SV_API __declspec(dllexport)
+#    elif defined(SV_CONSUME_DLL)
+#        define SV_API __declspec(dllimport)
+#    else
+#        define SV_API /**/
+#    endif
+/* MSVC does not support a static array parameter declaration
+   so the best it can do is promise arrays of at least one
+   element, unlike more dynamic clang and GCC capabilities. */
+
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. Compiler warnings may differ from GCC/Clang. */
+#    define STATIC(SIZE) 1
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. MSVC does not allow specification of a const
+   pointer to the begginning of an array function parameter when using array
+   size parameter syntax. Compiler warnings may differ from GCC/Clang. */
+#    define STATIC_CONST(SIZE) 1
+/* MSVC does not allow strong enforcement of string literals to the SV
+   str_view constructor. This is a dummy wrapper for compatibility. */
+#    define STR_LITERAL(STR) STR
+#else
+#    define SV_API /**/
 /* Clang and GCC support static array parameter declarations while
    MSVC does not. This is how to solve the differing declaration
    signature requirements. */
@@ -57,39 +89,7 @@
    macro. GCC and Clang allow this syntax to create more errors when bad
    input is provided to the str_view SV constructor.*/
 #    define STR_LITERAL(STR) "" STR ""
-#else
-#    define ATTRIB_PURE          /**/
-#    define ATTRIB_CONST         /**/
-#    define ATTRIB_NONNULL(...)  /**/
-#    define ATTRIB_NULLTERM(...) /**/
-/* MSVC does not support a static array parameter declaration
-   so the best it can do is promise arrays of at least one
-   element, unlike more dynamic clang and GCC capabilities. */
-
-/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
-   have at least one element. Compiler warnings may differ from GCC/Clang. */
-#    define STATIC(SIZE) 1
-/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
-   have at least one element. MSVC does not allow specification of a const
-   pointer to the begginning of an array function parameter when using array
-   size parameter syntax. Compiler warnings may differ from GCC/Clang. */
-#    define STATIC_CONST(SIZE) 1
-/* MSVC does not allow strong enforcement of string literals to the SV
-   str_view constructor. This is a dummy wrapper for compatibility. */
-#    define STR_LITERAL(STR) STR
-#endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
-
-#if defined(_MSVC_VER)
-#    if defined(SV_BUILD_DLL)
-#        define SV_API __declspec(dllexport)
-#    elif defined(SV_CONSUME_DLL)
-#        define SV_API __declspec(dllimport)
-#    else
-#        define SV_API /**/
-#    endif
-#else
-#    define SV_API /**/
-#endif             /* _MSVC_VER */
+#endif /* _MSVC_VER || _WIN32 || __CYGWIN__ */
 
 #include <stdbool.h>
 #include <stddef.h>
