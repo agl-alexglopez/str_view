@@ -15,6 +15,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/debug # lib/debug
         # except for public headers, as we want them to be inside a library folder
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/str_view
+        FILE_SET public_headers
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
     )
 else()
