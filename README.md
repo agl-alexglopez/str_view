@@ -10,8 +10,6 @@ A `str_view` is a 16-byte struct and, due to this size, is treated throughout th
 
 ## Install Instructions
 
-> **The `str_view` library does not yet support the Windows platform.**
-
 This library offers a manual installation through the [Releases](https://github.com/agl-alexglopez/str_view/releases) page or a port installation through the [vcpkg](https://github.com/microsoft/vcpkg) package manager.
 
 See [INSTALL.md](/INSTALL.md) file for instructions on how to install the `str-view` port through vcpkg or how to manually download, build, and install the library.
@@ -27,6 +25,5 @@ This library is not yet version `1.0`. To reach `1.0` I would like to implement 
 - More robust suite of tests to detect Undefined Behavor common with string handling.
 - Better documentation highlighting when I cannot protect the user from Undefined Behavior through programmer error.
 - SIMD intrinsics. At the very least, SIMD implemented for the short string brute force searches is critical.
-- Windows support. MSVC does not implement some significant features that make this library more robust and safer for string handling and I need to learn more about the platform. See [this issue](https://github.com/agl-alexglopez/str_view/issues/9) for more.
 
 That being said, I have already found this library very helpful whenever I need to write C code. Please consider giving it a try.
