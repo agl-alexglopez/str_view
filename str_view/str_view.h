@@ -45,18 +45,18 @@
    may specify an array of a type of at least SIZE elements large,
    allowing compiler optimizations and safety errors. Specify
    a parameter such as `void func(int size, int arr[STATIC(size)])`. */
-#    define STATIC(SIZE) static SIZE
+#    define PTR_GEQ(str, size) str[static size]
 /* A static array parameter declaration helper. Function parameters
    may specify an array of a type of at least SIZE elements large,
    allowing compiler optimizations and safety errors. Specify
    a parameter such as `void func(int size, int arr[STATIC_CONST(size)])`.
    This declarations adds the additional constraint that the pointer
    to the begginning of the array of types will not move. */
-#    define STATIC_CONST(SIZE) static const SIZE
+#    define PTR_CONST_GEQ(str, size) str[static const size]
 /* A helper macro to enforce only string literals for the SV constructor
    macro. GCC and Clang allow this syntax to create more errors when bad
    input is provided to the str_view SV constructor.*/
-#    define STR_LITERAL(STR) "" STR ""
+#    define STR_LITERAL(str) "" str ""
 #else
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
@@ -68,18 +68,18 @@
 
 /* Dummy macro for MSVC compatibility. Specifies a function parameter shall
    have at least one element. Compiler warnings may differ from GCC/Clang. */
-#    define STATIC(SIZE) 1
+#    define PTR_GEQ(str, size) *str
 /* Dummy macro for MSVC compatibility. Specifies a function parameter shall
    have at least one element. MSVC does not allow specification of a const
    pointer to the begginning of an array function parameter when using array
    size parameter syntax. Compiler warnings may differ from GCC/Clang. */
-#    define STATIC_CONST(SIZE) 1
+#    define PTR_CONST_GEQ(str, size) *const str
 /* MSVC does not allow strong enforcement of string literals to the SV
    str_view constructor. This is a dummy wrapper for compatibility. */
-#    define STR_LITERAL(STR) STR
+#    define STR_LITERAL(str) str
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
-#if defined(_MSVC_VER)
+#if defined(_MSVC_VER) || defined(_WIN32) || defined(_WIN64)
 #    if defined(SV_BUILD_DLL)
 #        define SV_API __declspec(dllexport)
 #    elif defined(SV_CONSUME_DLL)
@@ -138,13 +138,13 @@ typedef enum
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
-SV_API str_view sv(char const str[STATIC(1)]) ATTRIB_NONNULL(1)
+SV_API str_view sv(char const PTR_GEQ(str, 1)) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-SV_API str_view sv_n(size_t n, char const str[STATIC(1)]) ATTRIB_NONNULL(2)
+SV_API str_view sv_n(size_t n, char const PTR_GEQ(str, 1)) ATTRIB_NONNULL(2)
     ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a NULL TERMINATED string
@@ -152,23 +152,24 @@ SV_API str_view sv_n(size_t n, char const str[STATIC(1)]) ATTRIB_NONNULL(2)
    terminator if delim cannot be found. This constructor will also
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
-SV_API str_view sv_delim(char const str[STATIC(1)], char const delim[STATIC(1)])
-    ATTRIB_NONNULL(1, 2) ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
+SV_API str_view sv_delim(char const PTR_GEQ(str, 1),
+                         char const PTR_GEQ(delim, 1)) ATTRIB_NONNULL(1, 2)
+    ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
-SV_API size_t sv_strsize(char const str[STATIC(1)]) ATTRIB_NONNULL(1)
+SV_API size_t sv_strsize(char const PTR_GEQ(str, 1)) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
-SV_API str_view sv_copy(size_t str_sz, char const src_str[STATIC(1)])
+SV_API str_view sv_copy(size_t str_sz, char const PTR_GEQ(src_str, 1))
     ATTRIB_NONNULL(2) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
    the string. This may cut off src data if dest_sz < src.sz.
    Returns how many bytes were written to the buffer. */
-SV_API size_t sv_fill(size_t dest_sz, char dest_buf[STATIC(dest_sz)],
+SV_API size_t sv_fill(size_t dest_sz, char PTR_GEQ(dest_buf, dest_sz),
                       str_view src) ATTRIB_NONNULL(2);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
@@ -179,7 +180,7 @@ SV_API size_t sv_fill(size_t dest_sz, char dest_buf[STATIC(dest_sz)],
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-SV_API sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[STATIC(1)])
+SV_API sv_threeway_cmp sv_strcmp(str_view lhs, char const PTR_GEQ(rhs, 1))
     ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
@@ -191,24 +192,24 @@ SV_API sv_threeway_cmp sv_strcmp(str_view lhs, char const rhs[STATIC(1)])
    Comparison is bounded by the shorter str_view length. ERR is
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
-SV_API sv_threeway_cmp sv_strncmp(str_view lhs, char const rhs[STATIC(1)],
+SV_API sv_threeway_cmp sv_strncmp(str_view lhs, char const PTR_GEQ(rhs, 1),
                                   size_t n) ATTRIB_NONNULL(2)
     ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the minimum between the string size vs n bytes. */
-SV_API size_t sv_minlen(char const str[STATIC(1)], size_t n) ATTRIB_NONNULL(1)
+SV_API size_t sv_minlen(char const PTR_GEQ(str, 1), size_t n) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-SV_API char const *sv_next(char const c[STATIC(1)]) ATTRIB_NONNULL(1)
+SV_API char const *sv_next(char const PTR_GEQ(c, 1)) ATTRIB_NONNULL(1)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the iterator to the next character in the str_view
    being iterated through in reverse. It is undefined behavior
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
-SV_API char const *sv_rnext(char const c[STATIC(1)])
+SV_API char const *sv_rnext(char const PTR_GEQ(c, 1))
     ATTRIB_NONNULL(1) ATTRIB_PURE;
 
 /* Creates the substring from position pos for count length. The count is
@@ -248,7 +249,7 @@ SV_API size_t sv_size(str_view sv) ATTRIB_CONST;
 
 /* Swaps the contents of a and b. Becuase these are read only views
    only pointers and sizes are exchanged. */
-SV_API void sv_swap(str_view a[STATIC(1)], str_view b[STATIC(1)])
+SV_API void sv_swap(str_view PTR_GEQ(a, 1), str_view PTR_GEQ(b, 1))
     ATTRIB_NONNULL(1, 2);
 
 /* Returns a str_view of the entirety of the underlying string, starting
@@ -439,6 +440,6 @@ SV_API size_t sv_find_last_not_of(str_view hay, str_view set) ATTRIB_PURE;
 /*============================  Printing  ==================================*/
 
 /* Writes all characters in str_view to specified file such as stdout. */
-SV_API void sv_print(FILE f[STATIC(1)], str_view sv) ATTRIB_NONNULL(1);
+SV_API void sv_print(FILE *f, str_view sv) ATTRIB_NONNULL(1);
 
 #endif /* STR_VIEW */
