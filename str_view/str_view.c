@@ -11,6 +11,37 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Clang and GCC support static array parameter declarations while
+   MSVC does not. This is how to solve the differing declaration
+   signature requirements. */
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
+/* Clang and GCC support static array parameter declarations while
+   MSVC does not. This is how to solve the differing declaration
+   signature requirements. */
+
+/* A static array parameter declaration helper. Function parameters
+   may specify an array of a type of at least SIZE elements large,
+   allowing compiler optimizations and safety errors. Specify
+   a parameter such as `void func(int size, GEQ(arr, size))`. */
+#    define GEQ(str, size) str[static(size)]
+/* A static array parameter declaration helper. Function parameters
+   may specify an array of a type of at least SIZE elements large,
+   allowing compiler optimizations and safety errors. Specify
+   a parameter such as `void func(int size, int arr[STATIC_CONST(size)])`.
+   This declarations adds the additional constraint that the pointer
+   to the begginning of the array of types will not move. */
+#    define CONST_GEQ(str, size) str[static const(size)]
+#else
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. Compiler warnings may differ from GCC/Clang. */
+#    define GEQ(str, size) *str
+/* Dummy macro for MSVC compatibility. Specifies a function parameter shall
+   have at least one element. MSVC does not allow specification of a const
+   pointer to the begginning of an array function parameter when using array
+   size parameter syntax. Compiler warnings may differ from GCC/Clang. */
+#    define CONST_GEQ(str, size) *const str
+#endif
+
 /* ========================   Type Definitions   =========================== */
 
 /* Return the factorization step of two-way search in precompute phase. */
@@ -35,80 +66,98 @@ static size_t sv_before_rfind(str_view, str_view);
 static size_t sv_min(size_t, size_t);
 static sv_threeway_cmp sv_char_cmp(char, char);
 static int64_t sv_ssizet_max(int64_t, int64_t);
-static size_t sv_pos_memo(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                          int64_t needle_sz, char const ARR_GEQ(, needle_sz),
+
+/* Once the user facing API has verified the lengths of strings provided to
+   views as inputs, internal code can take advantage of compiler optimizations
+   by assuming the strings are GREATER than or EQUAL TO certain lenghts
+   allowing for processing by larger units than 1 in compiled code. */
+
+static size_t sv_pos_memo(int64_t hay_sz, char const GEQ(, hay_sz),
+                          int64_t needle_sz, char const GEQ(, needle_sz),
                           int64_t, int64_t);
-static size_t sv_pos_normal(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                            int64_t needle_sz, char const ARR_GEQ(, needle_sz),
+static size_t sv_pos_normal(int64_t hay_sz, char const GEQ(, hay_sz),
+                            int64_t needle_sz, char const GEQ(, needle_sz),
                             int64_t, int64_t);
-static size_t sv_rpos_memo(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                           int64_t needle_sz, char const ARR_GEQ(, needle_sz),
+static size_t sv_rpos_memo(int64_t hay_sz, char const GEQ(, hay_sz),
+                           int64_t needle_sz, char const GEQ(, needle_sz),
                            int64_t, int64_t);
-static size_t sv_rpos_normal(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                             int64_t needle_sz, char const ARR_GEQ(, needle_sz),
+static size_t sv_rpos_normal(int64_t hay_sz, char const GEQ(, hay_sz),
+                             int64_t needle_sz, char const GEQ(, needle_sz),
                              int64_t, int64_t);
-static size_t sv_tw_match(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                          int64_t needle_sz, char const ARR_GEQ(, needle_sz));
-static size_t sv_tw_rmatch(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                           int64_t needle_sz, char const ARR_GEQ(, needle_sz));
+static size_t sv_tw_match(int64_t hay_sz, char const GEQ(, hay_sz),
+                          int64_t needle_sz, char const GEQ(, needle_sz));
+static size_t sv_tw_rmatch(int64_t hay_sz, char const GEQ(, hay_sz),
+                           int64_t needle_sz, char const GEQ(, needle_sz));
+static struct sv_factorization sv_maximal_suffix(int64_t needle_sz,
+                                                 char const GEQ(, needle_sz));
 static struct sv_factorization
-sv_maximal_suffix(int64_t needle_sz, char const ARR_GEQ(, needle_sz));
+sv_maximal_suffix_rev(int64_t needle_sz, char const GEQ(, needle_sz));
+static struct sv_factorization sv_rmaximal_suffix(int64_t needle_sz,
+                                                  char const GEQ(, needle_sz));
 static struct sv_factorization
-sv_maximal_suffix_rev(int64_t needle_sz, char const ARR_GEQ(, needle_sz));
-static struct sv_factorization
-sv_rmaximal_suffix(int64_t needle_sz, char const ARR_GEQ(, needle_sz));
-static struct sv_factorization
-sv_rmaximal_suffix_rev(int64_t needle_sz, char const ARR_GEQ(, needle_sz));
+sv_rmaximal_suffix_rev(int64_t needle_sz, char const GEQ(, needle_sz));
 static size_t sv_twobyte_strnstrn(size_t hay_sz,
-                                  unsigned char const ARR_GEQ(, hay_sz),
-                                  size_t n_sz,
-                                  unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_threebyte_strnstrn(size_t sz,
-                                    unsigned char const ARR_GEQ(, sz),
+                                  unsigned char const GEQ(, hay_sz),
+                                  size_t n_sz, unsigned char const GEQ(, n_sz));
+static size_t sv_threebyte_strnstrn(size_t sz, unsigned char const GEQ(, sz),
                                     size_t n_sz,
-                                    unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_fourbyte_strnstrn(size_t sz, unsigned char const ARR_GEQ(, sz),
+                                    unsigned char const GEQ(, n_sz));
+static size_t sv_fourbyte_strnstrn(size_t sz, unsigned char const GEQ(, sz),
                                    size_t n_sz,
-                                   unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_strcspn(size_t str_sz, char const ARR_GEQ(, str_sz),
-                         size_t set_sz, char const ARR_GEQ(, set_sz));
-static size_t sv_strspn(size_t str_sz, char const ARR_GEQ(, str_sz),
-                        size_t set_sz, char const ARR_GEQ(, set_sz));
-static size_t sv_strnstrn(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                          int64_t needle_sz, char const ARR_GEQ(, needle_sz));
-static size_t sv_strnchr(size_t n, char const ARR_GEQ(, n), char);
-static size_t sv_rstrnchr(size_t n, char const ARR_GEQ(, n), char);
-static size_t sv_rstrnstrn(int64_t hay_sz, char const ARR_GEQ(, hay_sz),
-                           int64_t needle_sz, char const ARR_GEQ(, needle_sz));
-static size_t sv_rtwobyte_strnstrn(size_t sz, unsigned char const ARR_GEQ(, sz),
+                                   unsigned char const GEQ(, n_sz));
+static size_t sv_strcspn(size_t str_sz, char const GEQ(, str_sz), size_t set_sz,
+                         char const GEQ(, set_sz));
+static size_t sv_strspn(size_t str_sz, char const GEQ(, str_sz), size_t set_sz,
+                        char const GEQ(, set_sz));
+static size_t sv_strnstrn(int64_t hay_sz, char const GEQ(, hay_sz),
+                          int64_t needle_sz, char const GEQ(, needle_sz));
+static size_t sv_strnchr(size_t n, char const GEQ(, n), char);
+static size_t sv_rstrnchr(size_t n, char const GEQ(, n), char);
+static size_t sv_rstrnstrn(int64_t hay_sz, char const GEQ(, hay_sz),
+                           int64_t needle_sz, char const GEQ(, needle_sz));
+static size_t sv_rtwobyte_strnstrn(size_t sz, unsigned char const GEQ(, sz),
                                    size_t n_sz,
-                                   unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_rthreebyte_strnstrn(size_t sz,
-                                     unsigned char const ARR_GEQ(, sz),
+                                   unsigned char const GEQ(, n_sz));
+static size_t sv_rthreebyte_strnstrn(size_t sz, unsigned char const GEQ(, sz),
                                      size_t n_sz,
-                                     unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_rfourbyte_strnstrn(size_t sz,
-                                    unsigned char const ARR_GEQ(, sz),
+                                     unsigned char const GEQ(, n_sz));
+static size_t sv_rfourbyte_strnstrn(size_t sz, unsigned char const GEQ(, sz),
                                     size_t n_sz,
-                                    unsigned char const ARR_GEQ(, n_sz));
+                                    unsigned char const GEQ(, n_sz));
 
 /* ===================   Interface Implementation   ====================== */
 
 str_view
-sv(char const ARR_GEQ(str, 1))
+sv(char const *const str)
 {
+    if (!str)
+    {
+        return nil;
+    }
     return (str_view){.s = str, .sz = strlen(str)};
 }
 
 str_view
-sv_n(size_t n, char const ARR_GEQ(str, 1))
+sv_n(size_t n, char const *const str)
 {
+    if (!str)
+    {
+        return nil;
+    }
     return (str_view){.s = str, .sz = strnlen(str, n)};
 }
 
 str_view
-sv_delim(char const ARR_GEQ(str, 1), char const ARR_GEQ(delim, 1))
+sv_delim(char const *const str, char const *const delim)
 {
+    if (!str)
+    {
+        return nil;
+    }
+    if (!delim)
+    {
+        return (str_view){.s = str, .sz = strlen(str)};
+    }
     return sv_begin_tok((str_view){.s = str, .sz = strlen(str)},
                         (str_view){.s = delim, .sz = strlen(delim)});
 }
@@ -126,16 +175,15 @@ sv_print(FILE *f, str_view const sv)
 }
 
 str_view
-sv_copy(size_t const str_sz, char const ARR_GEQ(src_str, 1))
+sv_copy(size_t const str_sz, char const *const src_str)
 {
     return sv_n(str_sz, src_str);
 }
 
 size_t
-sv_fill(size_t const dest_sz, char ARR_CONST_GEQ(dest_buf, dest_sz),
-        str_view const src)
+sv_fill(size_t const dest_sz, char *const dest_buf, str_view const src)
 {
-    if (!dest_sz || !src.s || !src.sz)
+    if (!dest_buf || !dest_sz || !src.s || !src.sz)
     {
         return 0;
     }
@@ -148,7 +196,7 @@ sv_fill(size_t const dest_sz, char ARR_CONST_GEQ(dest_buf, dest_sz),
 bool
 sv_empty(str_view const sv)
 {
-    return !sv.s || !sv.sz;
+    return !sv.sz;
 }
 
 size_t
@@ -164,13 +212,17 @@ sv_size(str_view const sv)
 }
 
 size_t
-sv_strsize(char const ARR_GEQ(str, 1))
+sv_strsize(char const *const str)
 {
+    if (!str)
+    {
+        return 0;
+    }
     return strlen(str) + 1;
 }
 
 size_t
-sv_minlen(char const ARR_GEQ(str, 1), size_t n)
+sv_minlen(char const *const str, size_t n)
 {
     return strnlen(str, n);
 }
@@ -228,9 +280,9 @@ sv_cmp(str_view const lhs, str_view const rhs)
 }
 
 sv_threeway_cmp
-sv_strcmp(str_view const lhs, char const ARR_GEQ(rhs, 1))
+sv_strcmp(str_view const lhs, char const *const rhs)
 {
-    if (!lhs.s)
+    if (!lhs.s || !rhs)
     {
         return SV_ERR;
     }
@@ -250,9 +302,9 @@ sv_strcmp(str_view const lhs, char const ARR_GEQ(rhs, 1))
 }
 
 sv_threeway_cmp
-sv_strncmp(str_view const lhs, char const ARR_GEQ(rhs, 1), size_t const n)
+sv_strncmp(str_view const lhs, char const *const rhs, size_t const n)
 {
-    if (!lhs.s)
+    if (!lhs.s || !rhs)
     {
         return SV_ERR;
     }
@@ -313,8 +365,12 @@ sv_end(str_view const sv)
 }
 
 char const *
-sv_next(char const ARR_GEQ(c, 1))
+sv_next(char const *c)
 {
+    if (!c)
+    {
+        return nil.s;
+    }
     return ++c;
 }
 
@@ -347,8 +403,12 @@ sv_rend(str_view const sv)
 }
 
 char const *
-sv_rnext(char const ARR_GEQ(c, 1))
+sv_rnext(char const *c)
 {
+    if (!c)
+    {
+        return nil.s;
+    }
     return --c;
 }
 
@@ -802,8 +862,8 @@ sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
 static size_t
-sv_strcspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
-           size_t const set_sz, char const ARR_GEQ(set, set_sz))
+sv_strcspn(size_t const str_sz, char const CONST_GEQ(str, str_sz),
+           size_t const set_sz, char const GEQ(set, set_sz))
 {
     if (!set_sz)
     {
@@ -835,8 +895,8 @@ sv_strcspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
 static size_t
-sv_strspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
-          size_t const set_sz, char const ARR_GEQ(set, set_sz))
+sv_strspn(size_t const str_sz, char const CONST_GEQ(str, str_sz),
+          size_t const set_sz, char const GEQ(set, set_sz))
 {
     char const *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
@@ -866,9 +926,8 @@ sv_strspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
    hay length. Returns 0 based index position at which needle begins in
    hay if it can be found, otherwise the hay size is returned. */
 static size_t
-sv_strnstrn(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-            int64_t const needle_sz,
-            char const ARR_CONST_GEQ(needle, needle_sz))
+sv_strnstrn(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+            int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz))
 {
     if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
@@ -902,9 +961,8 @@ sv_strnstrn(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
    the start of the reverse two-way algorithm for more. May unite if
    a clean way exists. */
 static size_t
-sv_rstrnstrn(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-             int64_t const needle_sz,
-             char const ARR_CONST_GEQ(needle, needle_sz))
+sv_rstrnstrn(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+             int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz))
 {
     if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
@@ -960,9 +1018,8 @@ sv_rstrnstrn(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
    an entire string. Returns the position at which needle begins if found
    and the size of the hay stack if not found. */
 static inline size_t
-sv_tw_match(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-            int64_t const needle_sz,
-            char const ARR_CONST_GEQ(needle, needle_sz))
+sv_tw_match(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+            int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz))
 {
     /* Preprocessing to get critical position and period distance. */
     struct sv_factorization const s = sv_maximal_suffix(needle_sz, needle);
@@ -981,9 +1038,8 @@ sv_tw_match(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_pos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-            int64_t const needle_sz,
-            char const ARR_CONST_GEQ(needle, needle_sz),
+sv_pos_memo(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+            int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz),
             int64_t const period_dist, int64_t const critical_pos)
 {
     int64_t lpos = 0;
@@ -1024,10 +1080,9 @@ sv_pos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_pos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-              int64_t const needle_sz,
-              char const ARR_CONST_GEQ(needle, needle_sz), int64_t period_dist,
-              int64_t const critical_pos)
+sv_pos_normal(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+              int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz),
+              int64_t period_dist, int64_t const critical_pos)
 {
     period_dist
         = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
@@ -1066,7 +1121,7 @@ sv_pos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static inline struct sv_factorization
 sv_maximal_suffix(int64_t const needle_sz,
-                  char const ARR_CONST_GEQ(needle, needle_sz))
+                  char const CONST_GEQ(needle, needle_sz))
 {
     int64_t suff_pos = -1;
     int64_t period = 1;
@@ -1110,7 +1165,7 @@ sv_maximal_suffix(int64_t const needle_sz,
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static inline struct sv_factorization
 sv_maximal_suffix_rev(int64_t const needle_sz,
-                      char const ARR_CONST_GEQ(needle, needle_sz))
+                      char const CONST_GEQ(needle, needle_sz))
 {
     int64_t suff_pos = -1;
     int64_t period = 1;
@@ -1188,9 +1243,8 @@ sv_maximal_suffix_rev(int64_t const needle_sz,
 /* Searches a string from right to left with a two-way algorithm. Returns
    the position of the start of the strig if found and string size if not. */
 static inline size_t
-sv_tw_rmatch(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-             int64_t const needle_sz,
-             char const ARR_CONST_GEQ(needle, needle_sz))
+sv_tw_rmatch(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+             int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz))
 {
     struct sv_factorization const s = sv_rmaximal_suffix(needle_sz, needle);
     struct sv_factorization const r = sv_rmaximal_suffix_rev(needle_sz, needle);
@@ -1206,9 +1260,8 @@ sv_tw_rmatch(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 }
 
 static size_t
-sv_rpos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-             int64_t const needle_sz,
-             char const ARR_CONST_GEQ(needle, needle_sz),
+sv_rpos_memo(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+             int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz),
              int64_t const period_dist, int64_t const critical_pos)
 {
     int64_t lpos = 0;
@@ -1250,10 +1303,9 @@ sv_rpos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 }
 
 static size_t
-sv_rpos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-               int64_t const needle_sz,
-               char const ARR_CONST_GEQ(needle, needle_sz), int64_t period_dist,
-               int64_t const critical_pos)
+sv_rpos_normal(int64_t const hay_sz, char const CONST_GEQ(hay, hay_sz),
+               int64_t const needle_sz, char const CONST_GEQ(needle, needle_sz),
+               int64_t period_dist, int64_t const critical_pos)
 {
     period_dist
         = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
@@ -1294,7 +1346,7 @@ sv_rpos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 
 static inline struct sv_factorization
 sv_rmaximal_suffix(int64_t const needle_sz,
-                   char const ARR_CONST_GEQ(needle, needle_sz))
+                   char const CONST_GEQ(needle, needle_sz))
 {
     int64_t suff_pos = -1;
     int64_t period = 1;
@@ -1336,7 +1388,7 @@ sv_rmaximal_suffix(int64_t const needle_sz,
 
 static inline struct sv_factorization
 sv_rmaximal_suffix_rev(int64_t const needle_sz,
-                       char const ARR_CONST_GEQ(needle, needle_sz))
+                       char const CONST_GEQ(needle, needle_sz))
 {
     int64_t suff_pos = -1;
     int64_t period = 1;
@@ -1388,7 +1440,7 @@ sv_rmaximal_suffix_rev(int64_t const needle_sz,
    to left. Also having a reverse tokenizer is convenient and also relies
    on right to left brute force searches. */
 static inline size_t
-sv_strnchr(size_t n, char const ARR_GEQ(s, n), char const c)
+sv_strnchr(size_t n, char const GEQ(s, n), char const c)
 {
     size_t i = 0;
     for (; n && *s != c; s++, --n, ++i)
@@ -1397,7 +1449,7 @@ sv_strnchr(size_t n, char const ARR_GEQ(s, n), char const c)
 }
 
 static inline size_t
-sv_rstrnchr(size_t const n, char const ARR_CONST_GEQ(s, n), char const c)
+sv_rstrnchr(size_t const n, char const CONST_GEQ(s, n), char const c)
 {
     char const *x = s + n - 1;
     size_t i = n;
@@ -1407,9 +1459,8 @@ sv_rstrnchr(size_t const n, char const ARR_CONST_GEQ(s, n), char const c)
 }
 
 static inline size_t
-sv_twobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                    size_t const n_sz,
-                    unsigned char const ARR_CONST_GEQ(n, n_sz))
+sv_twobyte_strnstrn(size_t const sz, unsigned char const GEQ(h, sz),
+                    size_t const n_sz, unsigned char const CONST_GEQ(n, n_sz))
 {
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
@@ -1420,9 +1471,8 @@ sv_twobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rtwobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                     size_t const n_sz,
-                     unsigned char const ARR_CONST_GEQ(n, n_sz))
+sv_rtwobyte_strnstrn(size_t const sz, unsigned char const GEQ(h, sz),
+                     size_t const n_sz, unsigned char const CONST_GEQ(n, n_sz))
 {
     h = h + sz - 2;
     uint16_t nw = n[0] << 8 | n[1];
@@ -1437,9 +1487,8 @@ sv_rtwobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_threebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                      size_t const n_sz,
-                      unsigned char const ARR_CONST_GEQ(n, n_sz))
+sv_threebyte_strnstrn(size_t const sz, unsigned char const GEQ(h, sz),
+                      size_t const n_sz, unsigned char const CONST_GEQ(n, n_sz))
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
@@ -1450,9 +1499,9 @@ sv_threebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rthreebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+sv_rthreebyte_strnstrn(size_t const sz, unsigned char const GEQ(h, sz),
                        size_t const n_sz,
-                       unsigned char const ARR_CONST_GEQ(n, n_sz))
+                       unsigned char const CONST_GEQ(n, n_sz))
 {
     h = h + sz - 3;
     uint32_t nw = (uint32_t)n[0] << 16 | n[1] << 8 | n[2];
@@ -1467,9 +1516,8 @@ sv_rthreebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_fourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                     size_t const n_sz,
-                     unsigned char const ARR_CONST_GEQ(n, n_sz))
+sv_fourbyte_strnstrn(size_t const sz, unsigned char const GEQ(h, sz),
+                     size_t const n_sz, unsigned char const CONST_GEQ(n, n_sz))
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
@@ -1480,9 +1528,8 @@ sv_fourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rfourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                      size_t const n_sz,
-                      unsigned char const ARR_CONST_GEQ(n, n_sz))
+sv_rfourbyte_strnstrn(size_t const sz, unsigned char const GEQ(h, sz),
+                      size_t const n_sz, unsigned char const CONST_GEQ(n, n_sz))
 {
     h = h + sz - 4;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
