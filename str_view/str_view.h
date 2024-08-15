@@ -20,11 +20,6 @@
 #        else
 #            define ATTRIB_CONST /**/
 #        endif
-#        if __has_attribute(nonnull)
-#            define ATTRIB_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
-#        else
-#            define ATTRIB_NONNULL(...) /**/
-#        endif
 #        if __has_attribute(null_terminated_string_arg)
 #            define ATTRIB_NULLTERM(...)                                       \
                 __attribute__((null_terminated_string_arg(__VA_ARGS__)))
@@ -34,7 +29,6 @@
 #    else
 #        define ATTRIB_PURE          /**/
 #        define ATTRIB_CONST         /**/
-#        define ATTRIB_NONNULL(...)  /**/
 #        define ATTRIB_NULLTERM(...) /**/
 #    endif
 /* A helper macro to enforce only string literals for the SV constructor
@@ -44,7 +38,6 @@
 #else
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
-#    define ATTRIB_NONNULL(...)  /**/
 #    define ATTRIB_NULLTERM(...) /**/
 
 /* MSVC does not allow strong enforcement of string literals to the SV
@@ -111,14 +104,12 @@ typedef enum
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
-SV_API str_view sv(char const *str) ATTRIB_NONNULL(1)
-    ATTRIB_NULLTERM(1) ATTRIB_PURE;
+SV_API str_view sv(char const *str) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a sequence of valid n bytes
    or string length, whichever comes first. The resulting str_view may
    or may not be null terminated at the index of its size. */
-SV_API str_view sv_n(size_t n, char const *str) ATTRIB_NONNULL(2)
-    ATTRIB_NULLTERM(2) ATTRIB_PURE;
+SV_API str_view sv_n(size_t n, char const *str) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Constructs and returns a string view from a NULL TERMINATED string
    broken on the first ocurrence of delimeter if found or null
@@ -126,23 +117,21 @@ SV_API str_view sv_n(size_t n, char const *str) ATTRIB_NONNULL(2)
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
 SV_API str_view sv_delim(char const *str, char const *delim)
-    ATTRIB_NONNULL(1, 2) ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
+    ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
-SV_API size_t sv_strsize(char const *str) ATTRIB_NONNULL(1)
-    ATTRIB_NULLTERM(1) ATTRIB_PURE;
+SV_API size_t sv_strsize(char const *str) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
-SV_API str_view sv_copy(size_t str_sz, char const *src_str) ATTRIB_NONNULL(2)
+SV_API str_view sv_copy(size_t str_sz, char const *src_str)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
    the string. This may cut off src data if dest_sz < src.sz.
    Returns how many bytes were written to the buffer. */
-SV_API size_t sv_fill(size_t dest_sz, char *dest_buf, str_view src)
-    ATTRIB_NONNULL(2);
+SV_API size_t sv_fill(size_t dest_sz, char *dest_buf, str_view src);
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and a c-string.
@@ -153,7 +142,7 @@ SV_API size_t sv_fill(size_t dest_sz, char *dest_buf, str_view src)
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
 SV_API sv_threeway_cmp sv_strcmp(str_view lhs, char const *rhs)
-    ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the standard C threeway comparison between cmp(lhs, rhs)
    between a str_view and the first n bytes (inclusive) of str
@@ -165,22 +154,21 @@ SV_API sv_threeway_cmp sv_strcmp(str_view lhs, char const *rhs)
    returned if bad input is provided such as a str_view with a
    NULL pointer field. */
 SV_API sv_threeway_cmp sv_strncmp(str_view lhs, char const *rhs, size_t n)
-    ATTRIB_NONNULL(2) ATTRIB_NULLTERM(2) ATTRIB_PURE;
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the minimum between the string size vs n bytes. */
-SV_API size_t sv_minlen(char const *str, size_t n) ATTRIB_NONNULL(1)
+SV_API size_t sv_minlen(char const *str, size_t n)
     ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the pointer from its previous position. If NULL is provided
    sv_null() is returned. */
-SV_API char const *sv_next(char const *c) ATTRIB_NONNULL(1)
-    ATTRIB_NULLTERM(1) ATTRIB_PURE;
+SV_API char const *sv_next(char const *c) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 
 /* Advances the iterator to the next character in the str_view
    being iterated through in reverse. It is undefined behavior
    to change the str_view one is iterating through during
    iteration. If the char pointer is null, sv_null() is returned. */
-SV_API char const *sv_rnext(char const *c) ATTRIB_NONNULL(1) ATTRIB_PURE;
+SV_API char const *sv_rnext(char const *c) ATTRIB_PURE;
 
 /* Creates the substring from position pos for count length. The count is
    the minimum value between count and (length - pos). If an invalid
