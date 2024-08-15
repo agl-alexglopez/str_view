@@ -44,15 +44,15 @@
 /* A static array parameter declaration helper. Function parameters
    may specify an array of a type of at least SIZE elements large,
    allowing compiler optimizations and safety errors. Specify
-   a parameter such as `void func(int size, int arr[STATIC(size)])`. */
-#    define PTR_GEQ(str, size) str[static size]
+   a parameter such as `void func(int size, PTR_GEQ(arr, size))`. */
+#    define PTR_GEQ(str, size) str[static(size)]
 /* A static array parameter declaration helper. Function parameters
    may specify an array of a type of at least SIZE elements large,
    allowing compiler optimizations and safety errors. Specify
    a parameter such as `void func(int size, int arr[STATIC_CONST(size)])`.
    This declarations adds the additional constraint that the pointer
    to the begginning of the array of types will not move. */
-#    define PTR_CONST_GEQ(str, size) str[static const size]
+#    define PTR_CONST_GEQ(str, size) str[static const(size)]
 /* A helper macro to enforce only string literals for the SV constructor
    macro. GCC and Clang allow this syntax to create more errors when bad
    input is provided to the str_view SV constructor.*/
@@ -134,7 +134,7 @@ typedef enum
        {}
 
    However saving the str_view in a constant may be more convenient. */
-#define SV(STR) ((str_view){STR_LITERAL(STR), sizeof(STR) - 1})
+#define SV(str) ((str_view){STR_LITERAL(str), sizeof(str) - 1})
 
 /* Constructs and returns a string view from a NULL TERMINATED string.
    It is undefined to construct a str_view from a non terminated string. */
