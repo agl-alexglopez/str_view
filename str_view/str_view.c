@@ -1418,8 +1418,8 @@ sv_twobyte_strnstrn(size_t const sz, unsigned char const PTR_GEQ(h, sz),
 {
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
-    size_t i = 0;
-    for (h++, i++; i < sz && *h && hw != nw; hw = (hw << 8) | *++h, ++i)
+    size_t i = 1;
+    for (h++; i < sz && *h && hw != nw; hw = (hw << 8) | *++h, ++i)
     {}
     return (i < sz) ? i - 1 : sz;
 }
@@ -1448,8 +1448,8 @@ sv_threebyte_strnstrn(size_t const sz, unsigned char const PTR_GEQ(h, sz),
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
-    size_t i = 0;
-    for (h += 2, i += 2; i < sz && *h && hw != nw; hw = (hw | *++h) << 8, ++i)
+    size_t i = 2;
+    for (h += 2; i < sz && *h && hw != nw; hw = (hw | *++h) << 8, ++i)
     {}
     return (i < sz) ? i - 2 : sz;
 }
@@ -1478,8 +1478,8 @@ sv_fourbyte_strnstrn(size_t const sz, unsigned char const PTR_GEQ(h, sz),
 {
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    size_t i = 0;
-    for (h += 3, i += 3; i < sz && *h && hw != nw; hw = (hw << 8) | *++h, ++i)
+    size_t i = 3;
+    for (h += 3; i < sz && *h && hw != nw; hw = (hw << 8) | *++h, ++i)
     {}
     return (i < sz) ? i - 3 : sz;
 }
