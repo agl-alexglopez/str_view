@@ -39,7 +39,6 @@
 #    define ATTRIB_PURE          /**/
 #    define ATTRIB_CONST         /**/
 #    define ATTRIB_NULLTERM(...) /**/
-
 /* MSVC does not allow strong enforcement of string literals to the SV
    str_view constructor. This is a dummy wrapper for compatibility. */
 #    define STR_LITERAL(str) str
@@ -94,9 +93,9 @@ typedef enum
    One can even use this in code when string literals are used rather than
    saved constants to avoid errors in str_view constructions.
 
-       for (str_view cur = sv_begin_tok(ref, SV(" "));
-            !sv_end_tok(ref_view, cur);
-            cur = sv_next_tok(ref_view, cur, SV(" "))
+       for (str_view cur = sv_begin_tok(src, SV(" "));
+            !sv_end_tok(src, cur);
+            cur = sv_next_tok(src, cur, SV(" "))
        {}
 
    However saving the str_view in a constant may be more convenient. */
