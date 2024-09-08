@@ -5,14 +5,14 @@
    directory for all occurrences of a target string. The program does not
    support regular expression parsing and can only search strings as
    provided. Its purpose is to test the str_view module. Here is usage
-   (replace rel in the executable path with deb if built in debug mode):
+   (replace bin in the executable path with debug/deb if built in debug mode):
 
-       ./build/rel/mini_grep [OPTIONAL IO] [FILE/DIRECTORY] [string]
+       ./build/bin/mini_grep [OPTIONAL IO] [FILE/DIRECTORY] [string]
        # Searching one file for all occurrences of string "const"
-       ./build/rel/mini_grep str_view/str_view.c const
+       ./build/bin/mini_grep str_view/str_view.c const
        # Searching all files in directory for string ")"
-       ./build/rel/mini_grep str_view/ \)
-       ./build/rel/mini_grep --mmap str_view/ \)
+       ./build/bin/mini_grep str_view/ \)
+       ./build/bin/mini_grep --mmap str_view/ \)
 
    The optional IO flag let's one choose to use mmap as the memory backing
    for the file IO. This is just for experimental purposes and for the use
