@@ -116,7 +116,7 @@ SV_API str_view sv_n(size_t n, char const *str) ATTRIB_NULLTERM(2) ATTRIB_PURE;
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
 SV_API str_view sv_delim(char const *str, char const *delim)
-    ATTRIB_NULLTERM(1, 2) ATTRIB_PURE;
+    ATTRIB_NULLTERM(1) ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
 SV_API size_t sv_strsize(char const *str) ATTRIB_NULLTERM(1) ATTRIB_PURE;
@@ -124,7 +124,7 @@ SV_API size_t sv_strsize(char const *str) ATTRIB_NULLTERM(1) ATTRIB_PURE;
 /* Copies the max of str_sz or src_str length into a view, whichever
    ends first. This is the same as sv_n. */
 SV_API str_view sv_copy(size_t str_sz, char const *src_str)
-    ATTRIB_NULLTERM(1) ATTRIB_PURE;
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
