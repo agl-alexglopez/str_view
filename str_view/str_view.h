@@ -115,8 +115,8 @@ SV_API str_view sv_n(size_t n, char const *str) ATTRIB_NULLTERM(2) ATTRIB_PURE;
    terminator if delim cannot be found. This constructor will also
    skip the delimeter if that delimeter starts the string. This is similar
    to the tokenizing function in the iteration section. */
-SV_API str_view sv_delim(char const *str, char const *delim)
-    ATTRIB_NULLTERM(1) ATTRIB_NULLTERM(2) ATTRIB_PURE;
+SV_API str_view sv_delim(char const *str, char const *delim) ATTRIB_NULLTERM(1)
+    ATTRIB_NULLTERM(2) ATTRIB_PURE;
 
 /* Returns the bytes of the string pointer to, null terminator included. */
 SV_API size_t sv_strsize(char const *str) ATTRIB_NULLTERM(1) ATTRIB_PURE;
