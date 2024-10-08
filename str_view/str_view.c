@@ -1056,11 +1056,9 @@ sv_pos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     int64_t memoize_shift = -1;
     while (lpos <= hay_sz - needle_sz)
     {
-        rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
-        while (rpos < needle_sz && needle[rpos] == hay[rpos + lpos])
-        {
-            ++rpos;
-        }
+        for (rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
+             rpos < needle_sz && needle[rpos] == hay[rpos + lpos]; ++rpos)
+        {}
         if (rpos < needle_sz)
         {
             lpos += (rpos - critical_pos);
@@ -1068,11 +1066,9 @@ sv_pos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
             continue;
         }
         /* r_pos >= needle_sz */
-        rpos = critical_pos;
-        while (rpos > memoize_shift && needle[rpos] == hay[rpos + lpos])
-        {
-            --rpos;
-        }
+        for (rpos = critical_pos;
+             rpos > memoize_shift && needle[rpos] == hay[rpos + lpos]; --rpos)
+        {}
         if (rpos <= memoize_shift)
         {
             return lpos;
@@ -1099,22 +1095,18 @@ sv_pos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     int64_t rpos = 0;
     while (lpos <= hay_sz - needle_sz)
     {
-        rpos = critical_pos + 1;
-        while (rpos < needle_sz && needle[rpos] == hay[rpos + lpos])
-        {
-            ++rpos;
-        }
+        for (rpos = critical_pos + 1;
+             rpos < needle_sz && needle[rpos] == hay[rpos + lpos]; ++rpos)
+        {}
         if (rpos < needle_sz)
         {
             lpos += (rpos - critical_pos);
             continue;
         }
         /* r_pos >= needle_sz */
-        rpos = critical_pos;
-        while (rpos >= 0 && needle[rpos] == hay[rpos + lpos])
-        {
-            --rpos;
-        }
+        for (rpos = critical_pos; rpos >= 0 && needle[rpos] == hay[rpos + lpos];
+             --rpos)
+        {}
         if (rpos < 0)
         {
             return lpos;
@@ -1280,13 +1272,11 @@ sv_rpos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     int64_t memoize_shift = -1;
     while (lpos <= hay_sz - needle_sz)
     {
-        rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
-        while (rpos < needle_sz
-               && needle[needle_sz - rpos - 1]
-                      == hay[hay_sz - (rpos + lpos) - 1])
-        {
-            ++rpos;
-        }
+        for (rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
+             rpos < needle_sz
+             && needle[needle_sz - rpos - 1] == hay[hay_sz - (rpos + lpos) - 1];
+             ++rpos)
+        {}
         if (rpos < needle_sz)
         {
             lpos += (rpos - critical_pos);
@@ -1294,13 +1284,11 @@ sv_rpos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
             continue;
         }
         /* r_pos >= needle_sz */
-        rpos = critical_pos;
-        while (rpos > memoize_shift
-               && needle[needle_sz - rpos - 1]
-                      == hay[hay_sz - (rpos + lpos) - 1])
-        {
-            --rpos;
-        }
+        for (rpos = critical_pos;
+             rpos > memoize_shift
+             && needle[needle_sz - rpos - 1] == hay[hay_sz - (rpos + lpos) - 1];
+             --rpos)
+        {}
         if (rpos <= memoize_shift)
         {
             return hay_sz - lpos - needle_sz;
@@ -1325,26 +1313,22 @@ sv_rpos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     int64_t rpos = 0;
     while (lpos <= hay_sz - needle_sz)
     {
-        rpos = critical_pos + 1;
-        while (rpos < needle_sz
-               && (needle[needle_sz - rpos - 1]
-                   == hay[hay_sz - (rpos + lpos) - 1]))
-        {
-            ++rpos;
-        }
+        for (rpos = critical_pos + 1; rpos < needle_sz
+                                      && (needle[needle_sz - rpos - 1]
+                                          == hay[hay_sz - (rpos + lpos) - 1]);
+             ++rpos)
+        {}
         if (rpos < needle_sz)
         {
             lpos += (rpos - critical_pos);
             continue;
         }
         /* r_pos >= needle_sz */
-        rpos = critical_pos;
-        while (rpos >= 0
-               && needle[needle_sz - rpos - 1]
-                      == hay[hay_sz - (rpos + lpos) - 1])
-        {
-            --rpos;
-        }
+        for (rpos = critical_pos;
+             rpos >= 0
+             && needle[needle_sz - rpos - 1] == hay[hay_sz - (rpos + lpos) - 1];
+             --rpos)
+        {}
         if (rpos < 0)
         {
             return hay_sz - lpos - needle_sz;
