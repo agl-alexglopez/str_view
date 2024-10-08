@@ -65,7 +65,7 @@ static size_t sv_after_find(str_view, str_view);
 static size_t sv_before_rfind(str_view, str_view);
 static size_t sv_min(size_t, size_t);
 static sv_threeway_cmp sv_char_cmp(char, char);
-static int64_t sv_ssizet_max(int64_t, int64_t);
+static int64_t sv_signed_max(int64_t, int64_t);
 
 /* Once the user facing API has verified the lengths of strings provided to
    views as inputs, internal code can take advantage of compiler optimizations
@@ -823,7 +823,7 @@ sv_min(size_t const a, size_t const b)
 }
 
 static inline int64_t
-sv_ssizet_max(int64_t const a, int64_t const b)
+sv_signed_max(int64_t const a, int64_t const b)
 {
     return a > b ? a : b;
 }
@@ -1056,7 +1056,7 @@ sv_pos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     int64_t memoize_shift = -1;
     while (lpos <= hay_sz - needle_sz)
     {
-        for (rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
+        for (rpos = sv_signed_max(critical_pos, memoize_shift) + 1;
              rpos < needle_sz && needle[rpos] == hay[rpos + lpos]; ++rpos)
         {}
         if (rpos < needle_sz)
@@ -1090,7 +1090,7 @@ sv_pos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
               int64_t const critical_pos)
 {
     period_dist
-        = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
+        = sv_signed_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
     int64_t lpos = 0;
     int64_t rpos = 0;
     while (lpos <= hay_sz - needle_sz)
@@ -1272,7 +1272,7 @@ sv_rpos_memo(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     int64_t memoize_shift = -1;
     while (lpos <= hay_sz - needle_sz)
     {
-        for (rpos = sv_ssizet_max(critical_pos, memoize_shift) + 1;
+        for (rpos = sv_signed_max(critical_pos, memoize_shift) + 1;
              rpos < needle_sz
              && needle[needle_sz - rpos - 1] == hay[hay_sz - (rpos + lpos) - 1];
              ++rpos)
@@ -1308,7 +1308,7 @@ sv_rpos_normal(int64_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
                int64_t const critical_pos)
 {
     period_dist
-        = sv_ssizet_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
+        = sv_signed_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
     int64_t lpos = 0;
     int64_t rpos = 0;
     while (lpos <= hay_sz - needle_sz)
