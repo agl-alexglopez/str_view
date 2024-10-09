@@ -2,7 +2,7 @@
 #define TEST
 
 #include <signal.h>
-#include <stdio.h>
+#include <stdio.h> /* NOLINT */
 
 #define RED "\033[38;5;9m"
 #define GREEN "\033[38;5;10m"
