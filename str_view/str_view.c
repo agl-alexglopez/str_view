@@ -865,7 +865,7 @@ sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
     return n ? *l - *r : 0;
 }
 
-/* strspn is based on musl C-standard library implementation
+/* strcspn is based on musl C-standard library implementation
    http://git.musl-libc.org/cgit/musl/tree/src/string/strcspn.c
    A custom implemenatation is necessary because C standard library impls
    have no concept of a string view and will continue searching beyond the
@@ -881,19 +881,19 @@ sv_strcspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
     }
     char const *a = str;
     size_t byteset[32 / sizeof(size_t)];
-    if (!set[1])
+    if (set_sz == 1)
     {
-        for (size_t i = 0; i < str_sz && *a && *a != *set; a++)
+        for (size_t i = 0; i < str_sz && *a != *set; ++a, ++i)
         {}
         return a - str;
     }
     memset(byteset, 0, sizeof byteset);
     for (size_t i = 0;
-         i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
-         set++, ++i)
+         i < set_sz && BITOP(byteset, *(unsigned char *)set, |=);
+         ++set, ++i)
     {}
     for (size_t i = 0;
-         i < str_sz && *a && !BITOP(byteset, *(unsigned char *)a, &); a++)
+         i < str_sz && !BITOP(byteset, *(unsigned char *)a, &); ++a)
     {}
     return a - str;
 }
@@ -910,22 +910,22 @@ sv_strspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
 {
     char const *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
-    if (!set[0])
+    if (!set_sz)
     {
         return str_sz;
     }
-    if (!set[1])
+    if (set_sz == 1)
     {
-        for (size_t i = 0; i < str_sz && i < set_sz && *a == *set; a++, ++i)
+        for (size_t i = 0; i < str_sz && *a == *set; ++a, ++i)
         {}
         return a - str;
     }
     for (size_t i = 0;
-         i < set_sz && *set && BITOP(byteset, *(unsigned char *)set, |=);
-         set++, ++i)
+         i < set_sz && BITOP(byteset, *(unsigned char *)set, |=);
+         ++set, ++i)
     {}
     for (size_t i = 0;
-         i < str_sz && *a && BITOP(byteset, *(unsigned char *)a, &); a++, ++i)
+         i < str_sz && BITOP(byteset, *(unsigned char *)a, &); ++a, ++i)
     {}
     return a - str;
 }
@@ -1465,29 +1465,28 @@ sv_twobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
                     size_t const n_sz,
                     unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
+    unsigned char const *const end = h + sz;
     uint16_t nw = n[0] << 8 | n[1];
     uint16_t hw = h[0] << 8 | h[1];
-    size_t i = 1;
-    for (h++; i < sz && *h && hw != nw; hw = (hw << 8) | *++h, ++i)
+    for (++h; hw != nw && ++h < end; hw = (hw << 8) | *h)
     {}
-    return (i < sz) ? i - 1 : sz;
+    return h >= end ? sz : (sz - (size_t)(end - h)) - 1;
 }
 
 static inline size_t
-sv_rtwobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+sv_rtwobyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
                      size_t const n_sz,
                      unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
-    h = h + sz - 2;
+    unsigned char const *i = h + (sz - 2);
     uint16_t nw = n[0] << 8 | n[1];
-    uint16_t hw = h[0] << 8 | h[1];
-    size_t i = sz - 1;
+    uint16_t iw = i[0] << 8 | i[1];
     /* The search is right to left therefore the Most Significant Byte will
        be the leading character of the string and the previous leading
        character is shifted to the right. */
-    for (; i && hw != nw; hw = (hw >> 8) | (*--h << 8), --i)
+    for (; iw != nw && --i >= h; iw = (iw >> 8) | (*i << 8))
     {}
-    return i ? i - 1 : sz;
+    return i < h ? sz : (size_t)(i - h);
 }
 
 static inline size_t
@@ -1495,29 +1494,28 @@ sv_threebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
                       size_t const n_sz,
                       unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
+    unsigned char const *const end = h + sz;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8;
-    size_t i = 2;
-    for (h += 2; i < sz && *h && hw != nw; hw = (hw | *++h) << 8, ++i)
+    for (h += 2; hw != nw && ++h < end; hw = (hw | *h) << 8)
     {}
-    return (i < sz) ? i - 2 : sz;
+    return h >= end ? sz : (sz - (size_t)(end - h)) - 2;
 }
 
 static inline size_t
-sv_rthreebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+sv_rthreebyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
                        size_t const n_sz,
                        unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
-    h = h + sz - 3;
+    unsigned char const *i = h + (sz - 3);
     uint32_t nw = (uint32_t)n[0] << 16 | n[1] << 8 | n[2];
-    uint32_t hw = (uint32_t)h[0] << 16 | h[1] << 8 | h[2];
-    size_t i = sz - 2;
+    uint32_t iw = (uint32_t)i[0] << 16 | i[1] << 8 | i[2];
     /* Align the bits with fewer left shifts such that as the parsing
        progresses right left, the leading character always takes highest
        bit position and there is no need for any masking. */
-    for (; i && hw != nw; hw = (hw >> 8) | (*--h << 16), --i)
+    for (; iw != nw && --i >= h; iw = (iw >> 8) | (*i << 16))
     {}
-    return i ? i - 1 : sz;
+    return i < h ? sz : (size_t)(i - h);
 }
 
 static inline size_t
@@ -1525,27 +1523,26 @@ sv_fourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
                      size_t const n_sz,
                      unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
+    unsigned char const *const end = h + sz;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
     uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    size_t i = 3;
-    for (h += 3; i < sz && *h && hw != nw; hw = (hw << 8) | *++h, ++i)
+    for (h += 3; hw != nw && ++h < end; hw = (hw << 8) | *h)
     {}
-    return (i < sz) ? i - 3 : sz;
+    return h >= end ? sz : (sz - (size_t)(end - h)) - 3;
 }
 
 static inline size_t
-sv_rfourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+sv_rfourbyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
                       size_t const n_sz,
                       unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
-    h = h + sz - 4;
+    unsigned char const *i = h + (sz - 4);
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
-    uint32_t hw = (uint32_t)h[0] << 24 | h[1] << 16 | h[2] << 8 | h[3];
-    size_t i = sz - 3;
+    uint32_t iw = (uint32_t)i[0] << 24 | i[1] << 16 | i[2] << 8 | i[3];
     /* Now that all four bytes of the unsigned int are used the shifting
        becomes more intuitive. The window slides left to right and the
        next leading character takes the high bit position. */
-    for (; i && hw != nw; hw = (hw >> 8) | (*--h << 24), --i)
+    for (; iw != nw && --i >= h; iw = (iw >> 8) | (*i << 24))
     {}
-    return i ? i - 1 : sz;
+    return i < h ? sz : (size_t)(i - h);
 }

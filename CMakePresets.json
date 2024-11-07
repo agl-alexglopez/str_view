@@ -62,6 +62,26 @@
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_C_FLAGS": "-Wall -Wextra -Wfloat-equal -Wtype-limits -Wpointer-arith -Wshadow -Winit-self -fno-diagnostics-show-option -Wno-pointer-bool-conversion"
             }
+        },
+        {
+            "name": "gcc-debsan",
+            "inherits": "default-deb",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_C_FLAGS": "-g3 -Wall -Wextra -Wfloat-equal -Wtype-limits -Wpointer-arith -Wshadow -Winit-self -fno-diagnostics-show-option -fanalyzer -fsanitize=address,leak,undefined",
+                "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,leak,undefined"
+            }
+        },
+        {
+            "name": "gcc-relsan",
+            "inherits": "default-rel",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_C_FLAGS": "-Wall -Wextra -Wfloat-equal -Wtype-limits -Wpointer-arith -Wshadow -Winit-self -fno-diagnostics-show-option -fsanitize=address,leak,undefined",
+                "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,leak,undefined"
+            }
         }
     ]
 }
