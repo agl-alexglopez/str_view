@@ -58,6 +58,7 @@ run(str_view const tests_dir)
     size_t tests = 0;
     size_t passed = 0;
     struct dirent const *d;
+    bool fail = false;
     while ((d = readdir(dir_ptr)))
     {
         str_view const entry = sv(d->d_name);
@@ -67,7 +68,7 @@ run(str_view const tests_dir)
         }
         if (!fill_path(absolute_path, tests_dir, entry))
         {
-            return 1;
+            goto done;
         }
         printf("%s(%s%s\n", CYAN, sv_begin(entry), NONE);
         (void)fflush(stdout);
@@ -89,10 +90,12 @@ run(str_view const tests_dir)
         passed += 1 - res;
         ++tests;
     }
-    bool const fail = passed != tests;
+    fail = passed != tests;
     fail
         ? printf("%sPASSED %zu/%zu T_T%s\n\n", RED, passed, tests, NONE)
         : printf("%sPASSED %zu/%zu \\(*.*)/%s\n\n", GREEN, passed, tests, NONE);
+done:
+    closedir(dir_ptr);
     return fail;
 }
 
