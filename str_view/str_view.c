@@ -888,12 +888,11 @@ sv_strcspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
         return a - str;
     }
     memset(byteset, 0, sizeof byteset);
-    for (size_t i = 0;
-         i < set_sz && BITOP(byteset, *(unsigned char *)set, |=);
+    for (size_t i = 0; i < set_sz && BITOP(byteset, *(unsigned char *)set, |=);
          ++set, ++i)
     {}
-    for (size_t i = 0;
-         i < str_sz && !BITOP(byteset, *(unsigned char *)a, &); ++a)
+    for (size_t i = 0; i < str_sz && !BITOP(byteset, *(unsigned char *)a, &);
+         ++a)
     {}
     return a - str;
 }
@@ -920,12 +919,11 @@ sv_strspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
         {}
         return a - str;
     }
-    for (size_t i = 0;
-         i < set_sz && BITOP(byteset, *(unsigned char *)set, |=);
+    for (size_t i = 0; i < set_sz && BITOP(byteset, *(unsigned char *)set, |=);
          ++set, ++i)
     {}
-    for (size_t i = 0;
-         i < str_sz && BITOP(byteset, *(unsigned char *)a, &); ++a, ++i)
+    for (size_t i = 0; i < str_sz && BITOP(byteset, *(unsigned char *)a, &);
+         ++a, ++i)
     {}
     return a - str;
 }
@@ -1503,7 +1501,8 @@ sv_threebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rthreebyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
+sv_rthreebyte_strnstrn(size_t const sz,
+                       unsigned char const ARR_CONST_GEQ(h, sz),
                        size_t const n_sz,
                        unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
