@@ -490,8 +490,8 @@ sv_next_tok(str_view const src, str_view const tok, str_view const delim)
     {
         return (str_view){.s = src.s + src.len, .len = 0};
     }
-    size_t const found
-        = sv_strnstrn((ptrdiff_t)next.len, next.s, (ptrdiff_t)delim.len, delim.s);
+    size_t const found = sv_strnstrn((ptrdiff_t)next.len, next.s,
+                                     (ptrdiff_t)delim.len, delim.s);
     return (str_view){.s = next.s, .len = found};
 }
 
@@ -646,10 +646,10 @@ sv_match(str_view const hay, str_view const needle)
     {
         return (str_view){.s = hay.s + hay.len, .len = 0};
     }
-    size_t const found
-        = sv_strnstrn((ptrdiff_t)hay.len, hay.s, (ptrdiff_t)needle.len, needle.s);
+    size_t const found = sv_strnstrn((ptrdiff_t)hay.len, hay.s,
+                                     (ptrdiff_t)needle.len, needle.s);
     return found == hay.len ? (str_view){.s = hay.s + hay.len, .len = 0}
-                           : (str_view){.s = hay.s + found, .len = needle.len};
+                            : (str_view){.s = hay.s + found, .len = needle.len};
 }
 
 str_view
@@ -666,7 +666,7 @@ sv_rmatch(str_view const hay, str_view const needle)
     size_t const found = sv_rstrnstrn((ptrdiff_t)hay.len, hay.s,
                                       (ptrdiff_t)needle.len, needle.s);
     return found == hay.len ? (str_view){.s = hay.s + hay.len, .len = 0}
-                           : (str_view){.s = hay.s + found, .len = needle.len};
+                            : (str_view){.s = hay.s + found, .len = needle.len};
 }
 
 size_t
