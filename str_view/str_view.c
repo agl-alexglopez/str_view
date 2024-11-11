@@ -58,7 +58,7 @@ struct sv_factorization
    by returning this for various edgecases when it makes sense to communicate
    empty, null, invalid, not found etc. Used on cases by case basis.
    The function interfaces protect us from null pointers but not always. */
-static str_view const nil = {.s = "", .sz = 0};
+static str_view const nil = {.s = "", .len = 0};
 
 /* =========================   Prototypes   =============================== */
 
@@ -143,7 +143,7 @@ sv(char const *const str)
     {
         return nil;
     }
-    return (str_view){.s = str, .sz = strlen(str)};
+    return (str_view){.s = str, .len = strlen(str)};
 }
 
 str_view
@@ -153,7 +153,7 @@ sv_n(size_t n, char const *const str)
     {
         return nil;
     }
-    return (str_view){.s = str, .sz = strnlen(str, n)};
+    return (str_view){.s = str, .len = strnlen(str, n)};
 }
 
 str_view
@@ -165,22 +165,22 @@ sv_delim(char const *const str, char const *const delim)
     }
     if (!delim)
     {
-        return (str_view){.s = str, .sz = strlen(str)};
+        return (str_view){.s = str, .len = strlen(str)};
     }
-    return sv_begin_tok((str_view){.s = str, .sz = strlen(str)},
-                        (str_view){.s = delim, .sz = strlen(delim)});
+    return sv_begin_tok((str_view){.s = str, .len = strlen(str)},
+                        (str_view){.s = delim, .len = strlen(delim)});
 }
 
 void
 sv_print(FILE *f, str_view const sv)
 {
-    if (!f || !sv.s || nil.s == sv.s || !sv.sz)
+    if (!f || !sv.s || nil.s == sv.s || !sv.len)
     {
         return;
     }
     /* printf does not output the null terminator in normal strings so
        as long as we output correct number of characters we do the same */
-    (void)fwrite(sv.s, sizeof(char), sv.sz, f);
+    (void)fwrite(sv.s, sizeof(char), sv.len, f);
 }
 
 str_view
@@ -192,7 +192,7 @@ sv_copy(size_t const str_sz, char const *const src_str)
 size_t
 sv_fill(size_t const dest_sz, char *const dest_buf, str_view const src)
 {
-    if (!dest_buf || !dest_sz || !src.s || !src.sz)
+    if (!dest_buf || !dest_sz || !src.s || !src.len)
     {
         return 0;
     }
@@ -205,19 +205,19 @@ sv_fill(size_t const dest_sz, char *const dest_buf, str_view const src)
 bool
 sv_empty(str_view const sv)
 {
-    return !sv.sz;
+    return !sv.len;
 }
 
 size_t
 sv_len(str_view const sv)
 {
-    return sv.sz;
+    return sv.len;
 }
 
 size_t
 sv_size(str_view const sv)
 {
-    return sv.sz + 1;
+    return sv.len + 1;
 }
 
 size_t
@@ -239,7 +239,7 @@ sv_minlen(char const *const str, size_t n)
 char
 sv_at(str_view const sv, size_t const i)
 {
-    if (i >= sv.sz)
+    if (i >= sv.len)
     {
         return *nil.s;
     }
@@ -259,11 +259,11 @@ sv_swap(str_view *const a, str_view *const b)
     {
         return;
     }
-    str_view const tmp_b = (str_view){.s = b->s, .sz = b->sz};
+    str_view const tmp_b = (str_view){.s = b->s, .len = b->len};
     b->s = a->s;
-    b->sz = a->sz;
+    b->len = a->len;
     a->s = tmp_b.s;
-    a->sz = tmp_b.sz;
+    a->len = tmp_b.len;
 }
 
 sv_threeway_cmp
@@ -273,19 +273,19 @@ sv_cmp(str_view const lhs, str_view const rhs)
     {
         return SV_ERR;
     }
-    size_t const sz = sv_min(lhs.sz, rhs.sz);
+    size_t const sz = sv_min(lhs.len, rhs.len);
     size_t i = 0;
     for (; i < sz && lhs.s[i] == rhs.s[i]; ++i)
     {}
-    if (i == lhs.sz && i == rhs.sz)
+    if (i == lhs.len && i == rhs.len)
     {
         return SV_EQL;
     }
-    if (i < lhs.sz && i < rhs.sz)
+    if (i < lhs.len && i < rhs.len)
     {
         return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? SV_LES : SV_GRT;
     }
-    return (i < lhs.sz) ? SV_GRT : SV_LES;
+    return (i < lhs.len) ? SV_GRT : SV_LES;
 }
 
 sv_threeway_cmp
@@ -295,19 +295,19 @@ sv_strcmp(str_view const lhs, char const *const rhs)
     {
         return SV_ERR;
     }
-    size_t const sz = lhs.sz;
+    size_t const sz = lhs.len;
     size_t i = 0;
     for (; i < sz && rhs[i] && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == lhs.sz && !rhs[i])
+    if (i == lhs.len && !rhs[i])
     {
         return SV_EQL;
     }
-    if (i < lhs.sz && rhs[i])
+    if (i < lhs.len && rhs[i])
     {
         return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
     }
-    return (i < lhs.sz) ? SV_GRT : SV_LES;
+    return (i < lhs.len) ? SV_GRT : SV_LES;
 }
 
 sv_threeway_cmp
@@ -317,26 +317,26 @@ sv_strncmp(str_view const lhs, char const *const rhs, size_t const n)
     {
         return SV_ERR;
     }
-    size_t const sz = sv_min(lhs.sz, n);
+    size_t const sz = sv_min(lhs.len, n);
     size_t i = 0;
     for (; i < sz && rhs[i] && lhs.s[i] == rhs[i]; ++i)
     {}
-    if (i == lhs.sz && sz == n)
+    if (i == lhs.len && sz == n)
     {
         return SV_EQL;
     }
     /* strncmp compares the first at most n bytes inclusive */
-    if (i < lhs.sz && sz <= n)
+    if (i < lhs.len && sz <= n)
     {
         return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
     }
-    return (i < lhs.sz) ? SV_GRT : SV_LES;
+    return (i < lhs.len) ? SV_GRT : SV_LES;
 }
 
 char
 sv_front(str_view const sv)
 {
-    if (!sv.s || !sv.sz)
+    if (!sv.s || !sv.len)
     {
         return *nil.s;
     }
@@ -346,11 +346,11 @@ sv_front(str_view const sv)
 char
 sv_back(str_view const sv)
 {
-    if (!sv.s || !sv.sz)
+    if (!sv.s || !sv.len)
     {
         return *nil.s;
     }
-    return sv.s[sv.sz - 1];
+    return sv.s[sv.len - 1];
 }
 
 char const *
@@ -370,7 +370,7 @@ sv_end(str_view const sv)
     {
         return nil.s;
     }
-    return sv.s + sv.sz;
+    return sv.s + sv.len;
 }
 
 char const *
@@ -390,11 +390,11 @@ sv_rbegin(str_view const sv)
     {
         return nil.s;
     }
-    if (!sv.sz)
+    if (!sv.len)
     {
         return sv.s;
     }
-    return sv.s + sv.sz - 1;
+    return sv.s + sv.len - 1;
 }
 
 char const *
@@ -404,7 +404,7 @@ sv_rend(str_view const sv)
     {
         return nil.s;
     }
-    if (!sv.sz)
+    if (!sv.len)
     {
         return sv.s;
     }
@@ -428,7 +428,7 @@ sv_pos(str_view const sv, size_t const i)
     {
         return nil.s;
     }
-    if (i > sv.sz)
+    if (i > sv.len)
     {
         return sv_end(sv);
     }
@@ -444,23 +444,23 @@ sv_begin_tok(str_view src, str_view const delim)
     }
     if (!delim.s)
     {
-        return (str_view){.s = src.s + src.sz, 0};
+        return (str_view){.s = src.s + src.len, 0};
     }
     char const *const begin = src.s;
     size_t const sv_not = sv_after_find(src, delim);
     src.s += sv_not;
-    if (begin + src.sz == src.s)
+    if (begin + src.len == src.s)
     {
-        return (str_view){.s = src.s, .sz = 0};
+        return (str_view){.s = src.s, .len = 0};
     }
-    src.sz -= sv_not;
-    return (str_view){.s = src.s, .sz = sv_find(src, 0, delim)};
+    src.len -= sv_not;
+    return (str_view){.s = src.s, .len = sv_find(src, 0, delim)};
 }
 
 bool
 sv_end_tok(str_view const src, str_view const tok)
 {
-    return !tok.sz || tok.s >= (src.s + src.sz);
+    return !tok.len || tok.s >= (src.s + src.len);
 }
 
 str_view
@@ -470,29 +470,29 @@ sv_next_tok(str_view const src, str_view const tok, str_view const delim)
     {
         return nil;
     }
-    if (!delim.s || !tok.s || !tok.s[tok.sz])
+    if (!delim.s || !tok.s || !tok.s[tok.len])
     {
-        return (str_view){.s = tok.s + tok.sz, .sz = 0};
+        return (str_view){.s = tok.s + tok.len, .len = 0};
     }
-    str_view next = {.s = tok.s + tok.sz, .sz = src.sz - tok.sz};
-    if (next.s >= src.s + src.sz)
+    str_view next = {.s = tok.s + tok.len, .len = src.len - tok.len};
+    if (next.s >= src.s + src.len)
     {
-        return (str_view){.s = src.s + src.sz, .sz = 0};
+        return (str_view){.s = src.s + src.len, .len = 0};
     }
-    next.s += delim.sz;
-    next.sz = src.sz - (next.s - src.s);
+    next.s += delim.len;
+    next.len = src.len - (next.s - src.s);
     /* There is a cheap easy way to skip repeating delimiters before the
        next search that should be faster than string comparison. */
     size_t const after_delim = sv_after_find(next, delim);
     next.s += after_delim;
-    next.sz -= after_delim;
-    if (next.s >= src.s + src.sz)
+    next.len -= after_delim;
+    if (next.s >= src.s + src.len)
     {
-        return (str_view){.s = src.s + src.sz, .sz = 0};
+        return (str_view){.s = src.s + src.len, .len = 0};
     }
     size_t const found
-        = sv_strnstrn((ptrdiff_t)next.sz, next.s, (ptrdiff_t)delim.sz, delim.s);
-    return (str_view){.s = next.s, .sz = found};
+        = sv_strnstrn((ptrdiff_t)next.len, next.s, (ptrdiff_t)delim.len, delim.s);
+    return (str_view){.s = next.s, .len = found};
 }
 
 str_view
@@ -504,17 +504,17 @@ sv_rbegin_tok(str_view src, str_view const delim)
     }
     if (!delim.s)
     {
-        return (str_view){.s = src.s + src.sz, 0};
+        return (str_view){.s = src.s + src.len, 0};
     }
     size_t before_delim = sv_before_rfind(src, delim);
-    src.sz = sv_min(src.sz, before_delim + 1);
-    size_t start = sv_rfind(src, src.sz, delim);
-    if (start == src.sz)
+    src.len = sv_min(src.len, before_delim + 1);
+    size_t start = sv_rfind(src, src.len, delim);
+    if (start == src.len)
     {
         return src;
     }
-    start += delim.sz;
-    return (str_view){.s = src.s + start, .sz = before_delim - start + 1};
+    start += delim.len;
+    return (str_view){.s = src.s + start, .len = before_delim - start + 1};
 }
 
 str_view
@@ -524,33 +524,33 @@ sv_rnext_tok(str_view const src, str_view const tok, str_view const delim)
     {
         return nil;
     }
-    if (!tok.sz | !delim.s || tok.s == src.s || tok.s - delim.sz <= src.s)
+    if (!tok.len | !delim.s || tok.s == src.s || tok.s - delim.len <= src.s)
     {
-        return (str_view){.s = src.s, .sz = 0};
+        return (str_view){.s = src.s, .len = 0};
     }
-    str_view const shorter = {.s = src.s, .sz = (tok.s - delim.sz) - src.s};
+    str_view const shorter = {.s = src.s, .len = (tok.s - delim.len) - src.s};
     /* Same as in the forward version, this method is a quick way to skip
        any number of repeating delimiters before starting the next search
        for a delimiter before a token. */
     size_t const before_delim = sv_before_rfind(shorter, delim);
-    if (before_delim == shorter.sz)
+    if (before_delim == shorter.len)
     {
         return shorter;
     }
     size_t start = sv_rstrnstrn((ptrdiff_t)before_delim, shorter.s,
-                                (ptrdiff_t)delim.sz, delim.s);
+                                (ptrdiff_t)delim.len, delim.s);
     if (start == before_delim)
     {
-        return (str_view){.s = shorter.s, .sz = before_delim + 1};
+        return (str_view){.s = shorter.s, .len = before_delim + 1};
     }
-    start += delim.sz;
-    return (str_view){.s = src.s + start, .sz = before_delim - start + 1};
+    start += delim.len;
+    return (str_view){.s = src.s + start, .len = before_delim - start + 1};
 }
 
 bool
 sv_rend_tok(str_view const src, str_view const tok)
 {
-    return !tok.sz && tok.s == src.s;
+    return !tok.len && tok.s == src.s;
 }
 
 str_view
@@ -563,35 +563,35 @@ sv_extend(str_view sv)
     char const *i = sv.s;
     while (*i++)
     {}
-    sv.sz = i - sv.s - 1;
+    sv.len = i - sv.s - 1;
     return sv;
 }
 
 bool
 sv_starts_with(str_view const sv, str_view const prefix)
 {
-    if (prefix.sz > sv.sz)
+    if (prefix.len > sv.len)
     {
         return false;
     }
-    return sv_cmp(sv_substr(sv, 0, prefix.sz), prefix) == SV_EQL;
+    return sv_cmp(sv_substr(sv, 0, prefix.len), prefix) == SV_EQL;
 }
 
 str_view
 sv_remove_prefix(str_view const sv, size_t const n)
 {
-    size_t const remove = sv_min(sv.sz, n);
-    return (str_view){.s = sv.s + remove, .sz = sv.sz - remove};
+    size_t const remove = sv_min(sv.len, n);
+    return (str_view){.s = sv.s + remove, .len = sv.len - remove};
 }
 
 bool
 sv_ends_with(str_view const sv, str_view const suffix)
 {
-    if (suffix.sz > sv.sz)
+    if (suffix.len > sv.len)
     {
         return false;
     }
-    return sv_cmp(sv_substr(sv, sv.sz - suffix.sz, suffix.sz), suffix)
+    return sv_cmp(sv_substr(sv, sv.len - suffix.len, suffix.len), suffix)
            == SV_EQL;
 }
 
@@ -602,23 +602,23 @@ sv_remove_suffix(str_view const sv, size_t const n)
     {
         return nil;
     }
-    return (str_view){.s = sv.s, .sz = sv.sz - sv_min(sv.sz, n)};
+    return (str_view){.s = sv.s, .len = sv.len - sv_min(sv.len, n)};
 }
 
 str_view
 sv_substr(str_view const sv, size_t const pos, size_t const count)
 {
-    if (pos > sv.sz)
+    if (pos > sv.len)
     {
-        return (str_view){.s = sv.s + sv.sz, .sz = 0};
+        return (str_view){.s = sv.s + sv.len, .len = 0};
     }
-    return (str_view){.s = sv.s + pos, .sz = sv_min(count, sv.sz - pos)};
+    return (str_view){.s = sv.s + pos, .len = sv_min(count, sv.len - pos)};
 }
 
 bool
 sv_contains(str_view const hay, str_view const needle)
 {
-    if (needle.sz > hay.sz)
+    if (needle.len > hay.len)
     {
         return false;
     }
@@ -630,8 +630,8 @@ sv_contains(str_view const hay, str_view const needle)
     {
         return true;
     }
-    return hay.sz
-           != sv_strnstrn((ptrdiff_t)hay.sz, hay.s, (ptrdiff_t)needle.sz,
+    return hay.len
+           != sv_strnstrn((ptrdiff_t)hay.len, hay.s, (ptrdiff_t)needle.len,
                           needle.s);
 }
 
@@ -642,14 +642,14 @@ sv_match(str_view const hay, str_view const needle)
     {
         return nil;
     }
-    if (needle.sz > hay.sz || sv_empty(hay) || sv_empty(needle))
+    if (needle.len > hay.len || sv_empty(hay) || sv_empty(needle))
     {
-        return (str_view){.s = hay.s + hay.sz, .sz = 0};
+        return (str_view){.s = hay.s + hay.len, .len = 0};
     }
     size_t const found
-        = sv_strnstrn((ptrdiff_t)hay.sz, hay.s, (ptrdiff_t)needle.sz, needle.s);
-    return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
-                           : (str_view){.s = hay.s + found, .sz = needle.sz};
+        = sv_strnstrn((ptrdiff_t)hay.len, hay.s, (ptrdiff_t)needle.len, needle.s);
+    return found == hay.len ? (str_view){.s = hay.s + hay.len, .len = 0}
+                           : (str_view){.s = hay.s + found, .len = needle.len};
 }
 
 str_view
@@ -661,73 +661,73 @@ sv_rmatch(str_view const hay, str_view const needle)
     }
     if (sv_empty(hay) || sv_empty(needle))
     {
-        return (str_view){.s = hay.s + hay.sz, .sz = 0};
+        return (str_view){.s = hay.s + hay.len, .len = 0};
     }
-    size_t const found = sv_rstrnstrn((ptrdiff_t)hay.sz, hay.s,
-                                      (ptrdiff_t)needle.sz, needle.s);
-    return found == hay.sz ? (str_view){.s = hay.s + hay.sz, .sz = 0}
-                           : (str_view){.s = hay.s + found, .sz = needle.sz};
+    size_t const found = sv_rstrnstrn((ptrdiff_t)hay.len, hay.s,
+                                      (ptrdiff_t)needle.len, needle.s);
+    return found == hay.len ? (str_view){.s = hay.s + hay.len, .len = 0}
+                           : (str_view){.s = hay.s + found, .len = needle.len};
 }
 
 size_t
 sv_find(str_view const hay, size_t const pos, str_view const needle)
 {
-    if (needle.sz > hay.sz || pos > hay.sz)
+    if (needle.len > hay.len || pos > hay.len)
     {
-        return hay.sz;
+        return hay.len;
     }
     return pos
-           + sv_strnstrn((ptrdiff_t)(hay.sz - pos), hay.s + pos,
-                         (ptrdiff_t)needle.sz, needle.s);
+           + sv_strnstrn((ptrdiff_t)(hay.len - pos), hay.s + pos,
+                         (ptrdiff_t)needle.len, needle.s);
 }
 
 size_t
 sv_rfind(str_view const h, size_t pos, str_view const n)
 {
-    if (!h.sz || n.sz > h.sz)
+    if (!h.len || n.len > h.len)
     {
-        return h.sz;
+        return h.len;
     }
-    if (pos >= h.sz)
+    if (pos >= h.len)
     {
-        pos = h.sz - 1;
+        pos = h.len - 1;
     }
     size_t const found
-        = sv_rstrnstrn((ptrdiff_t)pos + 1, h.s, (ptrdiff_t)n.sz, n.s);
-    return found == pos + 1 ? h.sz : found;
+        = sv_rstrnstrn((ptrdiff_t)pos + 1, h.s, (ptrdiff_t)n.len, n.s);
+    return found == pos + 1 ? h.len : found;
 }
 
 size_t
 sv_find_first_of(str_view const hay, str_view const set)
 {
-    if (!hay.s || !hay.sz)
+    if (!hay.s || !hay.len)
     {
         return 0;
     }
-    if (!set.s || !set.sz)
+    if (!set.s || !set.len)
     {
-        return hay.sz;
+        return hay.len;
     }
-    return sv_strcspn(hay.sz, hay.s, set.sz, set.s);
+    return sv_strcspn(hay.len, hay.s, set.len, set.s);
 }
 
 size_t
 sv_find_last_of(str_view const hay, str_view const set)
 {
-    if (!hay.s || !hay.sz)
+    if (!hay.s || !hay.len)
     {
         return 0;
     }
-    if (!set.s || !set.sz)
+    if (!set.s || !set.len)
     {
-        return hay.sz;
+        return hay.len;
     }
     /* It may be tempting to go right to left but consider if that really
        would be reliably faster across every possible string one encounters.
        The last occurence of a set char could be anywhere in the string. */
-    size_t last_pos = hay.sz;
+    size_t last_pos = hay.len;
     for (size_t in = 0, prev = 0;
-         (in += sv_strspn(hay.sz - in, hay.s + in, set.sz, set.s)) != hay.sz;
+         (in += sv_strspn(hay.len - in, hay.s + in, set.len, set.s)) != hay.len;
          ++in, prev = in)
     {
         if (in != prev)
@@ -741,31 +741,31 @@ sv_find_last_of(str_view const hay, str_view const set)
 size_t
 sv_find_first_not_of(str_view const hay, str_view const set)
 {
-    if (!hay.s || !hay.sz)
+    if (!hay.s || !hay.len)
     {
         return 0;
     }
-    if (!set.s || !set.sz)
+    if (!set.s || !set.len)
     {
         return 0;
     }
-    return sv_strspn(hay.sz, hay.s, set.sz, set.s);
+    return sv_strspn(hay.len, hay.s, set.len, set.s);
 }
 
 size_t
 sv_find_last_not_of(str_view const hay, str_view const set)
 {
-    if (!hay.s || !hay.sz)
+    if (!hay.s || !hay.len)
     {
         return 0;
     }
-    if (!set.s || !set.sz)
+    if (!set.s || !set.len)
     {
-        return hay.sz - 1;
+        return hay.len - 1;
     }
-    size_t last_pos = hay.sz;
+    size_t last_pos = hay.len;
     for (size_t in = 0, prev = 0;
-         (in += sv_strspn(hay.sz - in, hay.s + in, set.sz, set.s)) != hay.sz;
+         (in += sv_strspn(hay.len - in, hay.s + in, set.len, set.s)) != hay.len;
          ++in, prev = in)
     {
         if (in != prev)
@@ -779,7 +779,7 @@ sv_find_last_not_of(str_view const hay, str_view const set)
 size_t
 sv_npos(str_view const sv)
 {
-    return sv.sz;
+    return sv.len;
 }
 
 /* ======================   Static Helpers    ============================= */
@@ -787,14 +787,14 @@ sv_npos(str_view const sv)
 static size_t
 sv_after_find(str_view const hay, str_view const needle)
 {
-    if (needle.sz > hay.sz)
+    if (needle.len > hay.len)
     {
         return 0;
     }
     size_t delim_i = 0;
     size_t i = 0;
-    for (; i < hay.sz && needle.s[delim_i] == hay.s[i];
-         delim_i = (delim_i + 1) % needle.sz, ++i)
+    for (; i < hay.len && needle.s[delim_i] == hay.s[i];
+         delim_i = (delim_i + 1) % needle.len, ++i)
     {}
     /* Also reset to the last mismatch found. If some of the delimeter matched
        but then the string changed into a mismatch go back to get characters
@@ -805,21 +805,21 @@ sv_after_find(str_view const hay, str_view const needle)
 static size_t
 sv_before_rfind(str_view const hay, str_view const needle)
 {
-    if (needle.sz > hay.sz || !needle.sz || !hay.sz)
+    if (needle.len > hay.len || !needle.len || !hay.len)
     {
-        return hay.sz;
+        return hay.len;
     }
     size_t delim_i = 0;
     size_t i = 0;
-    for (; i < hay.sz
-           && needle.s[needle.sz - delim_i - 1] == hay.s[hay.sz - i - 1];
-         delim_i = (delim_i + 1) % needle.sz, ++i)
+    for (; i < hay.len
+           && needle.s[needle.len - delim_i - 1] == hay.s[hay.len - i - 1];
+         delim_i = (delim_i + 1) % needle.len, ++i)
     {}
     /* Ugly logic to account for the reverse nature of this modulo search.
        the position needs to account for any part of the delim that may
        have started to match but then mismatched. The 1 is because
        this in an index being returned not a length. */
-    return i == hay.sz ? hay.sz : hay.sz - i + delim_i - 1;
+    return i == hay.len ? hay.len : hay.len - i + delim_i - 1;
 }
 
 static inline size_t

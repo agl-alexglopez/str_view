@@ -68,7 +68,7 @@
 typedef struct
 {
     char const *s;
-    size_t sz;
+    size_t len;
 } str_view;
 
 /* Standard three way comparison type in C. See the comparison
@@ -128,7 +128,7 @@ SV_API str_view sv_copy(size_t str_sz, char const *src_str)
 
 /* Fills the destination buffer with the minimum between
    destination size and source view size, null terminating
-   the string. This may cut off src data if dest_sz < src.sz.
+   the string. This may cut off src data if dest_sz < src.len.
    Returns how many bytes were written to the buffer. */
 SV_API size_t sv_fill(size_t dest_sz, char *dest_buf, str_view src);
 
@@ -200,7 +200,7 @@ SV_API size_t sv_len(str_view sv) ATTRIB_CONST;
 
 /* Returns the bytes of str_view including null terminator. Note that
    string views may not actually be null terminated but the position at
-   str_view[str_view.sz] is interpreted as the null terminator and thus
+   str_view[str_view.len] is interpreted as the null terminator and thus
    counts towards the byte count. */
 SV_API size_t sv_size(str_view sv) ATTRIB_CONST;
 
