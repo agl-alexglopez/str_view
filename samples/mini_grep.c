@@ -68,6 +68,7 @@ static bool match_line(size_t, str_view, str_view);
 static void search_directory(str_view, DIR *, enum io_method, str_view);
 static bool fill_path(char[static FILESYS_MAX_PATH], str_view, str_view);
 static struct file_buf get_file_buf(FILE *);
+static void print_str_view(FILE *, str_view);
 
 int
 main(int argc, char **argv)
@@ -181,7 +182,7 @@ search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
         if (match_res)
         {
             (void)fprintf(stdout, PNK);
-            sv_print(stdout, path_view);
+            print_str_view(stdout, path_view);
             (void)fprintf(stdout, "\n\n" NONE);
         }
     }
@@ -267,16 +268,16 @@ match_line(size_t lineno, str_view line, str_view needle)
         {
             (void)fprintf(stdout, CYAN "%zu:" NONE, lineno);
         }
-        sv_print(stdout, sv_substr(line, last_pos, pos - last_pos));
+        print_str_view(stdout, sv_substr(line, last_pos, pos - last_pos));
         (void)fprintf(stdout, RED);
-        sv_print(stdout, needle);
+        print_str_view(stdout, needle);
         (void)fprintf(stdout, NONE);
         last_pos = pos + sv_len(needle);
         ++pos;
     }
     if (last_pos)
     {
-        sv_print(stdout, sv_substr(line, last_pos, sv_len(line)));
+        print_str_view(stdout, sv_substr(line, last_pos, sv_len(line)));
         (void)fprintf(stdout, "\n");
     }
     return last_pos != 0;
@@ -320,4 +321,13 @@ get_file_buf(FILE *f)
         return (struct file_buf){0};
     }
     return (struct file_buf){.buf = buf, .size = size};
+}
+
+static void
+print_str_view(FILE *const f, str_view const sv)
+{
+    if (!sv_empty(sv))
+    {
+        (void)fwrite(sv_begin(sv), sizeof(char), sv_len(sv), f);
+    }
 }

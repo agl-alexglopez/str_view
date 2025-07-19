@@ -9,7 +9,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 /* Clang and GCC support static array parameter declarations while
@@ -169,18 +168,6 @@ sv_delim(char const *const str, char const *const delim)
     }
     return sv_begin_tok((str_view){.s = str, .len = strlen(str)},
                         (str_view){.s = delim, .len = strlen(delim)});
-}
-
-void
-sv_print(FILE *f, str_view const sv)
-{
-    if (!f || !sv.s || nil.s == sv.s || !sv.len)
-    {
-        return;
-    }
-    /* printf does not output the null terminator in normal strings so
-       as long as we output correct number of characters we do the same */
-    (void)fwrite(sv.s, sizeof(char), sv.len, f);
 }
 
 str_view
