@@ -15,10 +15,6 @@
    MSVC does not. This is how to solve the differing declaration
    signature requirements. */
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
-/* Clang and GCC support static array parameter declarations while
-   MSVC does not. This is how to solve the differing declaration
-   signature requirements. */
-
 /* A static array parameter declaration helper. Function parameters
    may specify an array of a type of at least SIZE elements large,
    allowing compiler optimizations and safety errors. Specify
@@ -854,7 +850,7 @@ sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
 
 /* strcspn is based on musl C-standard library implementation
    http://git.musl-libc.org/cgit/musl/tree/src/string/strcspn.c
-   A custom implemenatation is necessary because C standard library impls
+   A custom implementation is necessary because C standard library impls
    have no concept of a string view and will continue searching beyond the
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
@@ -988,8 +984,6 @@ sv_rstrnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 }
 
 /*==============   Post-Precomputation Two-Way Search    =================*/
-
-/* NOLINTBEGIN(*easily-swappable*) */
 
 /* Definitions for Two-Way String-Matching taken from original authors:
 
@@ -1328,8 +1322,6 @@ sv_rpos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     }
     return hay_sz;
 }
-
-/* NOLINTEND(*easily-swappable*) */
 
 static inline struct sv_factorization
 sv_rmaximal_suffix(ptrdiff_t const needle_sz,
