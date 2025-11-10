@@ -21,6 +21,7 @@ Checks: >
    -*-non-private-member-variables-in-classes,
    -*-magic-numbers,
    -concurrency-*,
+   -bugprone-easily-swappable-parameters,
    -clang-analyzer-security*,
    -Wpointer-bool-conversion
 

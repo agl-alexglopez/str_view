@@ -58,7 +58,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
 /* A str_view is a read-only view of string data in C. It is modeled after
    the C++ std::string_view. It consists of a pointer to char const data
@@ -67,7 +66,10 @@
    and pass by copy whenever possible. Avoid accessing struct fields. */
 typedef struct
 {
+    /* The read only data to which we point. */
     char const *s;
+    /* The length, not including the NULL terminator position. However, it is
+       possible that a str_view is not NULL terminated at that position. */
     size_t len;
 } str_view;
 
@@ -392,10 +394,5 @@ SV_API size_t sv_find_last_of(str_view hay, str_view set) ATTRIB_PURE;
    An empty set (NULL) is valid and will return the final character
    in the str_view. An empty hay will return 0. */
 SV_API size_t sv_find_last_not_of(str_view hay, str_view set) ATTRIB_PURE;
-
-/*============================  Printing  ==================================*/
-
-/* Writes all characters in str_view to specified file such as stdout. */
-SV_API void sv_print(FILE *f, str_view sv);
 
 #endif /* STR_VIEW */
