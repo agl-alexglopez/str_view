@@ -1,3 +1,11 @@
 # Str View
 
 Welcome to the Str View docs. 
+
+## Interface
+
+Jump straight to the [`str_view.h`](https://agl-alexglopez.github.io/str_view/str__view_8h.html) interface. 
+
+## Install
+
+Read [INSTALL.md](/INSTALL.md).
