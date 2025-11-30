@@ -46,13 +46,13 @@
 #define RED "\033[38;5;9m"
 #define PNK "\033[38;5;13m"
 
-enum io_method
+enum Io_method
 {
     READ,
     MMAP,
 };
 
-struct file_buf
+struct File_buf
 {
     char const *const buf;
     size_t size;
@@ -65,9 +65,9 @@ static int run(char * [static 1], size_t);
 static bool match_file_mmap(SV_Str_view, SV_Str_view);
 static bool match_file_read(FILE *, SV_Str_view);
 static bool match_line(size_t, SV_Str_view, SV_Str_view);
-static void search_directory(SV_Str_view, DIR *, enum io_method, SV_Str_view);
+static void search_directory(SV_Str_view, DIR *, enum Io_method, SV_Str_view);
 static bool fill_path(char[static FILESYS_MAX_PATH], SV_Str_view, SV_Str_view);
-static struct file_buf get_file_buf(FILE *);
+static struct File_buf get_file_buf(FILE *);
 static void print_str_view(FILE *, SV_Str_view);
 
 int
@@ -83,7 +83,7 @@ main(int argc, char **argv)
 static int
 run(char *args[static 1], size_t argc)
 {
-    enum io_method io_style = READ;
+    enum Io_method io_style = READ;
     size_t start = 0;
     if (SV_terminated_compare(mmap_flag, args[start]) == SV_ORDER_EQUAL)
     {
@@ -145,7 +145,7 @@ run(char *args[static 1], size_t argc)
 }
 
 static void
-search_directory(SV_Str_view dirname, DIR *d, enum io_method io,
+search_directory(SV_Str_view dirname, DIR *d, enum Io_method io,
                  SV_Str_view needle)
 {
     struct dirent const *de;
@@ -222,7 +222,7 @@ match_file_mmap(SV_Str_view const filename, SV_Str_view needle)
                       SV_begin(filename));
         return false;
     }
-    struct file_buf const fb = get_file_buf(f);
+    struct File_buf const fb = get_file_buf(f);
     if (fclose(f))
     {
         (void)fprintf(stderr, "Error closing file.\n");
@@ -302,28 +302,28 @@ fill_path(char path_buf[static FILESYS_MAX_PATH], SV_Str_view tests_dir,
     return true;
 }
 
-static struct file_buf
+static struct File_buf
 get_file_buf(FILE *f)
 {
     if (fseek(f, 0L, SEEK_END) < 0)
     {
         (void)fprintf(stderr, "error seeking in file.\n");
-        return (struct file_buf){0};
+        return (struct File_buf){0};
     }
     size_t const size = ftell(f);
     if (fseek(f, 0L, SEEK_SET) < 0)
     {
         (void)fprintf(stderr, "error seeking in file.\n");
-        return (struct file_buf){0};
+        return (struct File_buf){0};
     }
     char const *const buf
         = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fileno(f), 0);
     if (buf == MAP_FAILED)
     {
         (void)fprintf(stderr, "could not read file into memory.\n");
-        return (struct file_buf){0};
+        return (struct File_buf){0};
     }
-    return (struct file_buf){.buf = buf, .size = size};
+    return (struct File_buf){.buf = buf, .size = size};
 }
 
 static void
