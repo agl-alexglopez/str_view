@@ -3,11 +3,11 @@
 
 #include <string.h>
 
-static enum test_result test_copy_fill(void);
-static enum test_result test_copy_section(void);
+static enum Test_result test_copy_fill(void);
+static enum Test_result test_copy_section(void);
 
 #define NUM_TESTS (size_t)2
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_copy_fill,
     test_copy_section,
 };
@@ -15,10 +15,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -27,7 +27,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_copy_fill(void)
 {
     char const *const reference = "Copy this over there!";
@@ -40,7 +40,7 @@ test_copy_fill(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_copy_section(void)
 {
     char const ref[20] = {

@@ -4,15 +4,15 @@
 #include <stdbool.h>
 #include <string.h>
 
-static enum test_result test_from_null(void);
-static enum test_result test_from_delim(void);
-static enum test_result test_from_delim_multiple(void);
-static enum test_result test_from_multichar_delim(void);
-static enum test_result test_from_delim_no_delim(void);
-static enum test_result test_empty_constructor(void);
+static enum Test_result test_from_null(void);
+static enum Test_result test_from_delim(void);
+static enum Test_result test_from_delim_multiple(void);
+static enum Test_result test_from_multichar_delim(void);
+static enum Test_result test_from_delim_no_delim(void);
+static enum Test_result test_empty_constructor(void);
 
 #define NUM_TESTS (size_t)6
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_from_null,           test_from_delim,
     test_from_delim_multiple, test_from_multichar_delim,
     test_from_delim_no_delim, test_empty_constructor,
@@ -21,10 +21,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -33,7 +33,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_from_null(void)
 {
     char const *const reference = "Don't miss the terminator!";
@@ -50,7 +50,7 @@ test_from_null(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_from_delim(void)
 {
     char const *const reference = "Don'tmissthedelim That was it!";
@@ -73,7 +73,7 @@ test_from_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_from_delim_multiple(void)
 {
     char const *const reference = ",,,Don'tmissthedelim,,,That was it!";
@@ -86,7 +86,7 @@ test_from_delim_multiple(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_from_multichar_delim(void)
 {
     char const *const reference = "delimDon'tmissthedelimThat was it!";
@@ -99,7 +99,7 @@ test_from_multichar_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_from_delim_no_delim(void)
 {
     char const *const reference = "Don'tmissthedelimbutnodelim!";
@@ -110,7 +110,7 @@ test_from_delim_no_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_empty_constructor(void)
 {
     char const *const reference = "------------";

@@ -31,7 +31,7 @@ char const *const fail_msg = "X";
 char const *const err_msg = "Test process failed abnormally:";
 
 static int run(SV_Str_view);
-enum test_result run_test_process(struct Path_bin);
+enum Test_result run_test_process(struct Path_bin);
 static DIR *open_test_dir(SV_Str_view);
 static bool fill_path(char *, SV_Str_view, SV_Str_view);
 
@@ -72,7 +72,7 @@ run(SV_Str_view const tests_dir)
         }
         printf("%s(%s%s\n", CYAN, SV_begin(entry), NONE);
         (void)fflush(stdout);
-        enum test_result const res = run_test_process(
+        enum Test_result const res = run_test_process(
             (struct Path_bin){SV_from_terminated(absolute_path), entry});
         switch (res)
         {
@@ -99,7 +99,7 @@ done:
     return fail;
 }
 
-enum test_result
+enum Test_result
 run_test_process(struct Path_bin pb)
 {
     if (SV_is_empty(pb.path))

@@ -3,40 +3,40 @@
 
 #include <string.h>
 
-static enum test_result test_iter(void);
-static enum test_result test_iter2(void);
-static enum test_result test_riter(void);
-static enum test_result test_riter2(void);
-static enum test_result test_riter_multi(void);
-static enum test_result test_min_delim(void);
-static enum test_result test_min_delim_two_byte(void);
-static enum test_result test_min_delim_three_byte(void);
-static enum test_result test_min_delim_four_byte(void);
-static enum test_result test_min_delim_five_byte(void);
-static enum test_result test_rmin_delim(void);
-static enum test_result test_rmin_delim_two_byte(void);
-static enum test_result test_rmin_delim_three_byte(void);
-static enum test_result test_rmin_delim_four_byte(void);
-static enum test_result test_rmin_delim_five_byte(void);
-static enum test_result test_simple_delim(void);
-static enum test_result test_rsimple_delim(void);
-static enum test_result test_tail_delim(void);
-static enum test_result test_rtail_delim(void);
-static enum test_result test_rtriple_delim(void);
-static enum test_result test_rquad_delim(void);
-static enum test_result test_iter_repeating_delim(void);
-static enum test_result test_iter_multichar_delim(void);
-static enum test_result test_riter_multichar_delim(void);
-static enum test_result test_iter_multichar_delim_short(void);
-static enum test_result test_riter_multichar_delim_short(void);
-static enum test_result test_iter_delim_larger_than_str(void);
-static enum test_result test_riter_delim_larger_than_str(void);
-static enum test_result test_tokenize_not_terminated(void);
-static enum test_result test_tokenize_three_views(void);
-static enum test_result test_rtokenize_three_views(void);
+static enum Test_result test_iter(void);
+static enum Test_result test_iter2(void);
+static enum Test_result test_riter(void);
+static enum Test_result test_riter2(void);
+static enum Test_result test_riter_multi(void);
+static enum Test_result test_min_delim(void);
+static enum Test_result test_min_delim_two_byte(void);
+static enum Test_result test_min_delim_three_byte(void);
+static enum Test_result test_min_delim_four_byte(void);
+static enum Test_result test_min_delim_five_byte(void);
+static enum Test_result test_rmin_delim(void);
+static enum Test_result test_rmin_delim_two_byte(void);
+static enum Test_result test_rmin_delim_three_byte(void);
+static enum Test_result test_rmin_delim_four_byte(void);
+static enum Test_result test_rmin_delim_five_byte(void);
+static enum Test_result test_simple_delim(void);
+static enum Test_result test_rsimple_delim(void);
+static enum Test_result test_tail_delim(void);
+static enum Test_result test_rtail_delim(void);
+static enum Test_result test_rtriple_delim(void);
+static enum Test_result test_rquad_delim(void);
+static enum Test_result test_iter_repeating_delim(void);
+static enum Test_result test_iter_multichar_delim(void);
+static enum Test_result test_riter_multichar_delim(void);
+static enum Test_result test_iter_multichar_delim_short(void);
+static enum Test_result test_riter_multichar_delim_short(void);
+static enum Test_result test_iter_delim_larger_than_str(void);
+static enum Test_result test_riter_delim_larger_than_str(void);
+static enum Test_result test_tokenize_not_terminated(void);
+static enum Test_result test_tokenize_three_views(void);
+static enum Test_result test_rtokenize_three_views(void);
 
 #define NUM_TESTS (size_t)31
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_iter,
     test_iter2,
     test_riter,
@@ -73,10 +73,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -85,7 +85,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_iter(void)
 {
     char const *const reference = "A B C D E G H I J K L M N O P";
@@ -117,7 +117,7 @@ test_iter(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_iter2(void)
 {
     char const *const reference = " A B C D E G H I J K L M N O P ";
@@ -157,7 +157,7 @@ test_iter2(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_riter(void)
 {
     SV_Str_view const ref = SV_from("A B C D E G H I J K L M N O P");
@@ -180,7 +180,7 @@ test_riter(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_riter2(void)
 {
     SV_Str_view const ref = SV_from(" A B C D E G H I J K L M N O P ");
@@ -221,7 +221,7 @@ test_riter2(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_riter_multi(void)
 {
     SV_Str_view const ref
@@ -257,7 +257,7 @@ test_riter_multi(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_min_delim(void)
 {
     SV_Str_view ref = SV_from("/0");
@@ -332,7 +332,7 @@ test_min_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_min_delim_two_byte(void)
 {
     SV_Str_view ref = SV_from("//0");
@@ -407,7 +407,7 @@ test_min_delim_two_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_min_delim_three_byte(void)
 {
     SV_Str_view ref = SV_from("///0");
@@ -482,7 +482,7 @@ test_min_delim_three_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_min_delim_four_byte(void)
 {
     SV_Str_view ref = SV_from("////0");
@@ -557,7 +557,7 @@ test_min_delim_four_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_min_delim_five_byte(void)
 {
     SV_Str_view ref = SV_from("/////0");
@@ -632,7 +632,7 @@ test_min_delim_five_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rmin_delim(void)
 {
     SV_Str_view ref = SV_from("/0");
@@ -714,7 +714,7 @@ test_rmin_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rmin_delim_two_byte(void)
 {
     SV_Str_view ref = SV_from("//0");
@@ -796,7 +796,7 @@ test_rmin_delim_two_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rmin_delim_three_byte(void)
 {
     SV_Str_view ref = SV_from("///0");
@@ -878,7 +878,7 @@ test_rmin_delim_three_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rmin_delim_four_byte(void)
 {
     SV_Str_view ref = SV_from("////0");
@@ -960,7 +960,7 @@ test_rmin_delim_four_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rmin_delim_five_byte(void)
 {
     SV_Str_view ref = SV_from("/////0");
@@ -1042,7 +1042,7 @@ test_rmin_delim_five_byte(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_simple_delim(void)
 {
     char const *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
@@ -1065,7 +1065,7 @@ test_simple_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rsimple_delim(void)
 {
     char const *const reference = "0/1/2/2/3//3////3/4/4/4/////4";
@@ -1089,7 +1089,7 @@ test_rsimple_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_tail_delim(void)
 {
     char const *const reference = "0/1//2//2//3//3////3//4//4//4///////4578";
@@ -1112,7 +1112,7 @@ test_tail_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rtail_delim(void)
 {
     char const *const reference = "0/1//2//2//3//3////3//4//4//4///4578";
@@ -1136,7 +1136,7 @@ test_rtail_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rtriple_delim(void)
 {
     char const *const reference
@@ -1161,7 +1161,7 @@ test_rtriple_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rquad_delim(void)
 {
     char const *const reference
@@ -1186,7 +1186,7 @@ test_rquad_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_iter_repeating_delim(void)
 {
     char const *toks[14] = {
@@ -1219,7 +1219,7 @@ test_iter_repeating_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_iter_multichar_delim(void)
 {
     char const *toks[14] = {
@@ -1254,7 +1254,7 @@ test_iter_multichar_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_riter_multichar_delim(void)
 {
     char const *toks[14] = {
@@ -1291,7 +1291,7 @@ test_riter_multichar_delim(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_iter_multichar_delim_short(void)
 {
     char const *toks[14] = {
@@ -1326,7 +1326,7 @@ test_iter_multichar_delim_short(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_riter_multichar_delim_short(void)
 {
     char const *toks[14] = {
@@ -1363,7 +1363,7 @@ test_riter_multichar_delim_short(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_iter_delim_larger_than_str(void)
 {
     char const *const ref = "A-B";
@@ -1387,7 +1387,7 @@ test_iter_delim_larger_than_str(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_riter_delim_larger_than_str(void)
 {
     char const *const ref = "A-B";
@@ -1411,7 +1411,7 @@ test_riter_delim_larger_than_str(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_tokenize_not_terminated(void)
 {
     char const *const path_str = "this/path/will/be/missing/its/child";
@@ -1436,7 +1436,7 @@ test_tokenize_not_terminated(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_tokenize_three_views(void)
 {
     char const *const path_str = "all/of/these/paths/are/unique/and/split/up";
@@ -1482,7 +1482,7 @@ test_tokenize_three_views(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rtokenize_three_views(void)
 {
     char const *const path_str = "all/of/these/paths/are/unique/and/split/up";

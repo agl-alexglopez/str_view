@@ -6,23 +6,23 @@
 #include <stdio.h>
 #include <string.h>
 
-static enum test_result test_small_find(void);
-static enum test_result test_small_rfind(void);
-static enum test_result test_rfind_off_by_one(void);
-static enum test_result test_find_of_sets(void);
-static enum test_result test_substring_brute_force(void);
-static enum test_result test_rfind_brute_force(void);
-static enum test_result test_find_rfind_memoization(void);
-static enum test_result test_consecutive_find(void);
-static enum test_result test_consecutive_rfind(void);
-static enum test_result test_substring_off_by_one(void);
-static enum test_result test_substring_search(void);
-static enum test_result test_rsubstring_search(void);
-static enum test_result test_long_substring(void);
+static enum Test_result test_small_find(void);
+static enum Test_result test_small_rfind(void);
+static enum Test_result test_rfind_off_by_one(void);
+static enum Test_result test_find_of_sets(void);
+static enum Test_result test_substring_brute_force(void);
+static enum Test_result test_rfind_brute_force(void);
+static enum Test_result test_find_rfind_memoization(void);
+static enum Test_result test_consecutive_find(void);
+static enum Test_result test_consecutive_rfind(void);
+static enum Test_result test_substring_off_by_one(void);
+static enum Test_result test_substring_search(void);
+static enum Test_result test_rsubstring_search(void);
+static enum Test_result test_long_substring(void);
 
 #define NUM_TESTS (size_t)13
 
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_small_find,
     test_small_rfind,
     test_find_of_sets,
@@ -41,10 +41,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -53,7 +53,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_small_find(void)
 {
     char const ref[20] = {
@@ -69,7 +69,7 @@ test_small_find(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_small_rfind(void)
 {
     char const ref[20] = {
@@ -88,7 +88,7 @@ test_small_rfind(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_find_of_sets(void)
 {
     char const ref[25] = {
@@ -109,7 +109,7 @@ test_find_of_sets(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_substring_brute_force(void)
 {
     char const *one_byte_needle = "A";
@@ -168,7 +168,7 @@ test_substring_brute_force(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rfind_brute_force(void)
 {
     char const *one_byte_needle = "A";
@@ -258,7 +258,7 @@ test_rfind_brute_force(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_consecutive_find(void)
 {
     char const needles[13] = {
@@ -285,7 +285,7 @@ test_consecutive_find(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_consecutive_rfind(void)
 {
     char const needles[13] = {
@@ -311,7 +311,7 @@ test_consecutive_rfind(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rfind_off_by_one(void)
 {
     char const *one_byte_needle = "Z";
@@ -390,7 +390,7 @@ test_rfind_off_by_one(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_find_rfind_memoization(void)
 {
     char const *needle_forward = "aabbaabba";
@@ -413,7 +413,7 @@ test_find_rfind_memoization(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_substring_off_by_one(void)
 {
     char const *needle = "needle";
@@ -446,7 +446,7 @@ test_substring_off_by_one(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_substring_search(void)
 {
     char const *needle = "needle";
@@ -511,7 +511,7 @@ test_substring_search(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_rsubstring_search(void)
 {
     char const *needle = "needle";
@@ -552,7 +552,7 @@ test_rsubstring_search(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_long_substring(void)
 {
     char const *needle = "This needle will make up most of the string such "

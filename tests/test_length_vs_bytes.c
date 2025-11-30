@@ -3,13 +3,13 @@
 
 #include <string.h>
 
-static enum test_result test_length_terminated(void);
-static enum test_result test_length_unterminated(void);
-static enum test_result test_length_innacurate(void);
+static enum Test_result test_length_terminated(void);
+static enum Test_result test_length_unterminated(void);
+static enum Test_result test_length_innacurate(void);
 
 #define NUM_TESTS (size_t)3
 
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_length_terminated,
     test_length_unterminated,
     test_length_innacurate,
@@ -18,10 +18,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -30,7 +30,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_length_terminated(void)
 {
     char const ref[6] = {
@@ -47,7 +47,7 @@ test_length_terminated(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_length_unterminated(void)
 {
     char const ref[12] = {
@@ -67,7 +67,7 @@ test_length_unterminated(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_length_innacurate(void)
 {
     char const ref[18]

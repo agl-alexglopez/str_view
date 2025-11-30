@@ -3,12 +3,12 @@
 
 #include <string.h>
 
-static enum test_result test_front_back_terminated(void);
-static enum test_result test_front_back_view(void);
+static enum Test_result test_front_back_terminated(void);
+static enum Test_result test_front_back_view(void);
 
 #define NUM_TESTS (size_t)2
 
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_front_back_terminated,
     test_front_back_view,
 };
@@ -16,10 +16,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -28,7 +28,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_front_back_terminated(void)
 {
     CHECK(SV_back(SV_from_terminated("")), '\0', char, "%c");
@@ -42,7 +42,7 @@ test_front_back_terminated(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_front_back_view(void)
 {
     char const reference[20] = {

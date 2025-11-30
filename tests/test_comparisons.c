@@ -4,18 +4,18 @@
 #include <stdbool.h>
 #include <string.h>
 
-static enum test_result test_compare_single(void);
-static enum test_result test_compare_equal(void);
-static enum test_result test_compare_equal_view(void);
-static enum test_result test_compare_view_equals_str(void);
-static enum test_result test_compare_view_off_by_one(void);
-static enum test_result test_compare_terminated(void);
-static enum test_result test_compare_different_lengths_terminated(void);
-static enum test_result test_compare_different_lengths_views(void);
-static enum test_result test_compare_misc(void);
+static enum Test_result test_compare_single(void);
+static enum Test_result test_compare_equal(void);
+static enum Test_result test_compare_equal_view(void);
+static enum Test_result test_compare_view_equals_str(void);
+static enum Test_result test_compare_view_off_by_one(void);
+static enum Test_result test_compare_terminated(void);
+static enum Test_result test_compare_different_lengths_terminated(void);
+static enum Test_result test_compare_different_lengths_views(void);
+static enum Test_result test_compare_misc(void);
 
 #define NUM_TESTS (size_t)9
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_compare_single,
     test_compare_equal,
     test_compare_equal_view,
@@ -30,10 +30,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -42,7 +42,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_single(void)
 {
     char const e1[2] = {
@@ -64,7 +64,7 @@ test_compare_single(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_equal(void)
 {
     char const e1[5] = {
@@ -84,7 +84,7 @@ test_compare_equal(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_equal_view(void)
 {
     char const e1[5] = {
@@ -103,7 +103,7 @@ test_compare_equal_view(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_terminated(void)
 {
     char const lesser[5] = {
@@ -125,7 +125,7 @@ test_compare_terminated(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_different_lengths_terminated(void)
 {
     char const lesser[5]
@@ -144,7 +144,7 @@ test_compare_different_lengths_terminated(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_view_equals_str(void)
 {
     char const *const views
@@ -170,7 +170,7 @@ test_compare_view_equals_str(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_view_off_by_one(void)
 {
     char const *const views
@@ -209,7 +209,7 @@ test_compare_view_off_by_one(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_different_lengths_views(void)
 {
 
@@ -237,7 +237,7 @@ test_compare_different_lengths_views(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_compare_misc(void)
 {
     CHECK(SV_compare(SV_from_terminated(""), SV_from_terminated("")),

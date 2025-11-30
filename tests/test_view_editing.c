@@ -7,13 +7,13 @@
 
 static SV_Str_view const dirslash = SV_from("/");
 
-static enum test_result test_prefix_suffix(void);
-static enum test_result test_substr(void);
-static enum test_result test_dir_entries(void);
-static enum test_result test_progressive_search(void);
+static enum Test_result test_prefix_suffix(void);
+static enum Test_result test_substr(void);
+static enum Test_result test_dir_entries(void);
+static enum Test_result test_progressive_search(void);
 
 #define NUM_TESTS (size_t)4
-static test_fn const all_tests[NUM_TESTS] = {
+static Test_fn const all_tests[NUM_TESTS] = {
     test_prefix_suffix,
     test_substr,
     test_dir_entries,
@@ -23,10 +23,10 @@ static test_fn const all_tests[NUM_TESTS] = {
 int
 main()
 {
-    enum test_result res = PASS;
+    enum Test_result res = PASS;
     for (size_t i = 0; i < NUM_TESTS; ++i)
     {
-        enum test_result const t_res = all_tests[i]();
+        enum Test_result const t_res = all_tests[i]();
         if (t_res == FAIL)
         {
             res = FAIL;
@@ -35,7 +35,7 @@ main()
     return res;
 }
 
-static enum test_result
+static enum Test_result
 test_prefix_suffix(void)
 {
     char const *const reference = "Remove the suffix! No, remove the prefix!";
@@ -63,7 +63,7 @@ test_prefix_suffix(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_substr(void)
 {
     char const ref[27] = {
@@ -103,7 +103,7 @@ test_substr(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_dir_entries(void)
 {
     CHECK(SV_is_empty(
@@ -132,7 +132,7 @@ test_dir_entries(void)
     return PASS;
 }
 
-static enum test_result
+static enum Test_result
 test_progressive_search(void)
 {
     SV_Str_view const starting_path
