@@ -1,10 +1,10 @@
 add_library(${PROJECT_NAME})
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_library(${namespace}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # add sources to the library target
 target_sources(${PROJECT_NAME}
     PRIVATE
-        ${PROJECT_NAME}.c
+        ${PROJECT_SOURCE_DIR}/source/${PROJECT_NAME}.c
     PUBLIC 
         FILE_SET public_headers
             TYPE HEADERS

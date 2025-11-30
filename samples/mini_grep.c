@@ -4,15 +4,15 @@
    Mini Grep is a small tester program that can search a provided file or
    directory for all occurrences of a target string. The program does not
    support regular expression parsing and can only search strings as
-   provided. Its purpose is to test the str_view module. Here is usage
+   provided. Its purpose is to test the SV_Str_view module. Here is usage
    (replace bin in the executable path with debug/deb if built in debug mode):
 
        ./build/bin/mini_grep [OPTIONAL IO] [FILE/DIRECTORY] [string]
        # Searching one file for all occurrences of string "const"
-       ./build/bin/mini_grep str_view/str_view.c const
+       ./build/bin/mini_grep SV_Str_view/SV_Str_view.c const
        # Searching all files in directory for string ")"
-       ./build/bin/mini_grep str_view/ \)
-       ./build/bin/mini_grep --mmap str_view/ \)
+       ./build/bin/mini_grep SV_Str_view/ \)
+       ./build/bin/mini_grep --mmap SV_Str_view/ \)
 
    The optional IO flag let's one choose to use mmap as the memory backing
    for the file IO. This is just for experimental purposes and for the use
@@ -46,29 +46,29 @@
 #define RED "\033[38;5;9m"
 #define PNK "\033[38;5;13m"
 
-enum io_method
+enum Io_method
 {
     READ,
     MMAP,
 };
 
-struct file_buf
+struct File_buf
 {
     char const *const buf;
     size_t size;
 };
 
-str_view const mmap_flag = SV("--mmap");
-str_view const read_flag = SV("--read");
+SV_Str_view const mmap_flag = SV_from("--mmap");
+SV_Str_view const read_flag = SV_from("--read");
 
 static int run(char * [static 1], size_t);
-static bool match_file_mmap(str_view, str_view);
-static bool match_file_read(FILE *, str_view);
-static bool match_line(size_t, str_view, str_view);
-static void search_directory(str_view, DIR *, enum io_method, str_view);
-static bool fill_path(char[static FILESYS_MAX_PATH], str_view, str_view);
-static struct file_buf get_file_buf(FILE *);
-static void print_str_view(FILE *, str_view);
+static bool match_file_mmap(SV_Str_view, SV_Str_view);
+static bool match_file_read(FILE *, SV_Str_view);
+static bool match_line(size_t, SV_Str_view, SV_Str_view);
+static void search_directory(SV_Str_view, DIR *, enum Io_method, SV_Str_view);
+static bool fill_path(char[static FILESYS_MAX_PATH], SV_Str_view, SV_Str_view);
+static struct File_buf get_file_buf(FILE *);
+static void print_str_view(FILE *, SV_Str_view);
 
 int
 main(int argc, char **argv)
@@ -83,14 +83,14 @@ main(int argc, char **argv)
 static int
 run(char *args[static 1], size_t argc)
 {
-    enum io_method io_style = READ;
+    enum Io_method io_style = READ;
     size_t start = 0;
-    if (sv_strcmp(mmap_flag, args[start]) == SV_EQL)
+    if (SV_terminated_compare(mmap_flag, args[start]) == SV_ORDER_EQUAL)
     {
         io_style = MMAP;
         ++start;
     }
-    else if (sv_strcmp(read_flag, args[start]) == SV_EQL)
+    else if (SV_terminated_compare(read_flag, args[start]) == SV_ORDER_EQUAL)
     {
         io_style = READ;
         ++start;
@@ -105,18 +105,19 @@ run(char *args[static 1], size_t argc)
             (void)fprintf(stderr, "Could not open directory.\n");
             return 1;
         }
-        str_view const dir_view = sv(args[start]);
+        SV_Str_view const dir_view = SV_from_terminated(args[start]);
         for (size_t i = start + 1; i < argc; ++i)
         {
-            search_directory(dir_view, d, io_style, sv(args[i]));
+            search_directory(dir_view, d, io_style,
+                             SV_from_terminated(args[i]));
         }
         closedir(d);
     }
     else
     {
         bool opened_file = true;
-        str_view const filename = sv(args[start]);
-        FILE *f = fopen(sv_begin(filename), "r");
+        SV_Str_view const filename = SV_from_terminated(args[start]);
+        FILE *f = fopen(SV_begin(filename), "r");
         if (!f)
         {
             opened_file = false;
@@ -128,10 +129,10 @@ run(char *args[static 1], size_t argc)
             switch (io_style)
             {
             case READ:
-                (void)match_file_read(f, sv(args[i]));
+                (void)match_file_read(f, SV_from_terminated(args[i]));
                 break;
             case MMAP:
-                (void)match_file_mmap(filename, sv(args[i]));
+                (void)match_file_mmap(filename, SV_from_terminated(args[i]));
                 break;
             }
         }
@@ -144,7 +145,8 @@ run(char *args[static 1], size_t argc)
 }
 
 static void
-search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
+search_directory(SV_Str_view dirname, DIR *d, enum Io_method io,
+                 SV_Str_view needle)
 {
     struct dirent const *de;
     char path_buf[FILESYS_MAX_PATH];
@@ -156,15 +158,15 @@ search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
         {
             continue;
         }
-        if (!fill_path(path_buf, dirname, sv(de->d_name)))
+        if (!fill_path(path_buf, dirname, SV_from_terminated(de->d_name)))
         {
             continue;
         }
-        str_view const path_view = sv(path_buf);
+        SV_Str_view const path_view = SV_from_terminated(path_buf);
         bool match_res = false;
         if (io == READ)
         {
-            FILE *f = fopen(sv_begin(path_view), "r");
+            FILE *f = fopen(SV_begin(path_view), "r");
             if (f)
             {
                 match_res = match_file_read(f, needle);
@@ -190,7 +192,7 @@ search_directory(str_view dirname, DIR *d, enum io_method io, str_view needle)
 }
 
 static bool
-match_file_read(FILE *f, str_view needle)
+match_file_read(FILE *f, SV_Str_view needle)
 {
     char *lineptr = NULL;
     size_t len = 0;
@@ -199,7 +201,8 @@ match_file_read(FILE *f, str_view needle)
     bool found = false;
     while ((read = getline(&lineptr, &len, f)) != -1)
     {
-        if (read && match_line(lineno, (str_view){lineptr, read - 1}, needle))
+        if (read
+            && match_line(lineno, (SV_Str_view){lineptr, read - 1}, needle))
         {
             found = true;
         }
@@ -210,16 +213,16 @@ match_file_read(FILE *f, str_view needle)
 }
 
 static bool
-match_file_mmap(str_view const filename, str_view needle)
+match_file_mmap(SV_Str_view const filename, SV_Str_view needle)
 {
-    FILE *f = fopen(sv_begin(filename), "r");
+    FILE *f = fopen(SV_begin(filename), "r");
     if (!f)
     {
         (void)fprintf(stderr, "error opening file %s, continuing.\n",
-                      sv_begin(filename));
+                      SV_begin(filename));
         return false;
     }
-    struct file_buf const fb = get_file_buf(f);
+    struct File_buf const fb = get_file_buf(f);
     if (fclose(f))
     {
         (void)fprintf(stderr, "Error closing file.\n");
@@ -232,16 +235,16 @@ match_file_mmap(str_view const filename, str_view needle)
     size_t read = 0;
     size_t lineno = 1;
     bool found = false;
-    for (str_view line = sv_delim(fb.buf + read, "\n"); !sv_empty(line);
-         line = sv_delim(fb.buf + read, "\n"))
+    for (SV_Str_view line = SV_from_delimiter(fb.buf + read, "\n");
+         !SV_is_empty(line); line = SV_from_delimiter(fb.buf + read, "\n"))
     {
-        read += sv_size(line);
+        read += SV_bytes(line);
         if (match_line(lineno, line, needle))
         {
             found = true;
         }
         ++lineno;
-        /* The str_view type conveniently skips leading delims but if the
+        /* The SV_Str_view type conveniently skips leading delims but if the
            line number shall be accurate, these empty lines need to be
            counted.*/
         while (read < fb.size && fb.buf[read] == '\n')
@@ -258,76 +261,76 @@ match_file_mmap(str_view const filename, str_view needle)
 }
 
 static bool
-match_line(size_t lineno, str_view line, str_view needle)
+match_line(size_t lineno, SV_Str_view line, SV_Str_view needle)
 {
     size_t last_pos = 0;
     size_t pos = 0;
-    while ((pos = sv_find(line, pos, needle)) != sv_npos(line))
+    while ((pos = SV_find(line, pos, needle)) != SV_npos(line))
     {
         if (!last_pos)
         {
             (void)fprintf(stdout, CYAN "%zu:" NONE, lineno);
         }
-        print_str_view(stdout, sv_substr(line, last_pos, pos - last_pos));
+        print_str_view(stdout, SV_substr(line, last_pos, pos - last_pos));
         (void)fprintf(stdout, RED);
         print_str_view(stdout, needle);
         (void)fprintf(stdout, NONE);
-        last_pos = pos + sv_len(needle);
+        last_pos = pos + SV_len(needle);
         ++pos;
     }
     if (last_pos)
     {
-        print_str_view(stdout, sv_substr(line, last_pos, sv_len(line)));
+        print_str_view(stdout, SV_substr(line, last_pos, SV_len(line)));
         (void)fprintf(stdout, "\n");
     }
     return last_pos != 0;
 }
 
 static bool
-fill_path(char path_buf[static FILESYS_MAX_PATH], str_view tests_dir,
-          str_view entry)
+fill_path(char path_buf[static FILESYS_MAX_PATH], SV_Str_view tests_dir,
+          SV_Str_view entry)
 {
-    size_t const dir_bytes = sv_fill(FILESYS_MAX_PATH, path_buf, tests_dir);
-    if (FILESYS_MAX_PATH - dir_bytes < sv_size(entry))
+    size_t const dir_bytes = SV_fill(FILESYS_MAX_PATH, path_buf, tests_dir);
+    if (FILESYS_MAX_PATH - dir_bytes < SV_bytes(entry))
     {
         (void)fprintf(stderr, "Relative path exceeds FILESYS_MAX_PATH?\n%s",
                       path_buf);
         return false;
     }
-    (void)sv_fill(FILESYS_MAX_PATH - dir_bytes, path_buf + sv_len(tests_dir),
+    (void)SV_fill(FILESYS_MAX_PATH - dir_bytes, path_buf + SV_len(tests_dir),
                   entry);
     return true;
 }
 
-static struct file_buf
+static struct File_buf
 get_file_buf(FILE *f)
 {
     if (fseek(f, 0L, SEEK_END) < 0)
     {
         (void)fprintf(stderr, "error seeking in file.\n");
-        return (struct file_buf){0};
+        return (struct File_buf){0};
     }
     size_t const size = ftell(f);
     if (fseek(f, 0L, SEEK_SET) < 0)
     {
         (void)fprintf(stderr, "error seeking in file.\n");
-        return (struct file_buf){0};
+        return (struct File_buf){0};
     }
     char const *const buf
         = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fileno(f), 0);
     if (buf == MAP_FAILED)
     {
         (void)fprintf(stderr, "could not read file into memory.\n");
-        return (struct file_buf){0};
+        return (struct File_buf){0};
     }
-    return (struct file_buf){.buf = buf, .size = size};
+    return (struct File_buf){.buf = buf, .size = size};
 }
 
 static void
-print_str_view(FILE *const f, str_view const sv)
+print_str_view(FILE *const f, SV_Str_view const sv)
 {
-    if (!sv_empty(sv))
+    if (!SV_is_empty(sv))
     {
-        (void)fwrite(sv_begin(sv), sizeof(char), sv_len(sv), f);
+        (void)fwrite(SV_begin(sv), sizeof(char), SV_len(sv), f);
     }
 }

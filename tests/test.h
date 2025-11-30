@@ -9,14 +9,14 @@
 #define CYAN "\033[38;5;14m"
 #define NONE "\033[0m"
 
-enum test_result
+enum Test_result
 {
     ERROR = -1,
     PASS,
     FAIL,
 };
 
-typedef enum test_result (*test_fn)(void);
+typedef enum Test_result (*Test_fn)(void);
 
 /* Set this breakpoint on any line where you wish
    execution to stop. Under normal program runs the program

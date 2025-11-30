@@ -8,6 +8,9 @@ project("str_view"
     DESCRIPTION "Robust read-only string handling, tokenization, and matching in C."
 )
 
+include_directories("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}")
+add_subdirectory("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}")
+
 # For the sake of vcpkg we will make sure cloning and building from
 # main will only build the minimal files in the all target. I can't
 # protect vcpkg from needlessly downloading 
@@ -34,9 +37,6 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
-
-
-add_subdirectory("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}")
 
 # where to find our CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
