@@ -1,6 +1,8 @@
 file (GLOB PROJ_C_FILES 
   ${CMAKE_SOURCE_DIR}/str_view/*.c 
   ${CMAKE_SOURCE_DIR}/str_view/*.h 
+  ${CMAKE_SOURCE_DIR}/source/*.c 
+  ${CMAKE_SOURCE_DIR}/source/*.h 
   ${CMAKE_SOURCE_DIR}/tests/*.c
   ${CMAKE_SOURCE_DIR}/tests/*.h
   ${CMAKE_SOURCE_DIR}/samples/*.c
