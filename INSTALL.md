@@ -29,6 +29,49 @@ Then, the header in the `.c/.h` files.
 #include "str_view/str_view.h"
 ```
 
+## Fetch Content
+
+This approach will allow CMake to build `str_view` from source as part of your project. It does not have external dependencies, besides the standard library, so this may be viable for you. This is helpful if you want the ability to build the library in release or debug mode along with your project and possibly step through it with a debugger during a debug build. If you would rather link to the release build library file see the next section for the manual install.
+
+To avoid including tests, samples, and other extraneous files when fetching content download a release.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  ccc
+  URL https://github.com/agl-alexglopez/str_view/releases/download/v[MAJOR.MINOR.PATCH]/str_view-v[MAJOR.MINOR.PATCH].zip
+  #DOWNLOAD_EXTRACT_TIMESTAMP FALSE # CMake may raise a warning to set this. If so, uncomment and set.
+)
+FetchContent_MakeAvailable(str_view)
+# Optionally ignore compiler warnings from the str_view library.
+target_compile_options(str_view PRIVATE "-w")
+```
+
+Link against the library with its namespace.
+
+```cmake
+add_executable(main main.c)
+target_link_libraries(main str_view::strrview)
+```
+
+Here is a concrete example with an arbitrary release that is likely out of date. Replace this version with the newest version on the releases page.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  ccc
+  URL https://github.com/agl-alexglopez/str_view/releases/download/v0.6.0/str_view-v0.6.0.zip
+  #DOWNLOAD_EXTRACT_TIMESTAMP FALSE # CMake may raise a warning to set this. If so, uncomment and set.
+)
+FetchContent_MakeAvailable(str_view)
+# Optionally ignore compiler warnings from the str_view library.
+target_compile_options(str_view PRIVATE "-w")
+add_executable(main main.c)
+target_link_libraries(main str_view::str_view)
+```
+
+Now, `str_view` is part of your project build, allowing you to configure as you see fit. For a more traditional approach read the manual install section below.
+
 ## Manual Install Quick Start
 
 1. Use the provided defaults 
