@@ -14,6 +14,7 @@ var NAVTREEINDEX0 =
 "index.html#autotoc_md1":[0],
 "index.html#autotoc_md2":[1],
 "md_INSTALL.html":[2],
+"md_INSTALL.html#autotoc_md10":[2,6],
 "md_INSTALL.html#autotoc_md4":[2,0],
 "md_INSTALL.html#autotoc_md5":[2,1],
 "md_INSTALL.html#autotoc_md6":[2,2],
