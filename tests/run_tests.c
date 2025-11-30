@@ -19,7 +19,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-struct path_bin
+struct Path_bin
 {
     SV_Str_view path;
     SV_Str_view bin;
@@ -31,7 +31,7 @@ char const *const fail_msg = "X";
 char const *const err_msg = "Test process failed abnormally:";
 
 static int run(SV_Str_view);
-enum test_result run_test_process(struct path_bin);
+enum test_result run_test_process(struct Path_bin);
 static DIR *open_test_dir(SV_Str_view);
 static bool fill_path(char *, SV_Str_view, SV_Str_view);
 
@@ -73,7 +73,7 @@ run(SV_Str_view const tests_dir)
         printf("%s(%s%s\n", CYAN, SV_begin(entry), NONE);
         (void)fflush(stdout);
         enum test_result const res = run_test_process(
-            (struct path_bin){SV_from_terminated(absolute_path), entry});
+            (struct Path_bin){SV_from_terminated(absolute_path), entry});
         switch (res)
         {
         case ERROR:
@@ -100,7 +100,7 @@ done:
 }
 
 enum test_result
-run_test_process(struct path_bin pb)
+run_test_process(struct Path_bin pb)
 {
     if (SV_is_empty(pb.path))
     {
