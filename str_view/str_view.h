@@ -1,5 +1,5 @@
 /** @file
-@brief The Str View Interface
+@brief The `SV_Str_view` Interface
 
 A `SV_Str_view` is a read only view of null terminated C strings. It's purpose
 is to provide robust read only string construction, tokenizing, and matching.
@@ -35,24 +35,39 @@ storage is needed. */
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_LLVM_COMPILER)
 #    ifdef __has_attribute
 #        if __has_attribute(pure)
+/** @brief Describes a function as having no side effects when given the same
+arguments with same underlying data. Can be used when pointers are provided. */
 #            define SV_ATTRIB_PURE __attribute__((pure))
 #        else
+/** @brief Describes a function as having no side effects when given the same
+arguments with same underlying data. Can be used when pointers are provided. */
 #            define SV_ATTRIB_PURE /**/
 #        endif
 #        if __has_attribute(pure)
+/** @brief Describes a function as having no side effects and not depending on
+any pointer input that could change between calls. */
 #            define SV_ATTRIB_CONST __attribute__((const))
 #        else
+/** @brief Describes a function as having no side effects and not depending on
+any pointer input that could change between calls. */
 #            define SV_ATTRIB_CONST /**/
 #        endif
 #        if __has_attribute(null_terminated_string_arg)
+/** @brief Describes a parameter as null terminated. */
 #            define SV_ATTRIB_NULLTERM(...)                                    \
                 __attribute__((null_terminated_string_arg(__VA_ARGS__)))
 #        else
+/** @brief Describes a parameter as null terminated. */
 #            define SV_ATTRIB_NULLTERM(...) /**/
 #        endif
 #    else
+/** @brief Describes a function as having no side effects when given the same
+arguments with same underlying data. Can be used when pointers are provided. */
 #        define SV_ATTRIB_PURE          /**/
+/** @brief Describes a function as having no side effects and not depending on
+any pointer input that could change between calls. */
 #        define SV_ATTRIB_CONST         /**/
+/** @brief Describes a parameter as null terminated. */
 #        define SV_ATTRIB_NULLTERM(...) /**/
 #    endif
 /** @brief A helper macro to enforce only string literals for the SV_from
@@ -61,34 +76,44 @@ bad input is provided to the SV_from constructor.
 @param[in] str_literal the input string literal */
 #    define SV_STR_LITERAL(str_literal) "" str_literal ""
 #else
+/** @brief Describes a function as having no side effects when given the same
+arguments with same underlying data. Can be used when pointers are provided. */
 #    define SV_ATTRIB_PURE          /**/
+/** @brief Describes a function as having no side effects and not depending on
+any pointer input that could change between calls. */
 #    define SV_ATTRIB_CONST         /**/
+/** @brief Describes a parameter as null terminated. */
 #    define SV_ATTRIB_NULLTERM(...) /**/
-/* MSVC does not allow strong enforcement of string literals to the SV_from
-   constructor. This is a dummy wrapper for compatibility. */
+/** @brief MSVC does not allow strong enforcement of string literals to the
+   SV_from constructor. This is a dummy wrapper for compatibility. */
 #    define SV_STR_LITERAL(str_literal) str_literal
 #endif /* __GNUC__ || __clang__ || __INTEL_LLVM_COMPILER */
 
 #if defined(_MSVC_VER) || defined(_WIN32) || defined(_WIN64)
 #    if defined(SV_BUILD_DLL)
+/** @brief A macro to help with library linking on windows. */
 #        define SV_API __declspec(dllexport)
 #    elif defined(SV_CONSUME_DLL)
+/** @brief A macro to help with library linking on windows. */
 #        define SV_API __declspec(dllimport)
 #    else
+/** @brief A macro to help with library linking on windows. */
 #        define SV_API /**/
 #    endif
 #else
+/** @brief A macro to help with library linking on windows. */
 #    define SV_API /**/
 #endif             /* _MSVC_VER */
 
 #include <stdbool.h>
 #include <stddef.h>
 
-/** A read-only view of string data in C. It is modeled after the C++
-`std::string_view`. It consists of a pointer to char const data and a size_t
-field. Therefore, the exact size of this type may be platform dependent but it
-is small enough that one should use the provided functions and pass by copy
-whenever possible. Avoid accessing struct fields. */
+/** @brief A read-only view of string data in C.
+
+It is modeled after the C++ `std::string_view`. It consists of a pointer to char
+const data and a size_t field. Therefore, the exact size of this type may be
+platform dependent but it is small enough that one should use the provided
+functions and pass by copy whenever possible. Avoid accessing struct fields. */
 typedef struct
 {
     /** The read only data to which we point. */
@@ -98,9 +123,10 @@ typedef struct
     size_t len;
 } SV_Str_view;
 
-/** Standard three way comparison type in C. Orders the result of a comparison
-between left and right hand side elements, describing the order of the left
-hand side element compared to the right. */
+/** @brief Standard three way comparison type in C.
+
+Orders the result of a comparison between left and right hand side elements,
+describing the order of the left hand side element compared to the right. */
 typedef enum
 {
     SV_ORDER_LESSER = -1,
@@ -389,15 +415,17 @@ read from left to right between two delimiters as in the forward version. */
 SV_API SV_Str_view SV_reverse_next_token(SV_Str_view src, SV_Str_view token,
                                          SV_Str_view delim) SV_ATTRIB_PURE;
 
-/* Returns a read only pointer to the beginning of the string view,
-   the first valid character in the view. If the view stores NULL,
-   the placeholder SV_null() is returned. */
+/** @brief Returns a read only pointer to the beginning of the string view,
+the first valid character in the view.
+@param[in] sv the input string view.
+@return if the view stores NULL, the placeholder SV_null() is returned. */
 SV_API char const *SV_begin(SV_Str_view sv) SV_ATTRIB_PURE;
 
-/* Returns the reverse iterator beginning, the last character of the
-   current view. If the view is null SV_null() is returned. If the
-   view is sized zero with a valid pointer that pointer in the
-   view is returned. */
+/** @brief Returns the reverse iterator beginning, the last character of the
+current view.
+@param[in] sv the input string view.
+@return if the view is null SV_null() is returned. If the view is sized zero
+with a valid pointer that pointer in the view is returned. */
 SV_API char const *SV_reverse_begin(SV_Str_view sv) SV_ATTRIB_PURE;
 
 /** @brief Advances the null terminated string pointer from its previous
@@ -407,8 +435,8 @@ position. If NULL is provided SV_null() is returned.
 remain. */
 SV_API char const *SV_next(char const *c) SV_ATTRIB_NULLTERM(1) SV_ATTRIB_PURE;
 
-/* Advances the iterator to the next character in the SV_Str_view being iterated
-through in reverse.
+/** @brief Advances the iterator to the next character in the SV_Str_view being
+iterated through in reverse.
 @param[in] c the pointer to the null terminated string iterator.
 @warning It is undefined behavior to change the SV_Str_view one is iterating
 through during iteration.
@@ -433,7 +461,7 @@ SV_API char const *SV_reverse_end(SV_Str_view sv) SV_ATTRIB_PURE;
 /** @brief Returns the character pointer at the minimum between the indicated
 position and the end of the string view.
 @param[in] sv the string view input.
-@param[in] the index within range of `[0, string view length - 1)`.
+@param[in] i the index within range of `[0, string view length - 1)`.
 @return a pointer to the character at the designated index. If NULL is stored by
 the SV_Str_view then SV_null() is returned. */
 SV_API char const *SV_pointer(SV_Str_view sv, size_t i) SV_ATTRIB_PURE;
@@ -470,7 +498,7 @@ length (npos) is returned. */
 SV_API size_t SV_find(SV_Str_view haystack, size_t pos,
                       SV_Str_view needle) SV_ATTRIB_PURE;
 
-/* @brief Searches for the last occurrence of needle in haystack starting from
+/** @brief Searches for the last occurrence of needle in haystack starting from
 pos from right to left.
 @param[in] haystack the string view to search.
 @param[in] pos the position from which to start the search.
@@ -560,7 +588,7 @@ provided. If no occurrence is found haystack size is returned. An empty set
 SV_API size_t SV_find_first_of(SV_Str_view haystack,
                                SV_Str_view set) SV_ATTRIB_PURE;
 
-/* Finds the first position at which no characters in set can be found.
+/** Finds the first position at which no characters in set can be found.
 @param[in] haystack the input view to search.
 @param[in] set the set of characters banned in the search for of haystack. Each
 character in the input set is considered a valid match if encountered in
@@ -583,7 +611,7 @@ provided. If no occurrence is found haystack size is returned. An empty set
 SV_API size_t SV_find_last_of(SV_Str_view haystack,
                               SV_Str_view set) SV_ATTRIB_PURE;
 
-/* Finds the last position at which no characters in set can be found.
+/** Finds the last position at which no characters in set can be found.
 @param[in] haystack the input view to search.
 @param[in] set the set of characters banned in the search for of haystack. Each
 character in the input set is considered a valid match if encountered in
