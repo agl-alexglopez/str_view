@@ -68,7 +68,7 @@ static ptrdiff_t signed_max(ptrdiff_t, ptrdiff_t);
 
 /* Once the user facing API has verified the lengths of strings provided to
    views as inputs, internal code can take advantage of compiler optimizations
-   by assuming the strings are GREATER than or EQUAL TO certain lenghts
+   by assuming the strings are GREATER than or EQUAL TO certain lengths
    allowing for processing by larger units than 1 in compiled code. */
 
 static size_t pos_memo(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
