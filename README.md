@@ -8,15 +8,16 @@ The `str_view` type is a simple, copyable, flexible, read only view of `const ch
 
 A `str_view` is a 16-byte struct and, due to this size, is treated throughout the interface as a copyable type. This is neither a trivially cheap nor excessively expensive type to copy. The intention of this library is to abstract away many sharp edges of working with C-strings to provide usage that "just works," not optimize for performance yet.
 
+## Interface
+
+Read the [DOCS](https://agl-alexglopez.github.io/str_view/). 
+
+
 ## Install Instructions
 
 This library offers a manual installation through the [Releases](https://github.com/agl-alexglopez/str_view/releases) page or a port installation through the [vcpkg](https://github.com/microsoft/vcpkg) package manager.
 
 See [INSTALL.md](/INSTALL.md) file for instructions on how to install the `str-view` port through vcpkg or how to manually download, build, and install the library.
-
-## Interface
-
-Read the [`str_view.h`](/str_view/str_view.h) interface for the full API and documentation.
 
 ## Status
 
