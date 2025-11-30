@@ -40,7 +40,7 @@
 
 /* ========================   Type Definitions   =========================== */
 
-/* Return the factorization step of two-way search in precompute phase. */
+/* Return the factorization step of two-way search in pre-compute phase. */
 struct Factorization
 {
     /* Position in the needle at which (local period = period). */
