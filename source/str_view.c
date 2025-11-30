@@ -25,7 +25,7 @@
    allowing compiler optimizations and safety errors. Specify
    a parameter such as `void func(int size, int ARR_GEQ(arr,size))`.
    This declarations adds the additional constraint that the pointer
-   to the begginning of the array of types will not move. */
+   to the beginning of the array of types will not move. */
 #    define ARR_CONST_GEQ(str, size) str[static const(size)]
 #else
 /* Dummy macro for MSVC compatibility. Specifies a function parameter shall
@@ -33,7 +33,7 @@
 #    define ARR_GEQ(str, size) *str
 /* Dummy macro for MSVC compatibility. Specifies a function parameter shall
    have at least one element. MSVC does not allow specification of a const
-   pointer to the begginning of an array function parameter when using array
+   pointer to the beginning of an array function parameter when using array
    size parameter syntax. Compiler warnings may differ from GCC/Clang. */
 #    define ARR_CONST_GEQ(str, size) *const str
 #endif
