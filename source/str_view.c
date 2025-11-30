@@ -1,6 +1,6 @@
 /* Author: Alexander G. Lopez
    ==========================
-   This file implements the str_view interface as an interpretation of C++
+   This file implements the SV_Str_view interface as an interpretation of C++
    string_view type. There are some minor differences and C flavor thrown
    in. Additionally, there is a provided reimplementation of the Two-Way
    String-Searching algorithm, similar to glibc. */
@@ -41,7 +41,7 @@
 /* ========================   Type Definitions   =========================== */
 
 /* Return the factorization step of two-way search in precompute phase. */
-struct sv_factorization
+struct Factorization
 {
     /* Position in the needle at which (local period = period). */
     ptrdiff_t critical_pos;
@@ -53,106 +53,112 @@ struct sv_factorization
    by returning this for various edgecases when it makes sense to communicate
    empty, null, invalid, not found etc. Used on cases by case basis.
    The function interfaces protect us from null pointers but not always. */
-static str_view const nil = {.s = "", .len = 0};
+static SV_Str_view const nil = {.s = "", .len = 0};
 
 /* =========================   Prototypes   =============================== */
 
-static size_t sv_after_find(str_view, str_view);
-static size_t sv_before_rfind(str_view, str_view);
-static size_t sv_min(size_t, size_t);
-static sv_threeway_cmp sv_char_cmp(char, char);
-static ptrdiff_t sv_signed_max(ptrdiff_t, ptrdiff_t);
+static size_t after_find(SV_Str_view, SV_Str_view);
+static size_t before_r_find(SV_Str_view, SV_Str_view);
+static size_t min(size_t, size_t);
+static SV_Order char_cmp(char, char);
+static ptrdiff_t signed_max(ptrdiff_t, ptrdiff_t);
 
 /* Once the user facing API has verified the lengths of strings provided to
    views as inputs, internal code can take advantage of compiler optimizations
    by assuming the strings are GREATER than or EQUAL TO certain lenghts
    allowing for processing by larger units than 1 in compiled code. */
 
-static size_t sv_pos_memo(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                          ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz),
-                          ptrdiff_t, ptrdiff_t);
-static size_t sv_pos_normal(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                            ptrdiff_t needle_sz,
-                            char const ARR_GEQ(, needle_sz), ptrdiff_t,
-                            ptrdiff_t);
-static size_t sv_rpos_memo(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+static size_t pos_memo(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                       ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz),
+                       ptrdiff_t, ptrdiff_t);
+static size_t pos_normal(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                         ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz),
+                         ptrdiff_t, ptrdiff_t);
+static size_t r_pos_memo(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                         ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz),
+                         ptrdiff_t, ptrdiff_t);
+static size_t r_pos_normal(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
                            ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz),
                            ptrdiff_t, ptrdiff_t);
-static size_t sv_rpos_normal(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                             ptrdiff_t needle_sz,
-                             char const ARR_GEQ(, needle_sz), ptrdiff_t,
-                             ptrdiff_t);
-static size_t sv_tw_match(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                          ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
-static size_t sv_tw_rmatch(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                           ptrdiff_t needle_sz,
-                           char const ARR_GEQ(, needle_sz));
-static struct sv_factorization
-sv_maximal_suffix(ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
-static struct sv_factorization
-sv_maximal_suffix_rev(ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
-static struct sv_factorization
-sv_rmaximal_suffix(ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
-static struct sv_factorization
-sv_rmaximal_suffix_rev(ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
-static size_t sv_twobyte_strnstrn(size_t hay_sz,
-                                  unsigned char const ARR_GEQ(, hay_sz),
-                                  size_t n_sz,
-                                  unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_threebyte_strnstrn(size_t sz,
-                                    unsigned char const ARR_GEQ(, sz),
-                                    size_t n_sz,
-                                    unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_fourbyte_strnstrn(size_t sz, unsigned char const ARR_GEQ(, sz),
-                                   size_t n_sz,
-                                   unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_strcspn(size_t str_sz, char const ARR_GEQ(, str_sz),
-                         size_t set_sz, char const ARR_GEQ(, set_sz));
-static size_t sv_strspn(size_t str_sz, char const ARR_GEQ(, str_sz),
-                        size_t set_sz, char const ARR_GEQ(, set_sz));
-static size_t sv_strnstrn(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                          ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
-static size_t sv_strnchr(size_t n, char const ARR_GEQ(, n), char);
-static size_t sv_rstrnchr(size_t n, char const ARR_GEQ(, n), char);
-static size_t sv_rstrnstrn(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
-                           ptrdiff_t needle_sz,
-                           char const ARR_GEQ(, needle_sz));
-static size_t sv_rtwobyte_strnstrn(size_t sz, unsigned char const ARR_GEQ(, sz),
-                                   size_t n_sz,
-                                   unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_rthreebyte_strnstrn(size_t sz,
-                                     unsigned char const ARR_GEQ(, sz),
+static size_t tw_match(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                       ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
+static size_t tw_rmatch(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                        ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
+static struct Factorization maximal_suffix(ptrdiff_t needle_sz,
+                                           char const ARR_GEQ(, needle_sz));
+static struct Factorization maximal_suffix_rev(ptrdiff_t needle_sz,
+                                               char const ARR_GEQ(, needle_sz));
+static struct Factorization r_maximal_suffix(ptrdiff_t needle_sz,
+                                             char const ARR_GEQ(, needle_sz));
+static struct Factorization
+r_maximal_suffix_rev(ptrdiff_t needle_sz, char const ARR_GEQ(, needle_sz));
+static size_t two_byte_view_n_view_n(size_t hay_sz,
+                                     unsigned char const ARR_GEQ(, hay_sz),
                                      size_t n_sz,
                                      unsigned char const ARR_GEQ(, n_sz));
-static size_t sv_rfourbyte_strnstrn(size_t sz,
-                                    unsigned char const ARR_GEQ(, sz),
-                                    size_t n_sz,
-                                    unsigned char const ARR_GEQ(, n_sz));
+static size_t three_byte_view_n_view_n(size_t sz,
+                                       unsigned char const ARR_GEQ(, sz),
+                                       size_t n_sz,
+                                       unsigned char const ARR_GEQ(, n_sz));
+static size_t four_byte_view_n_view_n(size_t sz,
+                                      unsigned char const ARR_GEQ(, sz),
+                                      size_t n_sz,
+                                      unsigned char const ARR_GEQ(, n_sz));
+static size_t view_c_spn(size_t str_sz, char const ARR_GEQ(, str_sz),
+                         size_t set_sz, char const ARR_GEQ(, set_sz));
+static size_t view_r_spn(size_t str_sz, char const ARR_GEQ(, str_sz),
+                         size_t set_sz, char const ARR_GEQ(, set_sz));
+static size_t view_n_view_n(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                            ptrdiff_t needle_sz,
+                            char const ARR_GEQ(, needle_sz));
+static size_t view_n_chr(size_t n, char const ARR_GEQ(, n), char);
+static size_t r_view_n_chr(size_t n, char const ARR_GEQ(, n), char);
+static size_t r_view_n_view_n(ptrdiff_t hay_sz, char const ARR_GEQ(, hay_sz),
+                              ptrdiff_t needle_sz,
+                              char const ARR_GEQ(, needle_sz));
+static size_t r_two_byte_view_n_view_n(size_t sz,
+                                       unsigned char const ARR_GEQ(, sz),
+                                       size_t n_sz,
+                                       unsigned char const ARR_GEQ(, n_sz));
+static size_t r_three_byte_view_n_view_n(size_t sz,
+                                         unsigned char const ARR_GEQ(, sz),
+                                         size_t n_sz,
+                                         unsigned char const ARR_GEQ(, n_sz));
+static size_t r_four_byte_view_n_view_n(size_t sz,
+                                        unsigned char const ARR_GEQ(, sz),
+                                        size_t n_sz,
+                                        unsigned char const ARR_GEQ(, n_sz));
 
 /* ===================   Interface Implementation   ====================== */
 
-str_view
-sv(char const *const str)
+SV_Str_view
+SV_from_terminated(char const *const str)
 {
     if (!str)
     {
         return nil;
     }
-    return (str_view){.s = str, .len = strlen(str)};
+    return (SV_Str_view){
+        .s = str,
+        .len = strlen(str),
+    };
 }
 
-str_view
-sv_n(size_t n, char const *const str)
+SV_Str_view
+SV_from_view(size_t n, char const *const str)
 {
     if (!str)
     {
         return nil;
     }
-    return (str_view){.s = str, .len = strnlen(str, n)};
+    return (SV_Str_view){
+        .s = str,
+        .len = strnlen(str, n),
+    };
 }
 
-str_view
-sv_delim(char const *const str, char const *const delim)
+SV_Str_view
+SV_from_delimiter(char const *const str, char const *const delim)
 {
     if (!str)
     {
@@ -160,51 +166,61 @@ sv_delim(char const *const str, char const *const delim)
     }
     if (!delim)
     {
-        return (str_view){.s = str, .len = strlen(str)};
+        return (SV_Str_view){
+            .s = str,
+            .len = strlen(str),
+        };
     }
-    return sv_begin_tok((str_view){.s = str, .len = strlen(str)},
-                        (str_view){.s = delim, .len = strlen(delim)});
+    return SV_begin_token(
+        (SV_Str_view){
+            .s = str,
+            .len = strlen(str),
+        },
+        (SV_Str_view){
+            .s = delim,
+            .len = strlen(delim),
+        });
 }
 
-str_view
-sv_copy(size_t const str_sz, char const *const src_str)
+SV_Str_view
+SV_copy(size_t const str_sz, char const *const src_str)
 {
-    return sv_n(str_sz, src_str);
+    return SV_from_view(str_sz, src_str);
 }
 
 size_t
-sv_fill(size_t const dest_sz, char *const dest_buf, str_view const src)
+SV_fill(size_t const dest_sz, char *const dest_buf, SV_Str_view const src)
 {
     if (!dest_buf || !dest_sz || !src.s || !src.len)
     {
         return 0;
     }
-    size_t const bytes = sv_min(dest_sz, sv_size(src));
+    size_t const bytes = min(dest_sz, SV_bytes(src));
     memmove(dest_buf, src.s, bytes);
     dest_buf[bytes - 1] = '\0';
     return bytes;
 }
 
 bool
-sv_empty(str_view const sv)
+SV_is_empty(SV_Str_view const sv)
 {
     return !sv.len;
 }
 
 size_t
-sv_len(str_view const sv)
+SV_len(SV_Str_view const sv)
 {
     return sv.len;
 }
 
 size_t
-sv_size(str_view const sv)
+SV_bytes(SV_Str_view const sv)
 {
     return sv.len + 1;
 }
 
 size_t
-sv_strsize(char const *const str)
+SV_str_bytes(char const *const str)
 {
     if (!str)
     {
@@ -214,13 +230,13 @@ sv_strsize(char const *const str)
 }
 
 size_t
-sv_minlen(char const *const str, size_t n)
+SV_min_len(char const *const str, size_t n)
 {
     return strnlen(str, n);
 }
 
 char
-sv_at(str_view const sv, size_t const i)
+SV_at(SV_Str_view const sv, size_t const i)
 {
     if (i >= sv.len)
     {
@@ -230,53 +246,57 @@ sv_at(str_view const sv, size_t const i)
 }
 
 char const *
-sv_null(void)
+SV_null(void)
 {
     return nil.s;
 }
 
 void
-sv_swap(str_view *const a, str_view *const b)
+SV_swap(SV_Str_view *const a, SV_Str_view *const b)
 {
     if (a == b || !a || !b)
     {
         return;
     }
-    str_view const tmp_b = (str_view){.s = b->s, .len = b->len};
+    SV_Str_view const tmp_b = (SV_Str_view){
+        .s = b->s,
+        .len = b->len,
+    };
     b->s = a->s;
     b->len = a->len;
     a->s = tmp_b.s;
     a->len = tmp_b.len;
 }
 
-sv_threeway_cmp
-sv_cmp(str_view const lhs, str_view const rhs)
+SV_Order
+SV_compare(SV_Str_view const lhs, SV_Str_view const rhs)
 {
     if (!lhs.s || !rhs.s)
     {
-        return SV_ERR;
+        return SV_ORDER_ERROR;
     }
-    size_t const sz = sv_min(lhs.len, rhs.len);
+    size_t const sz = min(lhs.len, rhs.len);
     size_t i = 0;
     for (; i < sz && lhs.s[i] == rhs.s[i]; ++i)
     {}
     if (i == lhs.len && i == rhs.len)
     {
-        return SV_EQL;
+        return SV_ORDER_EQUAL;
     }
     if (i < lhs.len && i < rhs.len)
     {
-        return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? SV_LES : SV_GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs.s[i] ? SV_ORDER_LESSER
+                                                     : SV_ORDER_GREATER;
     }
-    return (i < lhs.len) ? SV_GRT : SV_LES;
+    return (i < lhs.len) ? SV_ORDER_GREATER : SV_ORDER_LESSER;
 }
 
-sv_threeway_cmp
-sv_strcmp(str_view const lhs, char const *const rhs)
+SV_Order
+SV_terminated_compare(SV_Str_view const lhs, char const *const rhs)
 {
     if (!lhs.s || !rhs)
     {
-        return SV_ERR;
+        return SV_ORDER_ERROR;
     }
     size_t const sz = lhs.len;
     size_t i = 0;
@@ -284,40 +304,42 @@ sv_strcmp(str_view const lhs, char const *const rhs)
     {}
     if (i == lhs.len && !rhs[i])
     {
-        return SV_EQL;
+        return SV_ORDER_EQUAL;
     }
     if (i < lhs.len && rhs[i])
     {
-        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_ORDER_LESSER
+                                                   : SV_ORDER_GREATER;
     }
-    return (i < lhs.len) ? SV_GRT : SV_LES;
+    return (i < lhs.len) ? SV_ORDER_GREATER : SV_ORDER_LESSER;
 }
 
-sv_threeway_cmp
-sv_strncmp(str_view const lhs, char const *const rhs, size_t const n)
+SV_Order
+SV_view_compare(SV_Str_view const lhs, char const *const rhs, size_t const n)
 {
     if (!lhs.s || !rhs)
     {
-        return SV_ERR;
+        return SV_ORDER_ERROR;
     }
-    size_t const sz = sv_min(lhs.len, n);
+    size_t const sz = min(lhs.len, n);
     size_t i = 0;
     for (; i < sz && rhs[i] && lhs.s[i] == rhs[i]; ++i)
     {}
     if (i == lhs.len && sz == n)
     {
-        return SV_EQL;
+        return SV_ORDER_EQUAL;
     }
     /* strncmp compares the first at most n bytes inclusive */
     if (i < lhs.len && sz <= n)
     {
-        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_LES : SV_GRT;
+        return (uint8_t)lhs.s[i] < (uint8_t)rhs[i] ? SV_ORDER_LESSER
+                                                   : SV_ORDER_GREATER;
     }
-    return (i < lhs.len) ? SV_GRT : SV_LES;
+    return (i < lhs.len) ? SV_ORDER_GREATER : SV_ORDER_LESSER;
 }
 
 char
-sv_front(str_view const sv)
+SV_front(SV_Str_view const sv)
 {
     if (!sv.s || !sv.len)
     {
@@ -327,7 +349,7 @@ sv_front(str_view const sv)
 }
 
 char
-sv_back(str_view const sv)
+SV_back(SV_Str_view const sv)
 {
     if (!sv.s || !sv.len)
     {
@@ -337,7 +359,7 @@ sv_back(str_view const sv)
 }
 
 char const *
-sv_begin(str_view const sv)
+SV_begin(SV_Str_view const sv)
 {
     if (!sv.s)
     {
@@ -347,7 +369,7 @@ sv_begin(str_view const sv)
 }
 
 char const *
-sv_end(str_view const sv)
+SV_end(SV_Str_view const sv)
 {
     if (!sv.s || sv.s == nil.s)
     {
@@ -357,7 +379,7 @@ sv_end(str_view const sv)
 }
 
 char const *
-sv_next(char const *c)
+SV_next(char const *c)
 {
     if (!c)
     {
@@ -367,7 +389,7 @@ sv_next(char const *c)
 }
 
 char const *
-sv_rbegin(str_view const sv)
+SV_reverse_begin(SV_Str_view const sv)
 {
     if (!sv.s)
     {
@@ -381,7 +403,7 @@ sv_rbegin(str_view const sv)
 }
 
 char const *
-sv_rend(str_view const sv)
+SV_reverse_end(SV_Str_view const sv)
 {
     if (!sv.s || sv.s == nil.s)
     {
@@ -395,7 +417,7 @@ sv_rend(str_view const sv)
 }
 
 char const *
-sv_rnext(char const *c)
+SV_reverse_next(char const *c)
 {
     if (!c)
     {
@@ -405,7 +427,7 @@ sv_rnext(char const *c)
 }
 
 char const *
-sv_pos(str_view const sv, size_t const i)
+SV_pointer(SV_Str_view const sv, size_t const i)
 {
     if (!sv.s)
     {
@@ -413,13 +435,13 @@ sv_pos(str_view const sv, size_t const i)
     }
     if (i > sv.len)
     {
-        return sv_end(sv);
+        return SV_end(sv);
     }
     return sv.s + i;
 }
 
-str_view
-sv_begin_tok(str_view src, str_view const delim)
+SV_Str_view
+SV_begin_token(SV_Str_view src, SV_Str_view const delim)
 {
     if (!src.s)
     {
@@ -427,27 +449,34 @@ sv_begin_tok(str_view src, str_view const delim)
     }
     if (!delim.s)
     {
-        return (str_view){.s = src.s + src.len, 0};
+        return (SV_Str_view){.s = src.s + src.len, 0};
     }
     char const *const begin = src.s;
-    size_t const sv_not = sv_after_find(src, delim);
+    size_t const sv_not = after_find(src, delim);
     src.s += sv_not;
     if (begin + src.len == src.s)
     {
-        return (str_view){.s = src.s, .len = 0};
+        return (SV_Str_view){
+            .s = src.s,
+            .len = 0,
+        };
     }
     src.len -= sv_not;
-    return (str_view){.s = src.s, .len = sv_find(src, 0, delim)};
+    return (SV_Str_view){
+        .s = src.s,
+        .len = SV_find(src, 0, delim),
+    };
 }
 
 bool
-sv_end_tok(str_view const src, str_view const tok)
+SV_end_token(SV_Str_view const src, SV_Str_view const tok)
 {
     return !tok.len || tok.s >= (src.s + src.len);
 }
 
-str_view
-sv_next_tok(str_view const src, str_view const tok, str_view const delim)
+SV_Str_view
+SV_next_token(SV_Str_view const src, SV_Str_view const tok,
+              SV_Str_view const delim)
 {
     if (!tok.s)
     {
@@ -455,31 +484,44 @@ sv_next_tok(str_view const src, str_view const tok, str_view const delim)
     }
     if (!delim.s || !tok.s || !tok.s[tok.len])
     {
-        return (str_view){.s = tok.s + tok.len, .len = 0};
+        return (SV_Str_view){
+            .s = &tok.s[tok.len],
+            .len = 0,
+        };
     }
-    str_view next = {.s = tok.s + tok.len, .len = src.len - tok.len};
-    if (next.s >= src.s + src.len)
+    SV_Str_view next = {
+        .s = &tok.s[tok.len] + delim.len,
+    };
+    if (next.s >= &src.s[src.len])
     {
-        return (str_view){.s = src.s + src.len, .len = 0};
+        return (SV_Str_view){
+            .s = &src.s[src.len],
+            .len = 0,
+        };
     }
-    next.s += delim.len;
-    next.len = src.len - (next.s - src.s);
+    next.len = &src.s[src.len] - next.s;
     /* There is a cheap easy way to skip repeating delimiters before the
        next search that should be faster than string comparison. */
-    size_t const after_delim = sv_after_find(next, delim);
+    size_t const after_delim = after_find(next, delim);
     next.s += after_delim;
     next.len -= after_delim;
-    if (next.s >= src.s + src.len)
+    if (next.s >= &src.s[src.len])
     {
-        return (str_view){.s = src.s + src.len, .len = 0};
+        return (SV_Str_view){
+            .s = &src.s[src.len],
+            .len = 0,
+        };
     }
-    size_t const found = sv_strnstrn((ptrdiff_t)next.len, next.s,
-                                     (ptrdiff_t)delim.len, delim.s);
-    return (str_view){.s = next.s, .len = found};
+    size_t const found = view_n_view_n((ptrdiff_t)next.len, next.s,
+                                       (ptrdiff_t)delim.len, delim.s);
+    return (SV_Str_view){
+        .s = next.s,
+        .len = found,
+    };
 }
 
-str_view
-sv_rbegin_tok(str_view src, str_view const delim)
+SV_Str_view
+SV_reverse_begin_token(SV_Str_view src, SV_Str_view const delim)
 {
     if (!src.s)
     {
@@ -487,21 +529,28 @@ sv_rbegin_tok(str_view src, str_view const delim)
     }
     if (!delim.s)
     {
-        return (str_view){.s = src.s + src.len, 0};
+        return (SV_Str_view){
+            .s = src.s + src.len,
+            0,
+        };
     }
-    size_t before_delim = sv_before_rfind(src, delim);
-    src.len = sv_min(src.len, before_delim + 1);
-    size_t start = sv_rfind(src, src.len, delim);
+    size_t before_delim = before_r_find(src, delim);
+    src.len = min(src.len, before_delim + 1);
+    size_t start = SV_reverse_find(src, src.len, delim);
     if (start == src.len)
     {
         return src;
     }
     start += delim.len;
-    return (str_view){.s = src.s + start, .len = before_delim - start + 1};
+    return (SV_Str_view){
+        .s = src.s + start,
+        .len = before_delim - start + 1,
+    };
 }
 
-str_view
-sv_rnext_tok(str_view const src, str_view const tok, str_view const delim)
+SV_Str_view
+SV_reverse_next_token(SV_Str_view const src, SV_Str_view const tok,
+                      SV_Str_view const delim)
 {
     if (!tok.s)
     {
@@ -509,35 +558,47 @@ sv_rnext_tok(str_view const src, str_view const tok, str_view const delim)
     }
     if (!tok.len | !delim.s || tok.s == src.s || tok.s - delim.len <= src.s)
     {
-        return (str_view){.s = src.s, .len = 0};
+        return (SV_Str_view){
+            .s = src.s,
+            .len = 0,
+        };
     }
-    str_view const shorter = {.s = src.s, .len = (tok.s - delim.len) - src.s};
+    SV_Str_view const shorter = {
+        .s = src.s,
+        .len = (tok.s - delim.len) - src.s,
+    };
     /* Same as in the forward version, this method is a quick way to skip
        any number of repeating delimiters before starting the next search
        for a delimiter before a token. */
-    size_t const before_delim = sv_before_rfind(shorter, delim);
+    size_t const before_delim = before_r_find(shorter, delim);
     if (before_delim == shorter.len)
     {
         return shorter;
     }
-    size_t start = sv_rstrnstrn((ptrdiff_t)before_delim, shorter.s,
-                                (ptrdiff_t)delim.len, delim.s);
+    size_t start = r_view_n_view_n((ptrdiff_t)before_delim, shorter.s,
+                                   (ptrdiff_t)delim.len, delim.s);
     if (start == before_delim)
     {
-        return (str_view){.s = shorter.s, .len = before_delim + 1};
+        return (SV_Str_view){
+            .s = shorter.s,
+            .len = before_delim + 1,
+        };
     }
     start += delim.len;
-    return (str_view){.s = src.s + start, .len = before_delim - start + 1};
+    return (SV_Str_view){
+        .s = src.s + start,
+        .len = before_delim - start + 1,
+    };
 }
 
 bool
-sv_rend_tok(str_view const src, str_view const tok)
+SV_reverse_end_token(SV_Str_view const src, SV_Str_view const tok)
 {
     return !tok.len && tok.s == src.s;
 }
 
-str_view
-sv_extend(str_view sv)
+SV_Str_view
+SV_extend(SV_Str_view sv)
 {
     if (!sv.s)
     {
@@ -551,121 +612,154 @@ sv_extend(str_view sv)
 }
 
 bool
-sv_starts_with(str_view const sv, str_view const prefix)
+SV_starts_with(SV_Str_view const sv, SV_Str_view const prefix)
 {
     if (prefix.len > sv.len)
     {
         return false;
     }
-    return sv_cmp(sv_substr(sv, 0, prefix.len), prefix) == SV_EQL;
+    return SV_compare(SV_substr(sv, 0, prefix.len), prefix) == SV_ORDER_EQUAL;
 }
 
-str_view
-sv_remove_prefix(str_view const sv, size_t const n)
+SV_Str_view
+SV_remove_prefix(SV_Str_view const sv, size_t const n)
 {
-    size_t const remove = sv_min(sv.len, n);
-    return (str_view){.s = sv.s + remove, .len = sv.len - remove};
+    size_t const remove = min(sv.len, n);
+    return (SV_Str_view){
+        .s = sv.s + remove,
+        .len = sv.len - remove,
+    };
 }
 
 bool
-sv_ends_with(str_view const sv, str_view const suffix)
+SV_ends_with(SV_Str_view const sv, SV_Str_view const suffix)
 {
     if (suffix.len > sv.len)
     {
         return false;
     }
-    return sv_cmp(sv_substr(sv, sv.len - suffix.len, suffix.len), suffix)
-           == SV_EQL;
+    return SV_compare(SV_substr(sv, sv.len - suffix.len, suffix.len), suffix)
+           == SV_ORDER_EQUAL;
 }
 
-str_view
-sv_remove_suffix(str_view const sv, size_t const n)
+SV_Str_view
+SV_remove_suffix(SV_Str_view const sv, size_t const n)
 {
     if (!sv.s)
     {
         return nil;
     }
-    return (str_view){.s = sv.s, .len = sv.len - sv_min(sv.len, n)};
+    return (SV_Str_view){
+        .s = sv.s,
+        .len = sv.len - min(sv.len, n),
+    };
 }
 
-str_view
-sv_substr(str_view const sv, size_t const pos, size_t const count)
+SV_Str_view
+SV_substr(SV_Str_view const sv, size_t const pos, size_t const count)
 {
     if (pos > sv.len)
     {
-        return (str_view){.s = sv.s + sv.len, .len = 0};
+        return (SV_Str_view){
+            .s = sv.s + sv.len,
+            .len = 0,
+        };
     }
-    return (str_view){.s = sv.s + pos, .len = sv_min(count, sv.len - pos)};
+    return (SV_Str_view){
+        .s = sv.s + pos,
+        .len = min(count, sv.len - pos),
+    };
 }
 
 bool
-sv_contains(str_view const hay, str_view const needle)
+SV_contains(SV_Str_view const hay, SV_Str_view const needle)
 {
     if (needle.len > hay.len)
     {
         return false;
     }
-    if (sv_empty(hay))
+    if (SV_is_empty(hay))
     {
         return false;
     }
-    if (sv_empty(needle))
+    if (SV_is_empty(needle))
     {
         return true;
     }
     return hay.len
-           != sv_strnstrn((ptrdiff_t)hay.len, hay.s, (ptrdiff_t)needle.len,
-                          needle.s);
+           != view_n_view_n((ptrdiff_t)hay.len, hay.s, (ptrdiff_t)needle.len,
+                            needle.s);
 }
 
-str_view
-sv_match(str_view const hay, str_view const needle)
+SV_Str_view
+SV_match(SV_Str_view const hay, SV_Str_view const needle)
 {
     if (!hay.s || !needle.s)
     {
         return nil;
     }
-    if (needle.len > hay.len || sv_empty(hay) || sv_empty(needle))
+    if (needle.len > hay.len || SV_is_empty(hay) || SV_is_empty(needle))
     {
-        return (str_view){.s = hay.s + hay.len, .len = 0};
+        return (SV_Str_view){
+            .s = hay.s + hay.len,
+            .len = 0,
+        };
     }
-    size_t const found = sv_strnstrn((ptrdiff_t)hay.len, hay.s,
-                                     (ptrdiff_t)needle.len, needle.s);
-    return found == hay.len ? (str_view){.s = hay.s + hay.len, .len = 0}
-                            : (str_view){.s = hay.s + found, .len = needle.len};
+    size_t const found = view_n_view_n((ptrdiff_t)hay.len, hay.s,
+                                       (ptrdiff_t)needle.len, needle.s);
+    if (found == hay.len)
+    {
+        return (SV_Str_view){
+            .s = hay.s + hay.len,
+            .len = 0,
+        };
+    }
+    return (SV_Str_view){
+        .s = hay.s + found,
+        .len = needle.len,
+    };
 }
 
-str_view
-sv_rmatch(str_view const hay, str_view const needle)
+SV_Str_view
+SV_reverse_match(SV_Str_view const hay, SV_Str_view const needle)
 {
     if (!hay.s)
     {
         return nil;
     }
-    if (sv_empty(hay) || sv_empty(needle))
+    if (SV_is_empty(hay) || SV_is_empty(needle))
     {
-        return (str_view){.s = hay.s + hay.len, .len = 0};
+        return (SV_Str_view){
+            .s = hay.s + hay.len,
+            .len = 0,
+        };
     }
-    size_t const found = sv_rstrnstrn((ptrdiff_t)hay.len, hay.s,
-                                      (ptrdiff_t)needle.len, needle.s);
-    return found == hay.len ? (str_view){.s = hay.s + hay.len, .len = 0}
-                            : (str_view){.s = hay.s + found, .len = needle.len};
+    size_t const found = r_view_n_view_n((ptrdiff_t)hay.len, hay.s,
+                                         (ptrdiff_t)needle.len, needle.s);
+    if (found == hay.len)
+    {
+        return (SV_Str_view){.s = hay.s + hay.len, .len = 0};
+    }
+    return (SV_Str_view){
+        .s = hay.s + found,
+        .len = needle.len,
+    };
 }
 
 size_t
-sv_find(str_view const hay, size_t const pos, str_view const needle)
+SV_find(SV_Str_view const hay, size_t const pos, SV_Str_view const needle)
 {
     if (needle.len > hay.len || pos > hay.len)
     {
         return hay.len;
     }
     return pos
-           + sv_strnstrn((ptrdiff_t)(hay.len - pos), hay.s + pos,
-                         (ptrdiff_t)needle.len, needle.s);
+           + view_n_view_n((ptrdiff_t)(hay.len - pos), hay.s + pos,
+                           (ptrdiff_t)needle.len, needle.s);
 }
 
 size_t
-sv_rfind(str_view const h, size_t pos, str_view const n)
+SV_reverse_find(SV_Str_view const h, size_t pos, SV_Str_view const n)
 {
     if (!h.len || n.len > h.len)
     {
@@ -676,12 +770,12 @@ sv_rfind(str_view const h, size_t pos, str_view const n)
         pos = h.len - 1;
     }
     size_t const found
-        = sv_rstrnstrn((ptrdiff_t)pos + 1, h.s, (ptrdiff_t)n.len, n.s);
+        = r_view_n_view_n((ptrdiff_t)pos + 1, h.s, (ptrdiff_t)n.len, n.s);
     return found == pos + 1 ? h.len : found;
 }
 
 size_t
-sv_find_first_of(str_view const hay, str_view const set)
+SV_find_first_of(SV_Str_view const hay, SV_Str_view const set)
 {
     if (!hay.s || !hay.len)
     {
@@ -691,11 +785,11 @@ sv_find_first_of(str_view const hay, str_view const set)
     {
         return hay.len;
     }
-    return sv_strcspn(hay.len, hay.s, set.len, set.s);
+    return view_c_spn(hay.len, hay.s, set.len, set.s);
 }
 
 size_t
-sv_find_last_of(str_view const hay, str_view const set)
+SV_find_last_of(SV_Str_view const hay, SV_Str_view const set)
 {
     if (!hay.s || !hay.len)
     {
@@ -710,7 +804,8 @@ sv_find_last_of(str_view const hay, str_view const set)
        The last occurence of a set char could be anywhere in the string. */
     size_t last_pos = hay.len;
     for (size_t in = 0, prev = 0;
-         (in += sv_strspn(hay.len - in, hay.s + in, set.len, set.s)) != hay.len;
+         (in += view_r_spn(hay.len - in, hay.s + in, set.len, set.s))
+         != hay.len;
          ++in, prev = in)
     {
         if (in != prev)
@@ -722,7 +817,7 @@ sv_find_last_of(str_view const hay, str_view const set)
 }
 
 size_t
-sv_find_first_not_of(str_view const hay, str_view const set)
+SV_find_first_not_of(SV_Str_view const hay, SV_Str_view const set)
 {
     if (!hay.s || !hay.len)
     {
@@ -732,11 +827,11 @@ sv_find_first_not_of(str_view const hay, str_view const set)
     {
         return 0;
     }
-    return sv_strspn(hay.len, hay.s, set.len, set.s);
+    return view_r_spn(hay.len, hay.s, set.len, set.s);
 }
 
 size_t
-sv_find_last_not_of(str_view const hay, str_view const set)
+SV_find_last_not_of(SV_Str_view const hay, SV_Str_view const set)
 {
     if (!hay.s || !hay.len)
     {
@@ -748,7 +843,8 @@ sv_find_last_not_of(str_view const hay, str_view const set)
     }
     size_t last_pos = hay.len;
     for (size_t in = 0, prev = 0;
-         (in += sv_strspn(hay.len - in, hay.s + in, set.len, set.s)) != hay.len;
+         (in += view_r_spn(hay.len - in, hay.s + in, set.len, set.s))
+         != hay.len;
          ++in, prev = in)
     {
         if (in != prev)
@@ -760,7 +856,7 @@ sv_find_last_not_of(str_view const hay, str_view const set)
 }
 
 size_t
-sv_npos(str_view const sv)
+SV_npos(SV_Str_view const sv)
 {
     return sv.len;
 }
@@ -768,7 +864,7 @@ sv_npos(str_view const sv)
 /* ======================   Static Helpers    ============================= */
 
 static size_t
-sv_after_find(str_view const hay, str_view const needle)
+after_find(SV_Str_view const hay, SV_Str_view const needle)
 {
     if (needle.len > hay.len)
     {
@@ -786,7 +882,7 @@ sv_after_find(str_view const hay, str_view const needle)
 }
 
 static size_t
-sv_before_rfind(str_view const hay, str_view const needle)
+before_r_find(SV_Str_view const hay, SV_Str_view const needle)
 {
     if (needle.len > hay.len || !needle.len || !hay.len)
     {
@@ -806,19 +902,19 @@ sv_before_rfind(str_view const hay, str_view const needle)
 }
 
 static inline size_t
-sv_min(size_t const a, size_t const b)
+min(size_t const a, size_t const b)
 {
     return a < b ? a : b;
 }
 
 static inline ptrdiff_t
-sv_signed_max(ptrdiff_t const a, ptrdiff_t const b)
+signed_max(ptrdiff_t const a, ptrdiff_t const b)
 {
     return a > b ? a : b;
 }
 
-static inline sv_threeway_cmp
-sv_char_cmp(char const a, char const b)
+static inline SV_Order
+char_cmp(char const a, char const b)
 {
     return (a > b) - (a < b);
 }
@@ -826,7 +922,7 @@ sv_char_cmp(char const a, char const b)
 /* ======================   Static Utilities    =========================== */
 
 /* This is section is modeled after the musl string.h library. However,
-   using str_view that may not be null terminated requires modifications. */
+   using SV_Str_view that may not be null terminated requires modifications. */
 
 #define BITOP(a, b, op)                                                        \
     ((a)[(size_t)(b) / (8 * sizeof *(a))] op(size_t) 1                         \
@@ -839,7 +935,7 @@ sv_char_cmp(char const a, char const b)
    the forward version expects the same. However, the comparison
    moves backward from the location provided for n bytes. */
 static int
-sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
+r_memcmp(void const *const vl, void const *const vr, size_t n)
 {
     unsigned char const *l = vl;
     unsigned char const *r = vr;
@@ -855,7 +951,7 @@ sv_rmemcmp(void const *const vl, void const *const vr, size_t n)
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
 static size_t
-sv_strcspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
+view_c_spn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
            size_t const set_sz, char const ARR_GEQ(set, set_sz))
 {
     if (!set_sz)
@@ -887,8 +983,8 @@ sv_strcspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
    end of a view until null is found. This way, string searches are
    efficient and only within the range specified. */
 static size_t
-sv_strspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
-          size_t const set_sz, char const ARR_GEQ(set, set_sz))
+view_r_spn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
+           size_t const set_sz, char const ARR_GEQ(set, set_sz))
 {
     char const *a = str;
     size_t byteset[32 / sizeof(size_t)] = {0};
@@ -917,9 +1013,9 @@ sv_strspn(size_t const str_sz, char const ARR_CONST_GEQ(str, str_sz),
    hay length. Returns 0 based index position at which needle begins in
    hay if it can be found, otherwise the hay size is returned. */
 static size_t
-sv_strnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-            ptrdiff_t const needle_sz,
-            char const ARR_CONST_GEQ(needle, needle_sz))
+view_n_view_n(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+              ptrdiff_t const needle_sz,
+              char const ARR_CONST_GEQ(needle, needle_sz))
 {
     if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
@@ -927,24 +1023,24 @@ sv_strnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     }
     if (1 == needle_sz)
     {
-        return sv_strnchr(hay_sz, hay, *needle);
+        return view_n_chr(hay_sz, hay, *needle);
     }
     if (2 == needle_sz)
     {
-        return sv_twobyte_strnstrn(hay_sz, (unsigned char *)hay, 2,
-                                   (unsigned char *)needle);
+        return two_byte_view_n_view_n(hay_sz, (unsigned char *)hay, 2,
+                                      (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_threebyte_strnstrn(hay_sz, (unsigned char *)hay, 3,
-                                     (unsigned char *)needle);
+        return three_byte_view_n_view_n(hay_sz, (unsigned char *)hay, 3,
+                                        (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_fourbyte_strnstrn(hay_sz, (unsigned char *)hay, 4,
-                                    (unsigned char *)needle);
+        return four_byte_view_n_view_n(hay_sz, (unsigned char *)hay, 4,
+                                       (unsigned char *)needle);
     }
-    return sv_tw_match(hay_sz, hay, needle_sz, needle);
+    return tw_match(hay_sz, hay, needle_sz, needle);
 }
 
 /* For now reverse logic for backwards searches has been separated into
@@ -953,9 +1049,9 @@ sv_strnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
    the start of the reverse two-way algorithm for more. May unite if
    a clean way exists. */
 static size_t
-sv_rstrnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-             ptrdiff_t const needle_sz,
-             char const ARR_CONST_GEQ(needle, needle_sz))
+r_view_n_view_n(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+                ptrdiff_t const needle_sz,
+                char const ARR_CONST_GEQ(needle, needle_sz))
 {
     if (!hay_sz || !needle_sz || needle_sz > hay_sz)
     {
@@ -963,24 +1059,24 @@ sv_rstrnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     }
     if (1 == needle_sz)
     {
-        return sv_rstrnchr(hay_sz, hay, *needle);
+        return r_view_n_chr(hay_sz, hay, *needle);
     }
     if (2 == needle_sz)
     {
-        return sv_rtwobyte_strnstrn(hay_sz, (unsigned char *)hay, 2,
-                                    (unsigned char *)needle);
+        return r_two_byte_view_n_view_n(hay_sz, (unsigned char *)hay, 2,
+                                        (unsigned char *)needle);
     }
     if (3 == needle_sz)
     {
-        return sv_rthreebyte_strnstrn(hay_sz, (unsigned char *)hay, 3,
-                                      (unsigned char *)needle);
+        return r_three_byte_view_n_view_n(hay_sz, (unsigned char *)hay, 3,
+                                          (unsigned char *)needle);
     }
     if (4 == needle_sz)
     {
-        return sv_rfourbyte_strnstrn(hay_sz, (unsigned char *)hay, 4,
-                                     (unsigned char *)needle);
+        return r_four_byte_view_n_view_n(hay_sz, (unsigned char *)hay, 4,
+                                         (unsigned char *)needle);
     }
-    return sv_tw_rmatch(hay_sz, hay, needle_sz, needle);
+    return tw_rmatch(hay_sz, hay, needle_sz, needle);
 }
 
 /*==============   Post-Precomputation Two-Way Search    =================*/
@@ -1009,31 +1105,29 @@ sv_rstrnstrn(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
    an entire string. Returns the position at which needle begins if found
    and the size of the hay stack if not found. */
 static inline size_t
-sv_tw_match(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-            ptrdiff_t const needle_sz,
-            char const ARR_CONST_GEQ(needle, needle_sz))
+tw_match(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+         ptrdiff_t const needle_sz, char const ARR_CONST_GEQ(needle, needle_sz))
 {
     /* Preprocessing to get critical position and period distance. */
-    struct sv_factorization const s = sv_maximal_suffix(needle_sz, needle);
-    struct sv_factorization const r = sv_maximal_suffix_rev(needle_sz, needle);
-    struct sv_factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
+    struct Factorization const s = maximal_suffix(needle_sz, needle);
+    struct Factorization const r = maximal_suffix_rev(needle_sz, needle);
+    struct Factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
     /* Determine if memoization is available due to found border/overlap. */
     if (!memcmp(needle, needle + w.period_dist, w.critical_pos + 1))
     {
-        return sv_pos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
-                           w.critical_pos);
+        return pos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
+                        w.critical_pos);
     }
-    return sv_pos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
-                         w.critical_pos);
+    return pos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+                      w.critical_pos);
 }
 
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_pos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-            ptrdiff_t const needle_sz,
-            char const ARR_CONST_GEQ(needle, needle_sz),
-            ptrdiff_t const period_dist, ptrdiff_t const critical_pos)
+pos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+         ptrdiff_t const needle_sz, char const ARR_CONST_GEQ(needle, needle_sz),
+         ptrdiff_t const period_dist, ptrdiff_t const critical_pos)
 {
     ptrdiff_t lpos = 0;
     ptrdiff_t rpos = 0;
@@ -1041,7 +1135,7 @@ sv_pos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     ptrdiff_t memoize_shift = -1;
     while (lpos <= hay_sz - needle_sz)
     {
-        for (rpos = sv_signed_max(critical_pos, memoize_shift) + 1;
+        for (rpos = signed_max(critical_pos, memoize_shift) + 1;
              rpos < needle_sz && needle[rpos] == hay[rpos + lpos]; ++rpos)
         {}
         if (rpos < needle_sz)
@@ -1069,13 +1163,13 @@ sv_pos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 /* Two Way string matching algorithm adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
 static size_t
-sv_pos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-              ptrdiff_t const needle_sz,
-              char const ARR_CONST_GEQ(needle, needle_sz),
-              ptrdiff_t period_dist, ptrdiff_t const critical_pos)
+pos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+           ptrdiff_t const needle_sz,
+           char const ARR_CONST_GEQ(needle, needle_sz), ptrdiff_t period_dist,
+           ptrdiff_t const critical_pos)
 {
     period_dist
-        = sv_signed_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
+        = signed_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
     ptrdiff_t lpos = 0;
     ptrdiff_t rpos = 0;
     while (lpos <= hay_sz - needle_sz)
@@ -1105,9 +1199,9 @@ sv_pos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 
 /* Computing of the maximal suffix. Adapted from ESMAJ.
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static inline struct sv_factorization
-sv_maximal_suffix(ptrdiff_t const needle_sz,
-                  char const ARR_CONST_GEQ(needle, needle_sz))
+static inline struct Factorization
+maximal_suffix(ptrdiff_t const needle_sz,
+               char const ARR_CONST_GEQ(needle, needle_sz))
 {
     ptrdiff_t suff_pos = -1;
     ptrdiff_t period = 1;
@@ -1115,14 +1209,14 @@ sv_maximal_suffix(ptrdiff_t const needle_sz,
     ptrdiff_t rest = 1;
     while (last_rest + rest < needle_sz)
     {
-        switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
+        switch (char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
-        case SV_LES:
+        case SV_ORDER_LESSER:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case SV_EQL:
+        case SV_ORDER_EQUAL:
             if (rest != period)
             {
                 ++rest;
@@ -1133,7 +1227,7 @@ sv_maximal_suffix(ptrdiff_t const needle_sz,
                 rest = 1;
             }
             break;
-        case SV_GRT:
+        case SV_ORDER_GREATER:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1142,16 +1236,16 @@ sv_maximal_suffix(ptrdiff_t const needle_sz,
             break;
         }
     }
-    return (struct sv_factorization){.critical_pos = suff_pos,
-                                     .period_dist = period};
+    return (struct Factorization){.critical_pos = suff_pos,
+                                  .period_dist = period};
 }
 
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
    adapted from ESMAJ
    http://igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 */
-static inline struct sv_factorization
-sv_maximal_suffix_rev(ptrdiff_t const needle_sz,
-                      char const ARR_CONST_GEQ(needle, needle_sz))
+static inline struct Factorization
+maximal_suffix_rev(ptrdiff_t const needle_sz,
+                   char const ARR_CONST_GEQ(needle, needle_sz))
 {
     ptrdiff_t suff_pos = -1;
     ptrdiff_t period = 1;
@@ -1159,14 +1253,14 @@ sv_maximal_suffix_rev(ptrdiff_t const needle_sz,
     ptrdiff_t rest = 1;
     while (last_rest + rest < needle_sz)
     {
-        switch (sv_char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
+        switch (char_cmp(needle[last_rest + rest], needle[suff_pos + rest]))
         {
-        case SV_GRT:
+        case SV_ORDER_GREATER:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case SV_EQL:
+        case SV_ORDER_EQUAL:
             if (rest != period)
             {
                 ++rest;
@@ -1177,7 +1271,7 @@ sv_maximal_suffix_rev(ptrdiff_t const needle_sz,
                 rest = 1;
             }
             break;
-        case SV_LES:
+        case SV_ORDER_LESSER:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1186,8 +1280,10 @@ sv_maximal_suffix_rev(ptrdiff_t const needle_sz,
             break;
         }
     }
-    return (struct sv_factorization){.critical_pos = suff_pos,
-                                     .period_dist = period};
+    return (struct Factorization){
+        .critical_pos = suff_pos,
+        .period_dist = period,
+    };
 }
 
 /*=======================  Right to Left Search  ===========================*/
@@ -1212,7 +1308,7 @@ sv_maximal_suffix_rev(ptrdiff_t const needle_sz,
         }
         while (last_rest + rest < needle_sz)
         {
-            switch (sv_char_cmp(
+            switch (SV_char_cmp(
                 needle[needle_sz
                         - (last_rest + rest) - 1 + negate_sz + negate_one],
                 needle[needle_sz
@@ -1229,35 +1325,35 @@ sv_maximal_suffix_rev(ptrdiff_t const needle_sz,
 /* Searches a string from right to left with a two-way algorithm. Returns
    the position of the start of the strig if found and string size if not. */
 static inline size_t
-sv_tw_rmatch(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-             ptrdiff_t const needle_sz,
-             char const ARR_CONST_GEQ(needle, needle_sz))
+tw_rmatch(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+          ptrdiff_t const needle_sz,
+          char const ARR_CONST_GEQ(needle, needle_sz))
 {
-    struct sv_factorization const s = sv_rmaximal_suffix(needle_sz, needle);
-    struct sv_factorization const r = sv_rmaximal_suffix_rev(needle_sz, needle);
-    struct sv_factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
-    if (!sv_rmemcmp(needle + needle_sz - 1,
-                    needle + needle_sz - w.period_dist - 1, w.critical_pos + 1))
+    struct Factorization const s = r_maximal_suffix(needle_sz, needle);
+    struct Factorization const r = r_maximal_suffix_rev(needle_sz, needle);
+    struct Factorization const w = (s.critical_pos > r.critical_pos) ? s : r;
+    if (!r_memcmp(needle + needle_sz - 1,
+                  needle + needle_sz - w.period_dist - 1, w.critical_pos + 1))
     {
-        return sv_rpos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
-                            w.critical_pos);
-    }
-    return sv_rpos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+        return r_pos_memo(hay_sz, hay, needle_sz, needle, w.period_dist,
                           w.critical_pos);
+    }
+    return r_pos_normal(hay_sz, hay, needle_sz, needle, w.period_dist,
+                        w.critical_pos);
 }
 
 static size_t
-sv_rpos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-             ptrdiff_t const needle_sz,
-             char const ARR_CONST_GEQ(needle, needle_sz),
-             ptrdiff_t const period_dist, ptrdiff_t const critical_pos)
+r_pos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+           ptrdiff_t const needle_sz,
+           char const ARR_CONST_GEQ(needle, needle_sz),
+           ptrdiff_t const period_dist, ptrdiff_t const critical_pos)
 {
     ptrdiff_t lpos = 0;
     ptrdiff_t rpos = 0;
     ptrdiff_t memoize_shift = -1;
     while (lpos <= hay_sz - needle_sz)
     {
-        for (rpos = sv_signed_max(critical_pos, memoize_shift) + 1;
+        for (rpos = signed_max(critical_pos, memoize_shift) + 1;
              rpos < needle_sz
              && needle[needle_sz - rpos - 1] == hay[hay_sz - (rpos + lpos) - 1];
              ++rpos)
@@ -1287,13 +1383,13 @@ sv_rpos_memo(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
 }
 
 static size_t
-sv_rpos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
-               ptrdiff_t const needle_sz,
-               char const ARR_CONST_GEQ(needle, needle_sz),
-               ptrdiff_t period_dist, ptrdiff_t const critical_pos)
+r_pos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
+             ptrdiff_t const needle_sz,
+             char const ARR_CONST_GEQ(needle, needle_sz), ptrdiff_t period_dist,
+             ptrdiff_t const critical_pos)
 {
     period_dist
-        = sv_signed_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
+        = signed_max(critical_pos + 1, needle_sz - critical_pos - 1) + 1;
     ptrdiff_t lpos = 0;
     ptrdiff_t rpos = 0;
     while (lpos <= hay_sz - needle_sz)
@@ -1323,9 +1419,9 @@ sv_rpos_normal(ptrdiff_t const hay_sz, char const ARR_CONST_GEQ(hay, hay_sz),
     return hay_sz;
 }
 
-static inline struct sv_factorization
-sv_rmaximal_suffix(ptrdiff_t const needle_sz,
-                   char const ARR_CONST_GEQ(needle, needle_sz))
+static inline struct Factorization
+r_maximal_suffix(ptrdiff_t const needle_sz,
+                 char const ARR_CONST_GEQ(needle, needle_sz))
 {
     ptrdiff_t suff_pos = -1;
     ptrdiff_t period = 1;
@@ -1333,15 +1429,15 @@ sv_rmaximal_suffix(ptrdiff_t const needle_sz,
     ptrdiff_t rest = 1;
     while (last_rest + rest < needle_sz)
     {
-        switch (sv_char_cmp(needle[needle_sz - (last_rest + rest) - 1],
-                            needle[needle_sz - (suff_pos + rest) - 1]))
+        switch (char_cmp(needle[needle_sz - (last_rest + rest) - 1],
+                         needle[needle_sz - (suff_pos + rest) - 1]))
         {
-        case SV_LES:
+        case SV_ORDER_LESSER:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case SV_EQL:
+        case SV_ORDER_EQUAL:
             if (rest != period)
             {
                 ++rest;
@@ -1352,7 +1448,7 @@ sv_rmaximal_suffix(ptrdiff_t const needle_sz,
                 rest = 1;
             }
             break;
-        case SV_GRT:
+        case SV_ORDER_GREATER:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1361,13 +1457,15 @@ sv_rmaximal_suffix(ptrdiff_t const needle_sz,
             break;
         }
     }
-    return (struct sv_factorization){.critical_pos = suff_pos,
-                                     .period_dist = period};
+    return (struct Factorization){
+        .critical_pos = suff_pos,
+        .period_dist = period,
+    };
 }
 
-static inline struct sv_factorization
-sv_rmaximal_suffix_rev(ptrdiff_t const needle_sz,
-                       char const ARR_CONST_GEQ(needle, needle_sz))
+static inline struct Factorization
+r_maximal_suffix_rev(ptrdiff_t const needle_sz,
+                     char const ARR_CONST_GEQ(needle, needle_sz))
 {
     ptrdiff_t suff_pos = -1;
     ptrdiff_t period = 1;
@@ -1375,15 +1473,15 @@ sv_rmaximal_suffix_rev(ptrdiff_t const needle_sz,
     ptrdiff_t rest = 1;
     while (last_rest + rest < needle_sz)
     {
-        switch (sv_char_cmp(needle[needle_sz - (last_rest + rest) - 1],
-                            needle[needle_sz - (suff_pos + rest) - 1]))
+        switch (char_cmp(needle[needle_sz - (last_rest + rest) - 1],
+                         needle[needle_sz - (suff_pos + rest) - 1]))
         {
-        case SV_GRT:
+        case SV_ORDER_GREATER:
             last_rest += rest;
             rest = 1;
             period = last_rest - suff_pos;
             break;
-        case SV_EQL:
+        case SV_ORDER_EQUAL:
             if (rest != period)
             {
                 ++rest;
@@ -1394,7 +1492,7 @@ sv_rmaximal_suffix_rev(ptrdiff_t const needle_sz,
                 rest = 1;
             }
             break;
-        case SV_LES:
+        case SV_ORDER_LESSER:
             suff_pos = last_rest;
             last_rest = suff_pos + 1;
             rest = period = 1;
@@ -1403,8 +1501,10 @@ sv_rmaximal_suffix_rev(ptrdiff_t const needle_sz,
             break;
         }
     }
-    return (struct sv_factorization){.critical_pos = suff_pos,
-                                     .period_dist = period};
+    return (struct Factorization){
+        .critical_pos = suff_pos,
+        .period_dist = period,
+    };
 }
 
 /* ======================   Brute Force Search    ==========================
@@ -1419,7 +1519,7 @@ sv_rmaximal_suffix_rev(ptrdiff_t const needle_sz,
    to left. Also having a reverse tokenizer is convenient and also relies
    on right to left brute force searches. */
 static inline size_t
-sv_strnchr(size_t n, char const ARR_GEQ(s, n), char const c)
+view_n_chr(size_t n, char const ARR_GEQ(s, n), char const c)
 {
     size_t i = 0;
     for (; n && *s != c; s++, --n, ++i)
@@ -1428,7 +1528,7 @@ sv_strnchr(size_t n, char const ARR_GEQ(s, n), char const c)
 }
 
 static inline size_t
-sv_rstrnchr(size_t const n, char const ARR_CONST_GEQ(s, n), char const c)
+r_view_n_chr(size_t const n, char const ARR_CONST_GEQ(s, n), char const c)
 {
     char const *x = s + n - 1;
     size_t i = n;
@@ -1438,9 +1538,9 @@ sv_rstrnchr(size_t const n, char const ARR_CONST_GEQ(s, n), char const c)
 }
 
 static inline size_t
-sv_twobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                    size_t const n_sz,
-                    unsigned char const ARR_CONST_GEQ(n, n_sz))
+two_byte_view_n_view_n(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+                       size_t const n_sz,
+                       unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
     unsigned char const *const end = h + sz;
     uint16_t nw = n[0] << 8 | n[1];
@@ -1451,9 +1551,10 @@ sv_twobyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rtwobyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
-                     size_t const n_sz,
-                     unsigned char const ARR_CONST_GEQ(n, n_sz))
+r_two_byte_view_n_view_n(size_t const sz,
+                         unsigned char const ARR_CONST_GEQ(h, sz),
+                         size_t const n_sz,
+                         unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
     unsigned char const *i = h + (sz - 2);
     uint16_t nw = n[0] << 8 | n[1];
@@ -1467,9 +1568,9 @@ sv_rtwobyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
 }
 
 static inline size_t
-sv_threebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                      size_t const n_sz,
-                      unsigned char const ARR_CONST_GEQ(n, n_sz))
+three_byte_view_n_view_n(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+                         size_t const n_sz,
+                         unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
     unsigned char const *const end = h + sz;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8;
@@ -1480,10 +1581,10 @@ sv_threebyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rthreebyte_strnstrn(size_t const sz,
-                       unsigned char const ARR_CONST_GEQ(h, sz),
-                       size_t const n_sz,
-                       unsigned char const ARR_CONST_GEQ(n, n_sz))
+r_three_byte_view_n_view_n(size_t const sz,
+                           unsigned char const ARR_CONST_GEQ(h, sz),
+                           size_t const n_sz,
+                           unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
     unsigned char const *i = h + (sz - 3);
     uint32_t nw = (uint32_t)n[0] << 16 | n[1] << 8 | n[2];
@@ -1497,9 +1598,9 @@ sv_rthreebyte_strnstrn(size_t const sz,
 }
 
 static inline size_t
-sv_fourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
-                     size_t const n_sz,
-                     unsigned char const ARR_CONST_GEQ(n, n_sz))
+four_byte_view_n_view_n(size_t const sz, unsigned char const ARR_GEQ(h, sz),
+                        size_t const n_sz,
+                        unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
     unsigned char const *const end = h + sz;
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
@@ -1510,9 +1611,10 @@ sv_fourbyte_strnstrn(size_t const sz, unsigned char const ARR_GEQ(h, sz),
 }
 
 static inline size_t
-sv_rfourbyte_strnstrn(size_t const sz, unsigned char const ARR_CONST_GEQ(h, sz),
-                      size_t const n_sz,
-                      unsigned char const ARR_CONST_GEQ(n, n_sz))
+r_four_byte_view_n_view_n(size_t const sz,
+                          unsigned char const ARR_CONST_GEQ(h, sz),
+                          size_t const n_sz,
+                          unsigned char const ARR_CONST_GEQ(n, n_sz))
 {
     unsigned char const *i = h + (sz - 4);
     uint32_t nw = (uint32_t)n[0] << 24 | n[1] << 16 | n[2] << 8 | n[3];
