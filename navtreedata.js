@@ -25,13 +25,15 @@
 var NAVTREE =
 [
   [ "Str View", "index.html", [
+    [ "Interface", "index.html#autotoc_md1", null ],
+    [ "Install", "index.html#autotoc_md2", null ],
     [ "Building and Installation", "md_INSTALL.html", [
-      [ "VCPKG", "md_INSTALL.html#autotoc_md2", null ],
-      [ "Manual Install Quick Start", "md_INSTALL.html#autotoc_md3", null ],
-      [ "Include the Library", "md_INSTALL.html#autotoc_md4", null ],
-      [ "Alternative Builds", "md_INSTALL.html#autotoc_md5", null ],
-      [ "Without Make", "md_INSTALL.html#autotoc_md6", null ],
-      [ "User Presets", "md_INSTALL.html#autotoc_md7", null ]
+      [ "VCPKG", "md_INSTALL.html#autotoc_md4", null ],
+      [ "Manual Install Quick Start", "md_INSTALL.html#autotoc_md5", null ],
+      [ "Include the Library", "md_INSTALL.html#autotoc_md6", null ],
+      [ "Alternative Builds", "md_INSTALL.html#autotoc_md7", null ],
+      [ "Without Make", "md_INSTALL.html#autotoc_md8", null ],
+      [ "User Presets", "md_INSTALL.html#autotoc_md9", null ]
     ] ],
     [ "Data Structures", "annotated.html", [
       [ "Data Structures", "annotated.html", "annotated_dup" ],
