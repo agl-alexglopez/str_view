@@ -8,4 +8,4 @@ Jump straight to the [SV_Str_view](https://agl-alexglopez.github.io/str_view/str
 
 ## Install
 
-Read [INSTALL.md](/INSTALL.md).
+Read [INSTALL.md](INSTALL.md).
