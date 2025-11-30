@@ -49,11 +49,14 @@ struct Factorization
     ptrdiff_t period_dist;
 };
 
-/* Avoid giving the user a chance to dereference null as much as posssible
-   by returning this for various edgecases when it makes sense to communicate
+/* Avoid giving the user a chance to dereference null as much as possible
+   by returning this for various edge cases when it makes sense to communicate
    empty, null, invalid, not found etc. Used on cases by case basis.
    The function interfaces protect us from null pointers but not always. */
-static SV_Str_view const nil = {.s = "", .len = 0};
+static SV_Str_view const nil = {
+    .s = "",
+    .len = 0,
+};
 
 /* =========================   Prototypes   =============================== */
 
