@@ -108,6 +108,10 @@ any pointer input that could change between calls. */
 #include <stdbool.h>
 #include <stddef.h>
 
+/** @name Types
+The types of the `SV_Str_view` interface. */
+/**@{*/
+
 /** @brief A read-only view of string data in C.
 
 It is modeled after the C++ `std::string_view`. It consists of a pointer to char
@@ -135,7 +139,11 @@ typedef enum
     SV_ORDER_ERROR,
 } SV_Order;
 
-/*==========================  Construction  ================================*/
+/**@}*/
+
+/** @name Construction
+A macro and functions for constructing a `SV_Str_view`. */
+/**@{*/
 
 /** @brief A macro to reduce the chance for errors in repeating oneself when
 constructing an inline or const SV_Str_view. The input must be a string literal.
@@ -194,6 +202,18 @@ string. This is similar to the tokenizing function in the iteration section. */
 SV_API SV_Str_view SV_from_delimiter(char const *str, char const *delim)
     SV_ATTRIB_NULLTERM(1) SV_ATTRIB_NULLTERM(2) SV_ATTRIB_PURE;
 
+/** @brief Creates the substring from position pos for count length. The count
+is the minimum value between count and `(length - pos)`.
+@param[in] sv the string view.
+@param[in] pos the position from which to start the substring.
+@param[in] count the new string length of the substring.
+@return a newly constructed string view substring. If an invalid position is
+given greater than SV_Str_view length an empty view is returned positioned at
+the end of SV_Str_view.
+@warning The end position may or may not hold the null terminator. */
+SV_API SV_Str_view SV_substr(SV_Str_view sv, size_t pos,
+                             size_t count) SV_ATTRIB_PURE;
+
 /** @brief Returns the bytes of the string pointer to, null terminator included.
 @param[in] str the null terminated input string.
 @return the size in bytes of str, including the null terminator. */
@@ -223,6 +243,35 @@ size and source view size, null terminating the string.
 Returns how many bytes were written to the buffer. */
 SV_API size_t SV_fill(size_t dest_bytes, char *dest_buf, SV_Str_view src);
 
+/** @brief Returns a SV_Str_view of the entirety of the underlying string,
+starting at the current view pointer position.
+@param[in] sv the string view to extend.
+@return a string view extended to include the rest of the characters before the
+null terminator of the underlying string.
+
+This guarantees that the SV_Str_view returned ends at the null terminator of the
+underlying string as all strings used with SV_Str_views are assumed to be null
+terminated. It is undefined behavior to provide non null terminated strings to
+any SV_Str_view code. */
+SV_API SV_Str_view SV_extend(SV_Str_view sv) SV_ATTRIB_PURE;
+
+/**@}*/
+
+/** @name Comparison
+Comparing a `SV_Str_view` with another instance or a C string. */
+/**@{*/
+
+/** @brief Returns the standard C threeway comparison between cmp(lhs, rhs)
+between two string views.
+@param[in] lhs the string view left hand side.
+@param[in] rhs the string view right hand side.
+@return the order of the left hand side string view compared to the right hand
+side.
+
+Comparison is bounded by the shorter SV_Str_view length. ERR is returned if bad
+input is provided such as a SV_Str_view with a NULL pointer field. */
+SV_API SV_Order SV_compare(SV_Str_view lhs, SV_Str_view rhs) SV_ATTRIB_PURE;
+
 /** @brief Returns the standard C threeway comparison between cmp(lhs, rhs)
 between a SV_Str_view and a C string.
 @param[in] lhs the string view that serves as the left hand side of the order.
@@ -251,89 +300,11 @@ input is provided such as a SV_Str_view with a NULL pointer field. */
 SV_API SV_Order SV_view_compare(SV_Str_view lhs, char const *rhs, size_t n)
     SV_ATTRIB_NULLTERM(2) SV_ATTRIB_PURE;
 
-/** @brief Returns the minimum between the string size vs n bytes.
-@param[in] str the null terminated input string.
-@param[in] n the limiting byte count to compare.
-@return the minimum between the length of the string and n. */
-SV_API size_t SV_min_len(char const *str, size_t n)
-    SV_ATTRIB_NULLTERM(1) SV_ATTRIB_PURE;
+/**@}*/
 
-/** @brief Creates the substring from position pos for count length. The count
-is the minimum value between count and `(length - pos)`.
-@param[in] sv the string view.
-@param[in] pos the position from which to start the substring.
-@param[in] count the new string length of the substring.
-@return a newly constructed string view substring. If an invalid position is
-given greater than SV_Str_view length an empty view is returned positioned at
-the end of SV_Str_view.
-@warning The end position may or may not hold the null terminator. */
-SV_API SV_Str_view SV_substr(SV_Str_view sv, size_t pos,
-                             size_t count) SV_ATTRIB_PURE;
-
-/** @brief A sentinel empty string. Safely dereference to view a null
-terminator. This may be returned from various functions when bad input is given
-such as NULL pointers as the underlying SV_Str_view string pointer.
-@return a read only character pointer that points to a null terminator and can
-be safely dereferenced. */
-SV_API char const *SV_null(void) SV_ATTRIB_PURE;
-
-/** @brief The end of a SV_Str_view guaranteed to be greater than or equal to
-size.
-@param[in] sv the string view.
-@return the end position of the string as an index.
-
-This value may be used for the idiomatic check for most string searching
-function return values when something is not found. If a size is returned from a
-searching function it is possible to check it against this value. */
-SV_API size_t SV_npos(SV_Str_view sv) SV_ATTRIB_CONST;
-
-/** @brief Returns true if the provided SV_Str_view is empty, false otherwise.
-@param[in] sv the string view to check.
-@return true if empty otherwise false.
-
-This is a useful function to check for SV_Str_view searches that yield an empty
-view at the end of a SV_Str_view when an element cannot be found. */
-SV_API bool SV_is_empty(SV_Str_view sv) SV_ATTRIB_CONST;
-
-/** @brief Returns the length of the SV_Str_view in O(1) time.
-@param[in] sv the string view to check.
-@return the length of the string view, not including the null terminator byte.
-
-The position at SV_Str_view size is interpreted as the null terminator and not
-counted toward length of a SV_Str_view. */
-SV_API size_t SV_len(SV_Str_view sv) SV_ATTRIB_CONST;
-
-/** Returns the bytes of SV_Str_view including null terminator.
-@param[in] sv the string view to check.
-@return the size in bytes of the view including the null terminator position
-character.
-@note String views may not actually be null terminated but the position at
-SV_Str_view[SV_Str_view.len] is interpreted as the null terminator and thus
-counts towards the byte count. */
-SV_API size_t SV_bytes(SV_Str_view sv) SV_ATTRIB_CONST;
-
-/** @brief Returns a SV_Str_view of the entirety of the underlying string,
-starting at the current view pointer position.
-@param[in] sv the string view to extend.
-@return a string view extended to include the rest of the characters before the
-null terminator of the underlying string.
-
-This guarantees that the SV_Str_view returned ends at the null terminator of the
-underlying string as all strings used with SV_Str_views are assumed to be null
-terminated. It is undefined behavior to provide non null terminated strings to
-any SV_Str_view code. */
-SV_API SV_Str_view SV_extend(SV_Str_view sv) SV_ATTRIB_PURE;
-
-/** @brief Returns the standard C threeway comparison between cmp(lhs, rhs)
-between two string views.
-@param[in] lhs the string view left hand side.
-@param[in] rhs the string view right hand side.
-@return the order of the left hand side string view compared to the right hand
-side.
-
-Comparison is bounded by the shorter SV_Str_view length. ERR is returned if bad
-input is provided such as a SV_Str_view with a NULL pointer field. */
-SV_API SV_Order SV_compare(SV_Str_view lhs, SV_Str_view rhs) SV_ATTRIB_PURE;
+/** @name Tokenization and Iteration
+Tokenize a `SV_Str_view` and use convenient iteration abstractions. */
+/**@{*/
 
 /** @brief Finds the first tokenized position in the string view given any
 length delim SV_Str_view.
@@ -458,35 +429,11 @@ behavior to pass in any SV_Str_view not being iterated through as started with
 reverse_begin. */
 SV_API char const *SV_reverse_end(SV_Str_view sv) SV_ATTRIB_PURE;
 
-/** @brief Returns the character pointer at the minimum between the indicated
-position and the end of the string view.
-@param[in] sv the string view input.
-@param[in] i the index within range of `[0, string view length - 1)`.
-@return a pointer to the character at the designated index. If NULL is stored by
-the SV_Str_view then SV_null() is returned. */
-SV_API char const *SV_pointer(SV_Str_view sv, size_t i) SV_ATTRIB_PURE;
+/**@}*/
 
-/** @brief Obtain a character at a position in the string view.
-@param[in] sv the input string view.
-@param[in] i the index within `[0, string view length - 1)`
-@return the character in the string at position i with bounds checking. If i is
-greater than or equal to the size of SV_Str_view the null terminator character
-is returned. */
-SV_API char SV_at(SV_Str_view sv, size_t i) SV_ATTRIB_PURE;
-
-/** @brief Obtain the character at the first position of SV_Str_view.
-@param[in] sv the input string view.
-@return the first character in the string view. An empty SV_Str_view or NULL
-pointer is valid and will return '\0'. */
-SV_API char SV_front(SV_Str_view sv) SV_ATTRIB_PURE;
-
-/** @brief Obtain the character at the last position of SV_Str_view.
-@param[in] sv the input string view.
-@return the last character in the string view. An empty SV_Str_view or NULL
-pointer is valid and will return '\0'. */
-SV_API char SV_back(SV_Str_view sv) SV_ATTRIB_PURE;
-
-/*============================  Searching  =================================*/
+/** @name String Matching
+Search a `SV_Str_view` for various types of substrings and character matches. */
+/**@{*/
 
 /** @brief Searches for needle in haystack starting from pos.
 @param[in] haystack the string view to search.
@@ -622,5 +569,90 @@ returned. An empty set (NULL) is valid, returning npos. An empty haystack
 returns 0. */
 SV_API size_t SV_find_last_not_of(SV_Str_view haystack,
                                   SV_Str_view set) SV_ATTRIB_PURE;
+
+/**@}*/
+
+/** @name State
+Obtain current state of an `SV_Str_view` and C strings. */
+/**@{*/
+
+/** @brief Returns the minimum between the string size vs n bytes.
+@param[in] str the null terminated input string.
+@param[in] n the limiting byte count to compare.
+@return the minimum between the length of the string and n. */
+SV_API size_t SV_min_len(char const *str, size_t n)
+    SV_ATTRIB_NULLTERM(1) SV_ATTRIB_PURE;
+
+/** @brief A sentinel empty string. Safely dereference to view a null
+terminator. This may be returned from various functions when bad input is given
+such as NULL pointers as the underlying SV_Str_view string pointer.
+@return a read only character pointer that points to a null terminator and can
+be safely dereferenced. */
+SV_API char const *SV_null(void) SV_ATTRIB_PURE;
+
+/** @brief The end of a SV_Str_view guaranteed to be greater than or equal to
+size.
+@param[in] sv the string view.
+@return the end position of the string as an index.
+
+This value may be used for the idiomatic check for most string searching
+function return values when something is not found. If a size is returned from a
+searching function it is possible to check it against this value. */
+SV_API size_t SV_npos(SV_Str_view sv) SV_ATTRIB_CONST;
+
+/** @brief Returns true if the provided SV_Str_view is empty, false otherwise.
+@param[in] sv the string view to check.
+@return true if empty otherwise false.
+
+This is a useful function to check for SV_Str_view searches that yield an empty
+view at the end of a SV_Str_view when an element cannot be found. */
+SV_API bool SV_is_empty(SV_Str_view sv) SV_ATTRIB_CONST;
+
+/** @brief Returns the length of the SV_Str_view in O(1) time.
+@param[in] sv the string view to check.
+@return the length of the string view, not including the null terminator byte.
+
+The position at SV_Str_view size is interpreted as the null terminator and not
+counted toward length of a SV_Str_view. */
+SV_API size_t SV_len(SV_Str_view sv) SV_ATTRIB_CONST;
+
+/** Returns the bytes of SV_Str_view including null terminator.
+@param[in] sv the string view to check.
+@return the size in bytes of the view including the null terminator position
+character.
+@note String views may not actually be null terminated but the position at
+SV_Str_view[SV_Str_view.len] is interpreted as the null terminator and thus
+counts towards the byte count. */
+SV_API size_t SV_bytes(SV_Str_view sv) SV_ATTRIB_CONST;
+
+/** @brief Returns the character pointer at the minimum between the indicated
+position and the end of the string view.
+@param[in] sv the string view input.
+@param[in] i the index within range of `[0, string view length - 1)`.
+@return a pointer to the character at the designated index. If NULL is stored by
+the SV_Str_view then SV_null() is returned. */
+SV_API char const *SV_pointer(SV_Str_view sv, size_t i) SV_ATTRIB_PURE;
+
+/** @brief Obtain a character at a position in the string view.
+@param[in] sv the input string view.
+@param[in] i the index within `[0, string view length - 1)`
+@return the character in the string at position i with bounds checking. If i is
+greater than or equal to the size of SV_Str_view the null terminator character
+is returned. */
+SV_API char SV_at(SV_Str_view sv, size_t i) SV_ATTRIB_PURE;
+
+/** @brief Obtain the character at the first position of SV_Str_view.
+@param[in] sv the input string view.
+@return the first character in the string view. An empty SV_Str_view or NULL
+pointer is valid and will return '\0'. */
+SV_API char SV_front(SV_Str_view sv) SV_ATTRIB_PURE;
+
+/** @brief Obtain the character at the last position of SV_Str_view.
+@param[in] sv the input string view.
+@return the last character in the string view. An empty SV_Str_view or NULL
+pointer is valid and will return '\0'. */
+SV_API char SV_back(SV_Str_view sv) SV_ATTRIB_PURE;
+
+/**@}*/
 
 #endif /* SV_STR_VIEW */
