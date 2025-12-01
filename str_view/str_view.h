@@ -19,10 +19,12 @@ Tokenization can occur simultaneously from multiple threads and a natural
 iteration abstraction is provided.
 
 Finally, all major string matching functions are provided and run in linear
-time, using constant space. This is important to maintain the pure attributes
-of the searching function. Regardless of the underlying string matching
-algorithm, it maintains that no side effects occur and no auxiliary static
-storage is needed. */
+time, using constant space. There are also variants of the substring matching
+algorithms that run in reverse providing the optimal time complexity for reverse
+string matching. Constant space complexity is an important component of
+maintaining the pure attributes of the searching function. Regardless of the
+underlying string matching algorithm. No side effects occur and no auxiliary
+static storage is needed. */
 #ifndef SV_STR_VIEW
 #define SV_STR_VIEW
 
