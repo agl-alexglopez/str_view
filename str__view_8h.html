@@ -207,23 +207,23 @@ Macros</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Tokenization and Iteration</h2></td></tr>
 <tr><td class="ititle" colspan="2"><p>Tokenize a <code><a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a></code> and use convenient iteration abstractions. </p>
 </td></tr>
-<tr class="memitem:a138ee6d5a38c9be7877a5b2036480774"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a138ee6d5a38c9be7877a5b2036480774">SV_begin_token</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
-<tr class="memdesc:a138ee6d5a38c9be7877a5b2036480774"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the first tokenized position in the string view given any length delim <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>.  <br /></td></tr>
-<tr class="separator:a138ee6d5a38c9be7877a5b2036480774"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a397f0eb64978b548aefd1cef5084a2c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a397f0eb64978b548aefd1cef5084a2c5">SV_end_token</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
-<tr class="memdesc:a397f0eb64978b548aefd1cef5084a2c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides the status of the current tokenization for use in conditions such as loops.  <br /></td></tr>
-<tr class="separator:a397f0eb64978b548aefd1cef5084a2c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a513189a5c02beb2812a5ab94527739d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a513189a5c02beb2812a5ab94527739d4">SV_next_token</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
-<tr class="memdesc:a513189a5c02beb2812a5ab94527739d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advances to the next token in the remaining view separated by the delim.  <br /></td></tr>
-<tr class="separator:a513189a5c02beb2812a5ab94527739d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3b9d20909d11dacf8b538469fd7a924"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#af3b9d20909d11dacf8b538469fd7a924">SV_reverse_begin_token</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
-<tr class="separator:af3b9d20909d11dacf8b538469fd7a924"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8ad04d2ed3533a5889925646cf3ab43"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#ab8ad04d2ed3533a5889925646cf3ab43">SV_reverse_end_token</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
-<tr class="memdesc:ab8ad04d2ed3533a5889925646cf3ab43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides the status of the current tokenization for use in conditions such as loops.  <br /></td></tr>
-<tr class="separator:ab8ad04d2ed3533a5889925646cf3ab43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1893be56fb011dcbe69fedb1a9acadc3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a1893be56fb011dcbe69fedb1a9acadc3">SV_reverse_next_token</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
-<tr class="memdesc:a1893be56fb011dcbe69fedb1a9acadc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advances the token in src to the next token between two delimiters provided by delim.  <br /></td></tr>
-<tr class="separator:a1893be56fb011dcbe69fedb1a9acadc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62b250077ad955f6625508c890f2661f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a62b250077ad955f6625508c890f2661f">SV_token_begin</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
+<tr class="memdesc:a62b250077ad955f6625508c890f2661f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the first tokenized position in the string view given any length delim <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>.  <br /></td></tr>
+<tr class="separator:a62b250077ad955f6625508c890f2661f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a405f4d6a75078d52dd7ebb38877796e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a405f4d6a75078d52dd7ebb38877796e0">SV_token_end</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
+<tr class="memdesc:a405f4d6a75078d52dd7ebb38877796e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides the status of the current tokenization for use in conditions such as loops.  <br /></td></tr>
+<tr class="separator:a405f4d6a75078d52dd7ebb38877796e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e6cb5dcc148fd82026f194299ebbe32"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a4e6cb5dcc148fd82026f194299ebbe32">SV_token_next</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
+<tr class="memdesc:a4e6cb5dcc148fd82026f194299ebbe32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advances to the next token in the remaining view separated by the delim.  <br /></td></tr>
+<tr class="separator:a4e6cb5dcc148fd82026f194299ebbe32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac68c938032a96116e93902e9e9d749da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#ac68c938032a96116e93902e9e9d749da">SV_token_reverse_begin</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
+<tr class="separator:ac68c938032a96116e93902e9e9d749da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75dcc72fda448d3ca49789a8efbe95f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a75dcc72fda448d3ca49789a8efbe95f9">SV_token_reverse_end</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
+<tr class="memdesc:a75dcc72fda448d3ca49789a8efbe95f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides the status of the current tokenization for use in conditions such as loops.  <br /></td></tr>
+<tr class="separator:a75dcc72fda448d3ca49789a8efbe95f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a655161c9c6e475c7da280d622c63740a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a655161c9c6e475c7da280d622c63740a">SV_token_reverse_next</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> src, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> token, <a class="el" href="structSV__Str__view.html">SV_Str_view</a> delim) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
+<tr class="memdesc:a655161c9c6e475c7da280d622c63740a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advances the token in src to the next token between two delimiters provided by delim.  <br /></td></tr>
+<tr class="separator:a655161c9c6e475c7da280d622c63740a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46e8ee9b18ff6110dc8ec907442c8616"><td class="memItemLeft" align="right" valign="top"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> char const *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="str__view_8h.html#a46e8ee9b18ff6110dc8ec907442c8616">SV_begin</a> (<a class="el" href="structSV__Str__view.html">SV_Str_view</a> sv) <a class="el" href="str__view_8h.html#a8bc45837a6af4c6f8a18d674626bbe34">SV_ATTRIB_PURE</a></td></tr>
 <tr class="memdesc:a46e8ee9b18ff6110dc8ec907442c8616"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a read only pointer to the beginning of the string view, the first valid character in the view.  <br /></td></tr>
 <tr class="separator:a46e8ee9b18ff6110dc8ec907442c8616"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -342,13 +342,13 @@ Macros</h2></td></tr>
 <div class="ttc" id="astr__view_8h_html_ab735680cc4059381ce2cad6c8fc690d3"><div class="ttname"><a href="str__view_8h.html#ab735680cc4059381ce2cad6c8fc690d3">SV_from</a></div><div class="ttdeci">#define SV_from(str_literal)</div><div class="ttdoc">A macro to reduce the chance for errors in repeating oneself when constructing an inline or const SV_...</div><div class="ttdef"><b>Definition:</b> str_view.h:169</div></div>
 <div class="ttc" id="astructSV__Str__view_html"><div class="ttname"><a href="structSV__Str__view.html">SV_Str_view</a></div><div class="ttdoc">A read-only view of string data in C.</div><div class="ttdef"><b>Definition:</b> str_view.h:122</div></div>
 </div><!-- fragment --><p>One can even use this in code when string literals are used rather than saved constants to avoid errors in <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> constructions.</p>
-<div class="fragment"><div class="line"><span class="keywordflow">for</span> (<a class="code hl_struct" href="structSV__Str__view.html">SV_Str_view</a> cur = <a class="code hl_function" href="str__view_8h.html#a138ee6d5a38c9be7877a5b2036480774">SV_begin_token</a>(src, <a class="code hl_define" href="str__view_8h.html#ab735680cc4059381ce2cad6c8fc690d3">SV_from</a>(<span class="stringliteral">&quot; &quot;</span>));</div>
-<div class="line">    !<a class="code hl_function" href="str__view_8h.html#a397f0eb64978b548aefd1cef5084a2c5">SV_end_token</a>(src, cur);</div>
-<div class="line">    cur = <a class="code hl_function" href="str__view_8h.html#a513189a5c02beb2812a5ab94527739d4">SV_next_token</a>(src, cur, <a class="code hl_define" href="str__view_8h.html#ab735680cc4059381ce2cad6c8fc690d3">SV_from</a>(<span class="stringliteral">&quot; &quot;</span>))</div>
+<div class="fragment"><div class="line"><span class="keywordflow">for</span> (<a class="code hl_struct" href="structSV__Str__view.html">SV_Str_view</a> cur = <a class="code hl_function" href="str__view_8h.html#a62b250077ad955f6625508c890f2661f">SV_token_begin</a>(src, <a class="code hl_define" href="str__view_8h.html#ab735680cc4059381ce2cad6c8fc690d3">SV_from</a>(<span class="stringliteral">&quot; &quot;</span>));</div>
+<div class="line">    !<a class="code hl_function" href="str__view_8h.html#a405f4d6a75078d52dd7ebb38877796e0">SV_token_end</a>(src, cur);</div>
+<div class="line">    cur = <a class="code hl_function" href="str__view_8h.html#a4e6cb5dcc148fd82026f194299ebbe32">SV_token_next</a>(src, cur, <a class="code hl_define" href="str__view_8h.html#ab735680cc4059381ce2cad6c8fc690d3">SV_from</a>(<span class="stringliteral">&quot; &quot;</span>))</div>
 <div class="line">{}</div>
-<div class="ttc" id="astr__view_8h_html_a138ee6d5a38c9be7877a5b2036480774"><div class="ttname"><a href="str__view_8h.html#a138ee6d5a38c9be7877a5b2036480774">SV_begin_token</a></div><div class="ttdeci">SV_API SV_Str_view SV_begin_token(SV_Str_view src, SV_Str_view delim) SV_ATTRIB_PURE</div><div class="ttdoc">Finds the first tokenized position in the string view given any length delim SV_Str_view.</div></div>
-<div class="ttc" id="astr__view_8h_html_a397f0eb64978b548aefd1cef5084a2c5"><div class="ttname"><a href="str__view_8h.html#a397f0eb64978b548aefd1cef5084a2c5">SV_end_token</a></div><div class="ttdeci">SV_API bool SV_end_token(SV_Str_view src, SV_Str_view token) SV_ATTRIB_PURE</div><div class="ttdoc">Provides the status of the current tokenization for use in conditions such as loops.</div></div>
-<div class="ttc" id="astr__view_8h_html_a513189a5c02beb2812a5ab94527739d4"><div class="ttname"><a href="str__view_8h.html#a513189a5c02beb2812a5ab94527739d4">SV_next_token</a></div><div class="ttdeci">SV_API SV_Str_view SV_next_token(SV_Str_view src, SV_Str_view token, SV_Str_view delim) SV_ATTRIB_PURE</div><div class="ttdoc">Advances to the next token in the remaining view separated by the delim.</div></div>
+<div class="ttc" id="astr__view_8h_html_a405f4d6a75078d52dd7ebb38877796e0"><div class="ttname"><a href="str__view_8h.html#a405f4d6a75078d52dd7ebb38877796e0">SV_token_end</a></div><div class="ttdeci">SV_API bool SV_token_end(SV_Str_view src, SV_Str_view token) SV_ATTRIB_PURE</div><div class="ttdoc">Provides the status of the current tokenization for use in conditions such as loops.</div></div>
+<div class="ttc" id="astr__view_8h_html_a4e6cb5dcc148fd82026f194299ebbe32"><div class="ttname"><a href="str__view_8h.html#a4e6cb5dcc148fd82026f194299ebbe32">SV_token_next</a></div><div class="ttdeci">SV_API SV_Str_view SV_token_next(SV_Str_view src, SV_Str_view token, SV_Str_view delim) SV_ATTRIB_PURE</div><div class="ttdoc">Advances to the next token in the remaining view separated by the delim.</div></div>
+<div class="ttc" id="astr__view_8h_html_a62b250077ad955f6625508c890f2661f"><div class="ttname"><a href="str__view_8h.html#a62b250077ad955f6625508c890f2661f">SV_token_begin</a></div><div class="ttdeci">SV_API SV_Str_view SV_token_begin(SV_Str_view src, SV_Str_view delim) SV_ATTRIB_PURE</div><div class="ttdoc">Finds the first tokenized position in the string view given any length delim SV_Str_view.</div></div>
 </div><!-- fragment --><p>However saving the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> in a constant may be more convenient. </p>
 
 </div>
@@ -461,44 +461,6 @@ Macros</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>if the view stores NULL, the placeholder <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> is returned. </dd></dl>
-
-</div>
-</div>
-<a id="a138ee6d5a38c9be7877a5b2036480774" name="a138ee6d5a38c9be7877a5b2036480774"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a138ee6d5a38c9be7877a5b2036480774">&#9670;&#160;</a></span>SV_begin_token()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_begin_token </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>delim</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Finds the first tokenized position in the string view given any length delim <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source string view to tokenize. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimiter that separates tokens. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>the first token encountered in the source view or the entire view if no token was found. Skips leading delimiters in construction. If the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> to be searched stores NULL than the <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> is returned. If delim stores NULL, that is interpreted as a search for the null terminating character or empty string and the size zero substring at the final position in the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned wich may or may not be the null termiator. If no delim is found the entire <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned. </dd></dl>
 
 </div>
 </div>
@@ -668,44 +630,6 @@ Macros</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the character pointer to the end of this iteration. This may or may not be a null terminated character depending on the view. If the view stores NULL, the placeholder <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> is returned. </dd></dl>
-
-</div>
-</div>
-<a id="a397f0eb64978b548aefd1cef5084a2c5" name="a397f0eb64978b548aefd1cef5084a2c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a397f0eb64978b548aefd1cef5084a2c5">&#9670;&#160;</a></span>SV_end_token()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool SV_end_token </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>token</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Provides the status of the current tokenization for use in conditions such as loops. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source view being tokenized. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenization. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if no further tokens are found and position is at the end position, meaning a call to <a class="el" href="str__view_8h.html#a138ee6d5a38c9be7877a5b2036480774" title="Finds the first tokenized position in the string view given any length delim SV_Str_view.">SV_begin_token()</a> or <a class="el" href="str__view_8h.html#a513189a5c02beb2812a5ab94527739d4" title="Advances to the next token in the remaining view separated by the delim.">SV_next_token()</a> has yielded a size 0 <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> that points at the end of the src <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>, which may or may not be null terminated. </dd></dl>
 
 </div>
 </div>
@@ -1302,51 +1226,6 @@ Macros</h2></td></tr>
 
 </div>
 </div>
-<a id="a513189a5c02beb2812a5ab94527739d4" name="a513189a5c02beb2812a5ab94527739d4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a513189a5c02beb2812a5ab94527739d4">&#9670;&#160;</a></span>SV_next_token()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_next_token </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>token</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>delim</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Advances to the next token in the remaining view separated by the delim. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source string view being tokenized. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenizing. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimeter that separates tokens. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>the string view of the next available token. Repeating delimiter patterns will be skipped until the next token or end of string is found. If <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> stores NULL the <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> placeholder is returned. If delim stores NULL the end position of the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned which may or may not be the null terminator. The token is bounded by the length of the view between two delimiters or the length from a delimiter to the end of src, whichever comes first. </dd></dl>
-
-</div>
-</div>
 <a id="ada02c23f45597bf76446a8ca3ce22983" name="ada02c23f45597bf76446a8ca3ce22983"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ada02c23f45597bf76446a8ca3ce22983">&#9670;&#160;</a></span>SV_npos()</h2>
 
@@ -1535,43 +1414,6 @@ Macros</h2></td></tr>
 
 </div>
 </div>
-<a id="af3b9d20909d11dacf8b538469fd7a924" name="af3b9d20909d11dacf8b538469fd7a924"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3b9d20909d11dacf8b538469fd7a924">&#9670;&#160;</a></span>SV_reverse_begin_token()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_reverse_begin_token </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>delim</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Obtains the last token in a string in preparation for reverse tokenized iteration. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source view to tokenize in reverse. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimiter that separates tokens. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>the last token in the source view or the entire view if no token was found. Any delimiters that end the string are skipped, as in the forward version. If src is NULL SV_null is returned. If delim is null the entire src view is returned. </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Though the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is tokenized in reverse, the token view returned will start at the first character and be the length of the token found. </dd></dl>
-
-</div>
-</div>
 <a id="a5cbbc03e7e0fbc110b66e5b5458d3e47" name="a5cbbc03e7e0fbc110b66e5b5458d3e47"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5cbbc03e7e0fbc110b66e5b5458d3e47">&#9670;&#160;</a></span>SV_reverse_end()</h2>
 
@@ -1597,44 +1439,6 @@ Macros</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the character position at the reverse end of this iteration. </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>It is undefined behavior to access or use rend. It is undefined behavior to pass in any <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> not being iterated through as started with reverse_begin. </dd></dl>
-
-</div>
-</div>
-<a id="ab8ad04d2ed3533a5889925646cf3ab43" name="ab8ad04d2ed3533a5889925646cf3ab43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab8ad04d2ed3533a5889925646cf3ab43">&#9670;&#160;</a></span>SV_reverse_end_token()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool SV_reverse_end_token </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>token</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Provides the status of the current tokenization for use in conditions such as loops. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source view being tokenized. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenization. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if no further tokens are found and position is at the start position, meaning a call to <a class="el" href="str__view_8h.html#af3b9d20909d11dacf8b538469fd7a924">SV_reverse_begin_token()</a> or <a class="el" href="str__view_8h.html#a1893be56fb011dcbe69fedb1a9acadc3" title="Advances the token in src to the next token between two delimiters provided by delim.">SV_reverse_next_token()</a> has yielded a size 0 <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> that points at the start of the src <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>. </dd></dl>
 
 </div>
 </div>
@@ -1746,52 +1550,6 @@ Macros</h2></td></tr>
   </dd>
 </dl>
 <dl class="section warning"><dt>Warning</dt><dd>It is undefined behavior to change the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> one is iterating through during iteration. If the char pointer is null, <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> is returned. </dd></dl>
-
-</div>
-</div>
-<a id="a1893be56fb011dcbe69fedb1a9acadc3" name="a1893be56fb011dcbe69fedb1a9acadc3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1893be56fb011dcbe69fedb1a9acadc3">&#9670;&#160;</a></span>SV_reverse_next_token()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_reverse_next_token </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>token</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
-          <td class="paramname"><em>delim</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Advances the token in src to the next token between two delimiters provided by delim. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source string view being reverse tokenized. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenization. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimiter that separates tokens. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>the string view of the next available token. Repeating delimiters are skipped until the next token is found. If no further tokens can be found an empty <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned with its pointer set to the start of the src string being iterated through. </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>A multi-character delimiter may yield different tokens in reverse than in the forward direction when partial matches occur and some portion of the delimiter is in a token. This is because the string is now being parsed from right to left. However, the token returned starts at the first character and is read from left to right between two delimiters as in the forward version. </dd></dl>
 
 </div>
 </div>
@@ -1942,6 +1700,248 @@ Macros</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the order of the left hand side compared to the right hand side: <code>SV_ORDER_LESSER</code>, <code>SV_ORDER_EQUAL</code>, or <code>SV_ORDER_GREATER</code>.</dd></dl>
 <p>Comparison is bounded by the shorter <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> length. An error value is returned if bad input is provided such as a <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> with a NULL pointer field. </p>
+
+</div>
+</div>
+<a id="a62b250077ad955f6625508c890f2661f" name="a62b250077ad955f6625508c890f2661f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62b250077ad955f6625508c890f2661f">&#9670;&#160;</a></span>SV_token_begin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_token_begin </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>delim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Finds the first tokenized position in the string view given any length delim <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source string view to tokenize. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimiter that separates tokens. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the first token encountered in the source view or the entire view if no token was found. Skips leading delimiters in construction. If the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> to be searched stores NULL than the <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> is returned. If delim stores NULL, that is interpreted as a search for the null terminating character or empty string and the size zero substring at the final position in the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned wich may or may not be the null termiator. If no delim is found the entire <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned. </dd></dl>
+
+</div>
+</div>
+<a id="a405f4d6a75078d52dd7ebb38877796e0" name="a405f4d6a75078d52dd7ebb38877796e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a405f4d6a75078d52dd7ebb38877796e0">&#9670;&#160;</a></span>SV_token_end()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool SV_token_end </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>token</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Provides the status of the current tokenization for use in conditions such as loops. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source view being tokenized. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenization. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if no further tokens are found and position is at the end position, meaning a call to <a class="el" href="str__view_8h.html#a62b250077ad955f6625508c890f2661f" title="Finds the first tokenized position in the string view given any length delim SV_Str_view.">SV_token_begin()</a> or <a class="el" href="str__view_8h.html#a4e6cb5dcc148fd82026f194299ebbe32" title="Advances to the next token in the remaining view separated by the delim.">SV_token_next()</a> has yielded a size 0 <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> that points at the end of the src <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>, which may or may not be null terminated. </dd></dl>
+
+</div>
+</div>
+<a id="a4e6cb5dcc148fd82026f194299ebbe32" name="a4e6cb5dcc148fd82026f194299ebbe32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e6cb5dcc148fd82026f194299ebbe32">&#9670;&#160;</a></span>SV_token_next()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_token_next </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>token</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>delim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Advances to the next token in the remaining view separated by the delim. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source string view being tokenized. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenizing. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimeter that separates tokens. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the string view of the next available token. Repeating delimiter patterns will be skipped until the next token or end of string is found. If <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> stores NULL the <a class="el" href="str__view_8h.html#a7dcc45b3e74f7e8b64d825268ffacba7" title="A sentinel empty string. Safely dereference to view a null terminator. This may be returned from vari...">SV_null()</a> placeholder is returned. If delim stores NULL the end position of the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned which may or may not be the null terminator. The token is bounded by the length of the view between two delimiters or the length from a delimiter to the end of src, whichever comes first. </dd></dl>
+
+</div>
+</div>
+<a id="ac68c938032a96116e93902e9e9d749da" name="ac68c938032a96116e93902e9e9d749da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac68c938032a96116e93902e9e9d749da">&#9670;&#160;</a></span>SV_token_reverse_begin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_token_reverse_begin </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>delim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obtains the last token in a string in preparation for reverse tokenized iteration. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source view to tokenize in reverse. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimiter that separates tokens. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the last token in the source view or the entire view if no token was found. Any delimiters that end the string are skipped, as in the forward version. If src is NULL SV_null is returned. If delim is null the entire src view is returned. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Though the <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is tokenized in reverse, the token view returned will start at the first character and be the length of the token found. </dd></dl>
+
+</div>
+</div>
+<a id="a75dcc72fda448d3ca49789a8efbe95f9" name="a75dcc72fda448d3ca49789a8efbe95f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75dcc72fda448d3ca49789a8efbe95f9">&#9670;&#160;</a></span>SV_token_reverse_end()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> bool SV_token_reverse_end </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>token</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Provides the status of the current tokenization for use in conditions such as loops. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source view being tokenized. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenization. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if no further tokens are found and position is at the start position, meaning a call to <a class="el" href="str__view_8h.html#ac68c938032a96116e93902e9e9d749da">SV_token_reverse_begin()</a> or <a class="el" href="str__view_8h.html#a655161c9c6e475c7da280d622c63740a" title="Advances the token in src to the next token between two delimiters provided by delim.">SV_token_reverse_next()</a> has yielded a size 0 <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> that points at the start of the src <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a>. </dd></dl>
+
+</div>
+</div>
+<a id="a655161c9c6e475c7da280d622c63740a" name="a655161c9c6e475c7da280d622c63740a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a655161c9c6e475c7da280d622c63740a">&#9670;&#160;</a></span>SV_token_reverse_next()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="str__view_8h.html#ab632a39b679bbed9a2f8a8cbb6c04807">SV_API</a> <a class="el" href="structSV__Str__view.html">SV_Str_view</a> SV_token_reverse_next </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>token</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSV__Str__view.html">SV_Str_view</a>&#160;</td>
+          <td class="paramname"><em>delim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Advances the token in src to the next token between two delimiters provided by delim. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>the source string view being reverse tokenized. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>the current token obtained from tokenization. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>the delimiter that separates tokens. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the string view of the next available token. Repeating delimiters are skipped until the next token is found. If no further tokens can be found an empty <a class="el" href="structSV__Str__view.html" title="A read-only view of string data in C.">SV_Str_view</a> is returned with its pointer set to the start of the src string being iterated through. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>A multi-character delimiter may yield different tokens in reverse than in the forward direction when partial matches occur and some portion of the delimiter is in a token. This is because the string is now being parsed from right to left. However, the token returned starts at the first character and is read from left to right between two delimiters as in the forward version. </dd></dl>
 
 </div>
 </div>
