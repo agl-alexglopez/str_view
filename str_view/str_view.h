@@ -159,9 +159,9 @@ One can even use this in code when string literals are used rather than
 saved constants to avoid errors in SV_Str_view constructions.
 
 ```
-for (SV_Str_view cur = SV_begin_token(src, SV_from(" "));
-    !SV_end_token(src, cur);
-    cur = SV_next_token(src, cur, SV_from(" "))
+for (SV_Str_view cur = SV_token_begin(src, SV_from(" "));
+    !SV_token_end(src, cur);
+    cur = SV_token_next(src, cur, SV_from(" "))
 {}
 ```
 
@@ -317,7 +317,7 @@ that is interpreted as a search for the null terminating character or empty
 string and the size zero substring at the final position in the SV_Str_view is
 returned wich may or may not be the null termiator. If no delim is found the
 entire SV_Str_view is returned. */
-SV_API SV_Str_view SV_begin_token(SV_Str_view src,
+SV_API SV_Str_view SV_token_begin(SV_Str_view src,
                                   SV_Str_view delim) SV_ATTRIB_PURE;
 
 /** @brief Provides the status of the current tokenization for use in conditions
@@ -325,10 +325,10 @@ such as loops.
 @param[in] src the source view being tokenized.
 @param[in] token the current token obtained from tokenization.
 @return true if no further tokens are found and position is at the end position,
-meaning a call to SV_begin_token() or SV_next_token() has yielded a size 0
+meaning a call to SV_token_begin() or SV_token_next() has yielded a size 0
 SV_Str_view that points at the end of the src SV_Str_view, which may or may not
 be null terminated. */
-SV_API bool SV_end_token(SV_Str_view src, SV_Str_view token) SV_ATTRIB_PURE;
+SV_API bool SV_token_end(SV_Str_view src, SV_Str_view token) SV_ATTRIB_PURE;
 
 /** @brief Advances to the next token in the remaining view separated by the
 delim.
@@ -342,7 +342,7 @@ NULL the end position of the SV_Str_view is returned which may or may not be the
 null terminator. The token is bounded by the length of the view between two
 delimiters or the length from a delimiter to the end of src, whichever comes
 first. */
-SV_API SV_Str_view SV_next_token(SV_Str_view src, SV_Str_view token,
+SV_API SV_Str_view SV_token_next(SV_Str_view src, SV_Str_view token,
                                  SV_Str_view delim) SV_ATTRIB_PURE;
 
 /** Obtains the last token in a string in preparation for reverse tokenized
@@ -355,7 +355,7 @@ version. If src is NULL SV_null is returned. If delim is null the entire src
 view is returned.
 @note Though the SV_Str_view is tokenized in reverse, the token view returned
 will start at the first character and be the length of the token found. */
-SV_API SV_Str_view SV_reverse_begin_token(SV_Str_view src,
+SV_API SV_Str_view SV_token_reverse_begin(SV_Str_view src,
                                           SV_Str_view delim) SV_ATTRIB_PURE;
 
 /** @brief Provides the status of the current tokenization for use in conditions
@@ -363,10 +363,10 @@ such as loops.
 @param[in] src the source view being tokenized.
 @param[in] token the current token obtained from tokenization.
 @return true if no further tokens are found and position is at the start
-position, meaning a call to SV_reverse_begin_token() or SV_reverse_next_token()
+position, meaning a call to SV_token_reverse_begin() or SV_token_reverse_next()
 has yielded a size 0 SV_Str_view that points at the start of the src
 SV_Str_view. */
-SV_API bool SV_reverse_end_token(SV_Str_view src,
+SV_API bool SV_token_reverse_end(SV_Str_view src,
                                  SV_Str_view token) SV_ATTRIB_PURE;
 
 /** @brief Advances the token in src to the next token between two delimiters
@@ -383,7 +383,7 @@ the forward direction when partial matches occur and some portion of the
 delimiter is in a token. This is because the string is now being parsed from
 right to left. However, the token returned starts at the first character and is
 read from left to right between two delimiters as in the forward version. */
-SV_API SV_Str_view SV_reverse_next_token(SV_Str_view src, SV_Str_view token,
+SV_API SV_Str_view SV_token_reverse_next(SV_Str_view src, SV_Str_view token,
                                          SV_Str_view delim) SV_ATTRIB_PURE;
 
 /** @brief Returns a read only pointer to the beginning of the string view,

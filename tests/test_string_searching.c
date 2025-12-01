@@ -493,9 +493,9 @@ test_substring_search(void)
         remaining_string, 0, SV_find(remaining_string, 0, needle_view));
     /* There are two needles so we get two string chunks chunks. */
     size_t i = 0;
-    for (SV_Str_view v = SV_begin_token(haystack_view, needle_view);
-         !SV_end_token(haystack_view, v);
-         v = SV_next_token(haystack_view, v, needle_view))
+    for (SV_Str_view v = SV_token_begin(haystack_view, needle_view);
+         !SV_token_end(haystack_view, v);
+         v = SV_token_next(haystack_view, v, needle_view))
     {
         if (i == 0)
         {

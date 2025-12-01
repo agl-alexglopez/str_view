@@ -121,9 +121,9 @@ test_dir_entries(void)
         = SV_from_terminated("/this/is/a/very/special/file");
     char const *const toks[6] = {"this", "is", "a", "very", "special", "file"};
     size_t i = 0;
-    for (SV_Str_view tok = SV_begin_token(special_file, dirslash);
-         !SV_end_token(special_file, tok);
-         tok = SV_next_token(special_file, tok, dirslash), ++i)
+    for (SV_Str_view tok = SV_token_begin(special_file, dirslash);
+         !SV_token_end(special_file, tok);
+         tok = SV_token_next(special_file, tok, dirslash), ++i)
     {
         CHECK(SV_terminated_compare(tok, toks[i]), SV_ORDER_EQUAL, SV_Order,
               "%d");

@@ -178,7 +178,7 @@ SV_from_delimiter(char const *const str, char const *const delim)
             .len = strlen(str),
         };
     }
-    return SV_begin_token(
+    return SV_token_begin(
         (SV_Str_view){
             .str = str,
             .len = strlen(str),
@@ -431,7 +431,7 @@ SV_pointer(SV_Str_view const sv, size_t const i)
 }
 
 SV_Str_view
-SV_begin_token(SV_Str_view src, SV_Str_view const delim)
+SV_token_begin(SV_Str_view src, SV_Str_view const delim)
 {
     if (!src.str)
     {
@@ -459,13 +459,13 @@ SV_begin_token(SV_Str_view src, SV_Str_view const delim)
 }
 
 bool
-SV_end_token(SV_Str_view const src, SV_Str_view const token)
+SV_token_end(SV_Str_view const src, SV_Str_view const token)
 {
     return !token.len || token.str >= (src.str + src.len);
 }
 
 SV_Str_view
-SV_next_token(SV_Str_view const src, SV_Str_view const token,
+SV_token_next(SV_Str_view const src, SV_Str_view const token,
               SV_Str_view const delim)
 {
     if (!token.str)
@@ -511,7 +511,7 @@ SV_next_token(SV_Str_view const src, SV_Str_view const token,
 }
 
 SV_Str_view
-SV_reverse_begin_token(SV_Str_view src, SV_Str_view const delim)
+SV_token_reverse_begin(SV_Str_view src, SV_Str_view const delim)
 {
     if (!src.str)
     {
@@ -539,7 +539,7 @@ SV_reverse_begin_token(SV_Str_view src, SV_Str_view const delim)
 }
 
 SV_Str_view
-SV_reverse_next_token(SV_Str_view const src, SV_Str_view const token,
+SV_token_reverse_next(SV_Str_view const src, SV_Str_view const token,
                       SV_Str_view const delim)
 {
     if (!token.str)
@@ -583,7 +583,7 @@ SV_reverse_next_token(SV_Str_view const src, SV_Str_view const token,
 }
 
 bool
-SV_reverse_end_token(SV_Str_view const src, SV_Str_view const token)
+SV_token_reverse_end(SV_Str_view const src, SV_Str_view const token)
 {
     return !token.len && token.str == src.str;
 }
