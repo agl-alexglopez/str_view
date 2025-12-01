@@ -23,8 +23,8 @@ time, using constant space. There are also variants of the substring matching
 algorithms that run in reverse providing the optimal time complexity for reverse
 string matching. Constant space complexity is an important component of
 maintaining the pure attributes of the searching function. Regardless of the
-underlying string matching algorithm. No side effects occur and no auxiliary
-static storage is needed. */
+underlying string matching algorithm, no side effects occur and no auxiliary
+global or static global storage is needed. */
 #ifndef SV_STR_VIEW
 #define SV_STR_VIEW
 
