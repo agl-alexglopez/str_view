@@ -1237,8 +1237,10 @@ maximal_suffix(ptrdiff_t const needle_sz,
             break;
         }
     }
-    return (struct Factorization){.critical_pos = suff_pos,
-                                  .period_dist = period};
+    return (struct Factorization){
+        .critical_pos = suff_pos,
+        .period_dist = period,
+    };
 }
 
 /* Computing of the maximal suffix reverse. Sometimes called tilde.
