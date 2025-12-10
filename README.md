@@ -10,12 +10,12 @@ A `str_view` is a 16-byte struct and, due to this size, is treated throughout th
 
 ## Interface
 
-Read the [DOCS](https://agl-alexglopez.github.io/str_view/). 
+Read the [DOCS](https://skeletoss.github.io/str_view/). 
 
 
 ## Install Instructions
 
-This library offers a manual installation through the [Releases](https://github.com/agl-alexglopez/str_view/releases) page or fetch content install via CMake.
+This library offers a manual installation through the [Releases](https://github.com/skeletoss/str_view/releases) page or fetch content install via CMake.
 
 See [INSTALL.md](/INSTALL.md) file for instructions on how to install the `str-view` port through vcpkg or how to manually download, build, and install the library.
 
