@@ -1,34 +1,5 @@
 # Building and Installation
 
-## VCPKG
-
-The `str-view` port is available in the vcpkg registry. For a review of how to use ports available in the vcpkg registry review the [vcpkg guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-bash). This library offers the following port name and usage file.
-
-The `vcpkg.json` file.
-
-```json
-{
-    "dependencies": [
-        "str-view"
-    ]
-}
-```
-
-The `usage` file.
-
-```txt
-str_view provides CMake targets:
-
-  find_package(str_view CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE str_view::str_view)
-```
-
-Then, the header in the `.c/.h` files.
-
-```c
-#include "str_view/str_view.h"
-```
-
 ## Fetch Content
 
 This approach will allow CMake to build `str_view` from source as part of your project. It does not have external dependencies, besides the standard library, so this may be viable for you. This is helpful if you want the ability to build the library in release or debug mode along with your project and possibly step through it with a debugger during a debug build. If you would rather link to the release build library file see the next section for the manual install.
@@ -39,7 +10,7 @@ To avoid including tests, samples, and other extraneous files when fetching cont
 include(FetchContent)
 FetchContent_Declare(
   ccc
-  URL https://github.com/agl-alexglopez/str_view/releases/download/v[MAJOR.MINOR.PATCH]/str_view-v[MAJOR.MINOR.PATCH].zip
+  URL https://github.com/skeletoss/str_view/releases/download/v[MAJOR.MINOR.PATCH]/str_view-v[MAJOR.MINOR.PATCH].zip
   #DOWNLOAD_EXTRACT_TIMESTAMP FALSE # CMake may raise a warning to set this. If so, uncomment and set.
 )
 FetchContent_MakeAvailable(str_view)
@@ -60,7 +31,7 @@ Here is a concrete example with an arbitrary release that is likely out of date.
 include(FetchContent)
 FetchContent_Declare(
   ccc
-  URL https://github.com/agl-alexglopez/str_view/releases/download/v0.6.0/str_view-v0.6.0.zip
+  URL https://github.com/skeletoss/str_view/releases/download/v0.6.0/str_view-v0.6.0.zip
   #DOWNLOAD_EXTRACT_TIMESTAMP FALSE # CMake may raise a warning to set this. If so, uncomment and set.
 )
 FetchContent_MakeAvailable(str_view)
